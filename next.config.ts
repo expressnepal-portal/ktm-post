@@ -8,6 +8,16 @@ const nextConfig = {
         pathname: "/**",
       },
       {
+        protocol: "http",
+        hostname: "cms.bodhiberry.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cms.bodhiberry.com",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
         hostname: "www.onlinekhabar.com",
         pathname: "/**",

@@ -1,7 +1,7 @@
 import { BannerAd, HomePagePosts } from "./type";
 
 const API_URL =
-  process.env.API_URL || "https://news.nepalvoices.com/news/graphql";
+  process.env.API_URL || "https://cms.bodhiberry.com/graphql";
 
 export interface FeaturedImage {
   sourceUrl: string;
@@ -95,11 +95,8 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(` HTTP Error: ${response.status}: ${errorText}`);
-      throw new Error(
-        `Failed to fetch posts: ${response.status} ${response.statusText}`
-      );
+      console.warn(`WordPress API unavailable (${response.status}) at ${API_URL}`);
+      return [];
     }
 
     const json: PostsResponse = await response.json();
@@ -122,7 +119,7 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
       if (post.featuredImage?.node?.sourceUrl) {
         let imageUrl = post.featuredImage.node.sourceUrl;
         if (imageUrl.startsWith("/")) {
-          imageUrl = `https://news.nepalvoices.com${imageUrl}`;
+          imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
           post.featuredImage.node.sourceUrl = imageUrl;
         }
       }
@@ -169,11 +166,11 @@ export function extractFirstImageFromContent(
 
         // Convert to absolute URL if relative
         if (imageUrl.startsWith("/")) {
-          imageUrl = `https://news.nepalvoices.com${imageUrl}`;
+          imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
         } else if (imageUrl.startsWith("//")) {
           imageUrl = `https:${imageUrl}`;
         } else if (!imageUrl.startsWith("http")) {
-          imageUrl = `https://news.nepalvoices.com/${imageUrl}`;
+          imageUrl = `https://cms.bodhiberry.com/${imageUrl}`;
         }
 
         // console.log("Extracted image from content:", imageUrl);
@@ -293,11 +290,8 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(` HTTP Error: ${response.status}: ${errorText}`);
-      throw new Error(
-        `Failed to fetch post: ${response.status} ${response.statusText}`
-      );
+      console.warn(`WordPress API unavailable (${response.status}) at ${API_URL}`);
+      return null;
     }
 
     const json: {
@@ -322,7 +316,7 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
     if (post.featuredImage?.node?.sourceUrl) {
       let imageUrl = post.featuredImage.node.sourceUrl;
       if (imageUrl.startsWith("/")) {
-        imageUrl = `https://news.nepalvoices.com${imageUrl}`;
+        imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
         post.featuredImage.node.sourceUrl = imageUrl;
       }
     }
@@ -639,17 +633,38 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     next: { revalidate: 300 },
   });
 
-  const json = await response.json();
+  if (!response.ok) {
+    console.error(`Fetch homepage posts HTTP error: ${response.status}`);
+    return {
+      featured: [], trending: [], latest: [], politics: [], society: [],
+      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
+    };
+  }
+
+  const text = await response.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (err) {
+    console.error("Failed to parse JSON response from GraphQL:", text.substring(0, 200));
+    return {
+      featured: [], trending: [], latest: [], politics: [], society: [],
+      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
+    };
+  }
 
   if (json.errors) {
     console.error("GraphQL errors:", json.errors);
-    throw new Error("Failed to fetch homepage posts");
+    return {
+      featured: [], trending: [], latest: [], politics: [], society: [],
+      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
+    };
   }
 
   const normalize = (posts: Post[]) =>
     posts.map((post) => {
       if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-        post.featuredImage.node.sourceUrl = `https://news.nepalvoices.com${post.featuredImage.node.sourceUrl}`;
+        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
       }
       return post;
     });
@@ -723,7 +738,7 @@ export async function fetchRelatedPosts(
     if (post.featuredImage?.node?.sourceUrl) {
       let imageUrl = post.featuredImage.node.sourceUrl;
       if (imageUrl.startsWith("/")) {
-        imageUrl = `https://news.nepalvoices.com${imageUrl}`;
+        imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
         post.featuredImage.node.sourceUrl = imageUrl;
       }
     }
@@ -735,7 +750,7 @@ export async function fetchRelatedPosts(
 
 export async function fetchAdsBanner(): Promise<BannerAd[]> {
   try {
-    const baseUrl = "http://wp-graphql-demo.local/graphql";
+    const baseUrl = API_URL;
 
     const query = `
       query {
