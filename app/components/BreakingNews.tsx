@@ -16,7 +16,7 @@ export default function BreakingNews({ title, slug, image, excerpt }: BreakingNe
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-2">
-          <Image src="/logo.jpeg" width={30} height={20} alt="KTM Post" className="h-5 w-auto object-contain" />
+          <Image src="/logo.png" width={30} height={20} alt="KTM Post" className="h-5 w-auto object-contain" />
           <p className="text-xs font-semibold tracking-wide text-gray-700 font-poppins">KTM Post</p>
         </div>
 
