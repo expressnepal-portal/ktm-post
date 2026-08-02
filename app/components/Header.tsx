@@ -36,12 +36,30 @@ const categories: Category[] = [
 export default function Header() {
   const pathname = usePathname() || "";
   const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   
   return (
-    <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 w-full">
-      {/* TOP UTILITY & LOGO BAR */}
-      <div className="w-full max-w-[1920px] mx-auto px-mobile-safe py-3 relative flex flex-col items-center">
-        
+    <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300">
+      {/* TOP UTILITY & LOGO BAR (Hides on scroll > 80px) */}
+      <div
+        className={`w-full max-w-[1920px] mx-auto px-mobile-safe relative flex flex-col items-center transition-all duration-300 ${
+          scrolled
+            ? "max-h-0 opacity-0 py-0 overflow-hidden"
+            : "max-h-60 opacity-100 py-3"
+        }`}
+      >
         {/* Date & Location (Top utility line) */}
         <div className="w-full flex items-center justify-between border-b border-gray-100 pb-2 mb-3 text-xs tracking-wider text-gray-500 uppercase font-medium">
           <span className="hidden sm:inline">Kathmandu, Nepal</span>
@@ -68,7 +86,7 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Brand Logo (centered on desktop, right-aligned on mobile) */}
+          {/* Brand Logo (responsive size for mobile & desktop) */}
           <div className="flex-grow flex justify-end lg:justify-center py-1">
             <Link href={"/"} className="transition-opacity hover:opacity-90">
               <Image
@@ -76,7 +94,7 @@ export default function Header() {
                 width={200}
                 height={40}
                 alt="KTM Post Logo"
-                className=" object-contain"
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
                 priority
               />
             </Link>
@@ -84,26 +102,69 @@ export default function Header() {
         </div>
       </div>
 
+      {/* MOBILE COMPACT HEADER WHEN SCROLLED */}
+      {scrolled && (
+        <div className="lg:hidden flex items-center justify-between px-mobile-safe py-2 border-b border-gray-100 bg-white">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5 text-gray-700" />
+            ) : (
+              <Menu className="w-5 h-5 text-gray-700" />
+            )}
+          </button>
+          <Link href={"/"} className="transition-opacity hover:opacity-90">
+            <Image
+              src="/logo.png"
+              width={120}
+              height={26}
+              alt="KTM Post Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
+        </div>
+      )}
+
       {/* DESKTOP STICKY NAVBAR */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex justify-center items-center px-12 py-1">
-          <div className="flex items-center gap-1">
-            {/* Home Icon */}
+        <div className="max-w-[1920px] mx-auto flex justify-center items-center px-12 py-1 relative">
+          {/* Small brand logo on left when scrolled */}
+          {scrolled && (
+            <div className="absolute left-6 flex items-center">
+              <Link href={"/"} className="transition-opacity hover:opacity-90">
+                <Image
+                  src="/logo.png"
+                  width={110}
+                  height={24}
+                  alt="KTM Post Logo"
+                  className="h-6 w-auto object-contain"
+                />
+              </Link>
+            </div>
+          )}
 
+          <div className="flex items-center gap-1">
             {/* Category Links */}
             <ul className="flex items-center gap-1 font-extrabold">
               {categories.map((item, index) => {
                 const isHome = item.slug === "/";
                 const href = isHome ? "/" : `/${item.slug}`;
-                const isActive = isHome ? pathname === "/" : pathname.startsWith(`/${item.slug}`);
+                const isActive = isHome
+                  ? pathname === "/"
+                  : pathname.startsWith(`/${item.slug}`);
                 return (
                   <li key={index}>
                     <Link href={href}>
-                      <span className={`inline-block px-4 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-lg ${
-                        isActive 
-                          ? "text-nepal-red border-nepal-red" 
-                          : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
-                      }`}>
+                      <span
+                        className={`inline-block px-4 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-lg ${
+                          isActive
+                            ? "text-nepal-red border-nepal-red"
+                            : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
+                        }`}
+                      >
                         {item.nepali}
                       </span>
                     </Link>
