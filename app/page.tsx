@@ -920,7 +920,7 @@ const internationalPosts =
                         <span className="text-xs font-bold uppercase tracking-wider text-nepal-red mb-1.5 font-poppins">
                           विचार
                         </span>
-                        <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-3 mb-2">
+                        <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 mb-2">
                           {getCleanTitle(post.title)}
                         </h3>
                         <div className="mt-auto pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-poppins font-medium">
@@ -1008,7 +1008,7 @@ const internationalPosts =
               <h3 className="mt-4 text-base md:text-lg font-bold text-white leading-snug line-clamp-2 group-hover:text-nepal-red transition-colors">
                 {getCleanTitle(post.title)}
               </h3>
-              <p className="mt-2 text-sm text-gray-400">{displayAuthor}</p>
+
             </Link>
           );
         })}

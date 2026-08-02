@@ -71,7 +71,21 @@ export default function Header() {
 
         {/* Logo Masthead */}
         <div className="flex items-center justify-between w-full">
-          {/* Mobile Hamburger menu on the left */}
+          {/* Brand Logo (left-aligned on mobile, centered on desktop) */}
+          <div className="flex-grow flex justify-start lg:justify-center py-1">
+            <Link href={"/"} className="transition-opacity hover:opacity-90">
+              <Image
+                src="/logo.png"
+                width={200}
+                height={40}
+                alt="KTM Post Logo"
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                priority
+              />
+            </Link>
+          </div>
+
+          {/* Mobile Hamburger menu on the right */}
           <div className="lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -85,26 +99,21 @@ export default function Header() {
               )}
             </button>
           </div>
-
-          {/* Brand Logo (responsive size for mobile & desktop) */}
-          <div className="flex-grow flex justify-end lg:justify-center py-1">
-            <Link href={"/"} className="transition-opacity hover:opacity-90">
-              <Image
-                src="/logo.png"
-                width={200}
-                height={40}
-                alt="KTM Post Logo"
-                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
-                priority
-              />
-            </Link>
-          </div>
         </div>
       </div>
 
       {/* MOBILE COMPACT HEADER WHEN SCROLLED */}
       {scrolled && (
         <div className="lg:hidden flex items-center justify-between px-mobile-safe py-2 border-b border-gray-100 bg-white">
+          <Link href={"/"} className="transition-opacity hover:opacity-90">
+            <Image
+              src="/logo.png"
+              width={120}
+              height={26}
+              alt="KTM Post Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
@@ -116,15 +125,6 @@ export default function Header() {
               <Menu className="w-5 h-5 text-gray-700" />
             )}
           </button>
-          <Link href={"/"} className="transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.png"
-              width={120}
-              height={26}
-              alt="KTM Post Logo"
-              className="h-7 w-auto object-contain"
-            />
-          </Link>
         </div>
       )}
 
