@@ -22,7 +22,7 @@ export default async function NewsPage() {
       <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
 
         {/* Section title */}
-        <div className="flex justify-center mb-6 md:mb-8  pb-3 md:pb-4 flex-col ml-6" >
+        <div className="flex justify-center mb-6 md:mb-8 pb-3 md:pb-4 flex-col" >
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-nepal-black">
             News
           </h2>

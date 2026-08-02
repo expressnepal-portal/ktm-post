@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Playfair_Display } from "next/font/google";
 import Link from "next/link";
-import { House, X, Menu, Facebook, Youtube } from "lucide-react";
+import { House, X, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Category } from "@/lib/type";
 import NepaliDateTime from "./NepaliDateTime";
 import Image from "next/image";
 import { useMobileMenu } from "./MobileMenuContext"; 
-import HeaderAd from "./HeaderAd";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -17,23 +16,21 @@ const playfair = Playfair_Display({
 });
 
 const categories: Category[] = [
+    { nepali: "होमपेज", english: "Homepage", slug: "/" },
   { nepali: "समाचार", english: "News", slug: "news" },
   { nepali: "राजनीति", english: "News", slug: "politics" },
-  { nepali: "समाज", english: "News", slug: "society" },
-  { nepali: "अर्थतन्त्र", english: "अर्थतन्त्र", slug: "economy" },
-  { nepali: "विज्ञान प्रविधि", english: "विज्ञान प्रविधि", slug: "technology" },
-  { nepali: "कला साहित्य", english: "कला साहित्य", slug: "arts" },
-  { nepali: "खेलकुद", english: "खेलकुद", slug: "sports" },
-  { nepali: "विश्व", english: "विश्व", slug: "world" },
-  { nepali: "Podcast", english: "Podcast", slug: "podcast" },
-];
+      { nepali: "विचार", english: "Opinion", slug: "opinion" },
+    { nepali: "अर्थ", english: "Economy", slug: "economy" },
+  { nepali: "अन्तराष्ट्रिय", english: "International", slug: "international" },
+    { nepali: "खेलकुद", english: "खेलकुद", slug: "sports" },
+  { nepali: "स्वास्थ्य/जीवन शैली", english: "Health and Lifestyle", slug: "health-and-lifestyle" },
+      { nepali: "मल्टिमिडिया", english: "Multimedia", slug: "multimedia" },
+  // { nepali: "अन्य", english: "Others", slug: "others" },
 
-const dropdownCategories: string[] = [
-  "news",
-  "economy",
-  "technology",
-  "arts",
-  "others",
+  // { nepali: "समाज", english: "News", slug: "society" },
+  // { nepali: "विज्ञान प्रविधि", english: "विज्ञान प्रविधि", slug: "technology" },
+  // { nepali: "कला साहित्य", english: "कला साहित्य", slug: "arts" },
+  // { nepali: "विश्व", english: "विश्व", slug: "world" },
 ];
 
 export default function Header() {
@@ -41,103 +38,74 @@ export default function Header() {
   const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   
   return (
-    <header className="bg-white border-b-4 border-nepal-orange fixed top-0 left-0 right-0 z-50 shadow-xl w-full">
-      {/* TOP BAR */}
-      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 relative ">
-        {/* Logo and Nepali date/time */}
-        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 pb-2 relative">
-  {/* Top-right social icons */}
-  <div className="absolute top-3 right-3 flex items-center gap-3">
-    <Link href={""} className="text-gray-600 hover:text-blue-600 transition-colors">
-      <Facebook size={15} />
-    </Link>
-    <Link href={""} className="text-gray-600 hover:text-red-600 transition-colors">
-      <Youtube size={15} />
-    </Link>
-    <Link href={""} className="text-gray-600 hover:text-black transition-colors">X</Link>
-  </div>
+    <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 w-full">
+      {/* TOP UTILITY & LOGO BAR */}
+      <div className="w-full max-w-[1920px] mx-auto px-mobile-safe py-3 relative flex flex-col items-center">
+        
+        {/* Date & Location (Top utility line) */}
+        <div className="w-full flex items-center justify-between border-b border-gray-100 pb-2 mb-3 text-xs tracking-wider text-gray-500 uppercase font-medium">
+          <span className="hidden sm:inline">Kathmandu, Nepal</span>
+          <div className="mx-auto sm:mx-0">
+            <NepaliDateTime />
+          </div>
+          <span className="hidden sm:inline">English / नेपाली</span>
+        </div>
 
-  {/* Hamburger for mobile */}
-  <div className="absolute top-3 left-3 lg:hidden">
-    <button
-      className="bg-white rounded-full w-10 h-10 flex items-center justify-center"
-      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-    >
-      {mobileMenuOpen ? (
-        <X className="w-6 h-6 text-gray-700 scale-[1.4]" />
-      ) : (
-        <Menu className="w-6 h-6 text-gray-700 scale-[1.4]" />
-      )}
-    </button>
-  </div>
+        {/* Logo Masthead */}
+        <div className="flex items-center justify-between w-full">
+          {/* Mobile Hamburger menu on the left */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
+              aria-label="Toggle Menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-gray-700" />
+              ) : (
+                <Menu className="w-6 h-6 text-gray-700" />
+              )}
+            </button>
+          </div>
 
-  {/* Centered Logo + Text + Nepali DateTime */}
-  <div className="flex flex-col items-center justify-center w-full mt-6 lg:mt-4">
-    <Link href={"/"}>
-      <div className="flex items-center gap-2">
-        {/* Logo */}
-        <Image
-          src="/NVLOGO.png"
-          width={50}
-          height={50}
-          alt="Logo"
-          className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16"
-        />
-        {/* Nepal Voices Text */}
-        <h1 className={`${playfair.className} font-extrabold tracking-tight
-          text-xl sm:text-2xl md:text-3xl lg:text-3xl  max-w-[400px] text-center`}>
-          <span className="text-[#CC0001]">Nepal</span>
-          <span className="text-[#004AAD]"> Voices</span>
-        </h1>
-      </div>
-    </Link>
-
-    {/* Nepali Date/Time below text */}
-    <div className="mt-1 ml-20 text-gray-700 text-sm sm:text-sm md:text-base lg:text-base xl:text-md text-center">
-      <NepaliDateTime />
-    </div>
-  </div>
-</div>
-
-
-
-
-      </div>
-
-      {/* NAVBAR */}
-      <nav className="hidden lg:flex bg-[#004AAD] sticky top-0 z-50 shadow-md">
-        <div className="max-w-[1920px] mx-auto flex items-start lg:items-center justify-center px-4 sm:px-6 md:px-8 lg:px-12 py-2">
-          
-          {/* Hamburger / X icon for mobile */}
-          <button
-            className="bg-white rounded-full w-10 h-10 flex items-center justify-center lg:hidden shrink-0"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
-            )}
-          </button>
-
-          {/* Desktop Menu */}
-          <div className={`flex flex-col lg:flex-row lg:items-center lg:gap-8 w-full lg:w-auto transition-all duration-300 ${mobileMenuOpen ? "max-h-[1000px]" : "max-h-0 overflow-hidden lg:max-h-full"}`}>
-            {/* Home */}
-            <Link href="/" className={`flex items-center justify-center w-14 h-10 shrink-0 rounded transition mb-2 lg:mb-0 ${pathname === "/" ? "bg-[#e3110e]" : ""}`}>
-              <House className="text-white" />
+          {/* Brand Logo (centered on desktop, right-aligned on mobile) */}
+          <div className="flex-grow flex justify-end lg:justify-center py-1">
+            <Link href={"/"} className="transition-opacity hover:opacity-90">
+              <Image
+                src="/logo.png"
+                width={200}
+                height={40}
+                alt="KTM Post Logo"
+                className=" object-contain"
+                priority
+              />
             </Link>
+          </div>
+        </div>
+      </div>
 
-            {/* Categories */}
-            <ul className="flex flex-col lg:flex-row items-start lg:items-center gap-2 lg:gap-4 w-full">
+      {/* DESKTOP STICKY NAVBAR */}
+      <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
+        <div className="max-w-[1920px] mx-auto flex justify-center items-center px-12 py-1">
+          <div className="flex items-center gap-1">
+            {/* Home Icon */}
+
+            {/* Category Links */}
+            <ul className="flex items-center gap-1 font-extrabold">
               {categories.map((item, index) => {
-                const isActive = pathname.includes(item.slug || "");
+                const isHome = item.slug === "/";
+                const href = isHome ? "/" : `/${item.slug}`;
+                const isActive = isHome ? pathname === "/" : pathname.startsWith(`/${item.slug}`);
                 return (
-                  <li key={index} className="relative w-full lg:w-auto">
-                    <Link href={`/${item.slug}`}>
-                      <button className={`flex items-center justify-between px-4 py-2 h-10 w-full lg:w-auto font-bold text-md md:text-lg rounded transition
-                        ${isActive ? "bg-[#e3110e] text-white" : "text-white hover:bg-red-600"} lg:hover:bg-red-600`}>
+                  <li key={index}>
+                    <Link href={href}>
+                      <span className={`inline-block px-4 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-lg ${
+                        isActive 
+                          ? "text-nepal-red border-nepal-red" 
+                          : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
+                      }`}>
                         {item.nepali}
-                      </button>
+                      </span>
                     </Link>
                   </li>
                 );
@@ -147,73 +115,65 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* Mobile Slide-In Menu */}
+      {/* MOBILE SLIDE-IN MENU */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden transition-opacity"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
       <div
-  className={`fixed top-0 right-0 w-82 sm:w-80 h-full bg-white z-50 shadow-2xl transform transition-transform duration-300 ${
-    mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-  }`}
->
-  {/* Header */}
-  <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-    <span className="font-bold text-xl tracking-wide mt-4">
-      <Image src="/NVLOGO.png" width={50} height={50} alt="Nepal_Voice" />
-    </span>
-    <button
-      onClick={() => setMobileMenuOpen(false)}
-      className="p-2 mt-4 rounded hover:bg-gray-200 transition"
-    >
-      <X className="w-6 h-6 text-gray-700" />
-    </button>
-  </div>
-
-  {/* Menu Items */}
-  <ul className="flex flex-col gap-2 mt-4 px-2 pl-2">
-    {/* Home with House Icon */}
-    <li>
-      <Link
-        href="/"
-        onClick={() => setMobileMenuOpen(false)}
-        className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-lg font-semibold ${
-          pathname === "/"
-            ? "bg-clip-text text-transparent bg-linear-to-r from-[#CC0001] to-[#004AAD]" // active like card hover
-            : "text-gray-800 hover:bg-clip-text hover:text-transparent hover:bg-linear-to-r hover:from-[#CC0001] hover:to-[#004AAD]"
+        className={`fixed top-0 right-0 w-80 h-full bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ fontFamily: "var(--font-poppins)" }}
       >
-        <House className={`w-5 h-5 text-black ` } />
-        Home
-      </Link>
-    </li>
-
-    {/* Categories */}
-    {categories.map((cat) => {
-      const isActive = pathname.includes(cat.slug);
-      return (
-        <li key={cat.slug}>
-          <Link
-            href={`/${cat.slug}`}
+        {/* Mobile Menu Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <span className="font-bold text-xl tracking-wide">
+            <Image 
+              src="/logo.png" 
+              width={120} 
+              height={30} 
+              alt="Nepal Voices" 
+              className="h-8 w-auto object-contain"
+            />
+          </span>
+          <button
             onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center px-4 py-2 rounded-lg text-lg font-semibold transition-all duration-300 ${
-              isActive
-                ? "bg-clip-text text-transparent bg-linear-to-r from-[#CC0001] to-[#004AAD]" // active like card hover
-                : "text-gray-800 hover:bg-clip-text hover:text-transparent hover:bg-linear-to-r hover:from-[#CC0001] hover:to-[#004AAD]"
-            }`}
-            style={{ fontFamily: "var(--font-poppins)" }}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+            aria-label="Close Menu"
           >
-            {cat.nepali}
-          </Link>
-        </li>
-      );
-    })}
-  </ul>
+            <X className="w-6 h-6 text-gray-700" />
+          </button>
+        </div>
 
-  {/* Ad Section */}
-  <div className="mt-8 px-4">
-    {/* <HeaderAd /> */}
-  </div>
-</div>
-
-
+        {/* Mobile Menu Navigation Items */}
+        <div className="py-4 overflow-y-auto h-[calc(100vh-80px)]">
+          <ul className="flex flex-col px-4 gap-1">
+            {categories.map((cat) => {
+              const isHome = cat.slug === "/";
+              const href = isHome ? "/" : `/${cat.slug}`;
+              const isActive = isHome ? pathname === "/" : pathname.startsWith(`/${cat.slug}`);
+              return (
+                <li key={cat.slug}>
+                  <Link
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block px-4 py-3 rounded-lg text-base font-semibold transition-colors ${
+                      isActive
+                        ? "bg-gray-50 text-nepal-red"
+                        : "text-gray-800 hover:bg-gray-50 hover:text-nepal-red"
+                    }`}
+                  >
+                    {cat.nepali}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </header>
   );
 }

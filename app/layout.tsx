@@ -1,32 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Mukta, Poppins, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SummaryButton from "./components/SummaryButton";
-import { MobileMenuProvider } from "./components/MobileMenuContext"; // <CHANGE> added import
-import { Poppins } from "next/font/google";
-import { Outfit } from "next/font/google";
+import { MobileMenuProvider } from "./components/MobileMenuContext"; 
 import BannerAdsTop from "./components/BannersAdsTop";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Nepal Voices - Trusted News from Nepal",
+  title: "KTM Post - Trusted News from Nepal",
   description: "Independent journalism and latest news from Nepal",
 };
 
@@ -36,10 +18,16 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-const outfit = Outfit({
-  subsets: ["latin"],
+const mukta = Mukta({
+  subsets: ["devanagari", "latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-outfit",
+  variable: "--font-mukta",
+});
+
+const notoSerifDevanagari = Noto_Serif_Devanagari({
+  subsets: ["devanagari", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-noto-serif-devanagari",
 });
 
 export default function RootLayout({
@@ -50,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}  ${poppins.variable} ${outfit.variable} antialiased bg-white text-black`}
+        className={`${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black`}
       >
         {/* <CHANGE> wrapped everything with MobileMenuProvider */}
         <MobileMenuProvider>

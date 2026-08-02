@@ -1,7 +1,7 @@
 import { BannerAd, HomePagePosts } from "./type";
 
 const API_URL =
-  process.env.API_URL || "https://cms.bodhiberry.com/graphql";
+  process.env.API_URL || "https://cms.bodhiberry.com/?graphql";
 
 export interface FeaturedImage {
   sourceUrl: string;
@@ -31,6 +31,11 @@ export interface Post {
       name?: string;
       slug?: string;
     }>;
+  } | null;
+  author?: {
+    node?: {
+      name?: string;
+    };
   } | null;
 }
 
@@ -144,6 +149,109 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
     return [];
   }
 }
+
+// Fetch posts by category slug
+const categorySlugAliases: Record<string, string[]> = {
+  economy: ["business", "economy"],
+  business: ["business", "economy"],
+  technology: ["science-and-technology", "technology"],
+  "science-and-technology": ["science-and-technology", "technology"],
+  international: ["international", "world"],
+  world: ["world", "international"],
+  "health-and-lifestyle": ["health-and-lifestyle", "society"],
+  news: ["news"],
+};
+
+export async function fetchPostsByCategory(categorySlug: string, first: number = 12): Promise<Post[]> {
+  const normalizedSlug = categorySlug.toLowerCase().trim();
+  const slugsToTry = categorySlugAliases[normalizedSlug] || [normalizedSlug];
+
+  for (const targetSlug of slugsToTry) {
+    console.log(` Fetching posts for category: ${targetSlug}...`);
+
+    const query = `
+      query GetPostsByCategory {
+        posts(first: ${first}, where: {categoryName: "${targetSlug}", orderby: {field: DATE, order: DESC}}) {
+          edges {
+            node {
+              id
+              uri
+              title(format: RENDERED)
+              slug
+              status
+              link
+              date
+              content(format: RENDERED)
+              excerpt(format: RENDERED)
+              featuredImage {
+                node {
+                  sourceUrl
+                  altText
+                  mediaDetails {
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ query }),
+        next: {
+          revalidate: 300, // 5 minutes cache
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`WordPress API unavailable (${response.status}) at ${API_URL}`);
+        continue;
+      }
+
+      const json: PostsResponse = await response.json();
+
+      if (json.errors && json.errors.length > 0) {
+        console.error("GraphQL Errors:", json.errors);
+        continue;
+      }
+
+      if (json.data?.posts?.edges && json.data.posts.edges.length > 0) {
+        const posts = json.data.posts.edges.map((edge) => {
+          const post = edge.node;
+
+          if (post.featuredImage?.node?.sourceUrl) {
+            let imageUrl = post.featuredImage.node.sourceUrl;
+            if (imageUrl.startsWith("/")) {
+              imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
+              post.featuredImage.node.sourceUrl = imageUrl;
+            }
+          }
+
+          return post;
+        });
+
+        return posts;
+      }
+    } catch (error) {
+      console.error(`Error fetching posts for category ${targetSlug}:`, error);
+    }
+  }
+
+  // Return empty array if category has no posts assigned in WordPress
+  console.log(`No posts found for category '${categorySlug}'.`);
+  return [];
+}
+
+
 
 // Helper function to extract the first image from post content as fallback
 export function extractFirstImageFromContent(
@@ -332,357 +440,202 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
 }
 
 export async function fetchHomePagePosts(): Promise<HomePagePosts> {
+  const postFields = `
+    id
+    uri
+    title(format: RENDERED)
+    slug
+    status
+    link
+    date
+    content(format: RENDERED)
+    excerpt(format: RENDERED)
+    categories {
+      nodes {
+        id
+        name
+        slug
+      }
+    }
+    author {
+      node {
+        name
+      }
+    }
+    featuredImage {
+      node {
+        sourceUrl
+        altText
+        mediaDetails { width height }
+      }
+    }
+  `;
+
   const query = `
     query HomePagePosts {
       featured: posts(
         first: 1
         where: { categoryName: "featured-news", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails {
-                width
-                height
-              }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
       politics: posts(
         first: 6
         where: { categoryName: "politics", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
-      trending: posts(
-        first: 6
-        where: { categoryName: "politics", orderby: { field: DATE, order: DESC } }
-      ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
-      }
-             society: posts(
+      society: posts(
         first: 6
         where: { categoryName: "society", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
-        breaking: posts(
+
+      breaking: posts(
         first: 6
         where: { categoryName: "breaking-news", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
-      }
-        economy: posts(
-        first: 6
-        where: { categoryName: "economy", orderby: { field: DATE, order: DESC } }
-      ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
-              technology: posts(
+      economy: posts(
+        first: 10
+        where: { categoryName: "business", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
+
+      technology: posts(
         first: 6
         where: { categoryName: "technology-science", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
-              arts: posts(
+      arts: posts(
         first: 6
         where: { categoryName: "arts", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
-              sports: posts(
+      sports: posts(
         first: 6
         where: { categoryName: "sports", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
-
 
       world: posts(
         first: 6
         where: { categoryName: "world", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
 
       podcast: posts(
         first: 6
         where: { categoryName: "podcast", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
       }
-      
 
       latest: posts(
         first: 12
         where: { categoryName: "latest-news", orderby: { field: DATE, order: DESC } }
       ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails { width height }
-            }
-          }
-        }
+        nodes { ${postFields} }
+      }
+
+      multimedia: posts(
+        first: 6
+        where: { categoryName: "multimedia", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
+
+      international: posts(
+        first: 6
+        where: { categoryName: "international", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
+
+      opinion: posts(
+        first: 4
+        where: { categoryName: "opinion", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
       }
     }
   `;
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ query }),
-    next: { revalidate: 300 },
-  });
+  const emptyResult: HomePagePosts = {
+    featured: [], trending: [], latest: [], politics: [], society: [],
+    breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
+    multimedia: [], international: [], opinion: [],
+  };
 
-  if (!response.ok) {
-    console.error(`Fetch homepage posts HTTP error: ${response.status}`);
-    return {
-      featured: [], trending: [], latest: [], politics: [], society: [],
-      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    };
-  }
-
-  const text = await response.text();
-  let json;
   try {
-    json = JSON.parse(text);
-  } catch (err) {
-    console.error("Failed to parse JSON response from GraphQL:", text.substring(0, 200));
-    return {
-      featured: [], trending: [], latest: [], politics: [], society: [],
-      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    };
-  }
-
-  if (json.errors) {
-    console.error("GraphQL errors:", json.errors);
-    return {
-      featured: [], trending: [], latest: [], politics: [], society: [],
-      breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    };
-  }
-
-  const normalize = (posts: Post[]) =>
-    posts.map((post) => {
-      if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
-      }
-      return post;
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 300 },
     });
 
-  return {
-    featured: normalize(json.data.featured.nodes),
-    trending: normalize(json.data.politics.nodes),
-    latest: normalize(json.data.latest.nodes),
-    politics: normalize(json.data.politics.nodes),
-    society: normalize(json.data.society.nodes),
-    breaking: normalize(json.data.breaking.nodes),
-    world: normalize(json.data.world.nodes),
-    sports: normalize(json.data.sports.nodes),
-    podcast: normalize(json.data.podcast.nodes),
-    technology: normalize(json.data.technology.nodes),
-    arts: normalize(json.data.arts.nodes),
-    economy: normalize(json.data.economy.nodes),
-  };
+    if (!response.ok) {
+      console.error(`Fetch homepage posts HTTP error: ${response.status}`);
+      return emptyResult;
+    }
+
+    const text = await response.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (err) {
+      console.error("Failed to parse JSON response from GraphQL:", text.substring(0, 200));
+      return emptyResult;
+    }
+
+    if (json.errors) {
+      console.error("GraphQL errors:", json.errors);
+      return emptyResult;
+    }
+
+    const normalize = (posts: Post[]) =>
+      posts.map((post) => {
+        if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+          post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+        }
+        return post;
+      });
+
+    return {
+      featured: normalize(json.data.featured.nodes),
+      trending: normalize(json.data.politics.nodes),
+      latest: normalize(json.data.latest.nodes),
+      politics: normalize(json.data.politics.nodes),
+      society: normalize(json.data.society.nodes),
+      breaking: normalize(json.data.breaking.nodes),
+      world: normalize(json.data.world.nodes),
+      sports: normalize(json.data.sports.nodes),
+      podcast: normalize(json.data.podcast.nodes),
+      technology: normalize(json.data.technology.nodes),
+      arts: normalize(json.data.arts.nodes),
+      economy: normalize(json.data.economy.nodes),
+      multimedia: normalize(json.data.multimedia?.nodes || []),
+      international: normalize(json.data.international?.nodes || []),
+      opinion: normalize(json.data.opinion?.nodes || []),
+    };
+  } catch (error) {
+    // Catches DNS failures, network errors, timeouts, etc.
+    console.error("Error fetching homepage posts:", error);
+    return emptyResult;
+  }
 }
 
 export async function fetchRelatedPosts(

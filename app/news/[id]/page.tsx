@@ -282,9 +282,7 @@ export default async function NewsSlugPage({
                 />
               </div>
 
-              <div className="w-full">
-                <CommentsSection postId={0} initialCount={0} initialComments={[]} />
-              </div>
+
             </div>
 
             {/* Advertisement Sidebar */}

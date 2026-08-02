@@ -109,13 +109,28 @@
 
 :root {
   --header-height: 100px;
-    /* font-family: var(--font-poppins), system-ui, sans-serif; */
-    font-family: var(--font-outfit), system-ui, sans-serif;
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
 
+body {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+/* Devanagari text styling */
+.font-mukta {
+  font-family: var(--font-mukta), var(--font-poppins), system-ui, sans-serif;
+}
+
+.font-nepali-serif {
+  font-family: var(--font-noto-serif-devanagari), serif;
 }
 
 p, span, div {
-  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-noto-serif-devanagari), var(--font-mukta), serif;
 }
 
 @media (min-width: 768px) {

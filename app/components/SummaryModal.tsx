@@ -44,7 +44,7 @@ export default function SummaryModal({ onClose, loading, summary }: Props) {
       <div className="relative z-10 w-[90%] max-w-xl bg-white rounded-xl shadow-xl p-6 flex flex-col items-center">
         {/* Logo at top */}
         <div className="mb-4">
-          <Image src="/NVLOGO.png" alt="NV Logo" width={70} height={70} />
+          <Image src="/logo.jpeg" alt="KTM Post Logo" width={100} height={30} className="h-8 w-auto object-contain" />
         </div>
 
         {/* Summarized content */}

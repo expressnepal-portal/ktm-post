@@ -19,12 +19,17 @@ export  interface HomePagePosts {
   sports:Post[];
   world:Post[];
   podcast:Post[];
+  multimedia?:Post[];
+  international?:Post[];
+  opinion?:Post[];
 }
 
 
 export interface BreakingNewsType{
-  title:string;
-  slug:string;
+  title: string;
+  slug: string;
+  image?: string;
+  excerpt?: string;
 }
 
 export type CardType = {

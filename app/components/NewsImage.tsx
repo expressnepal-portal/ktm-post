@@ -140,7 +140,7 @@ export default function NewsImage({
       <div className={`${className} ${fallbackGradient} flex items-center justify-center`}>
         <div className="text-center text-gray-600 p-4">
           <div className="text-3xl mb-2">📰</div>
-          <div className="text-sm font-medium">Nepal Voices</div>
+          <div className="text-sm font-medium">KTM Post</div>
         </div>
       </div>
     );

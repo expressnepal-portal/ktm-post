@@ -7,12 +7,14 @@ import "./globals.css";
 import NewsImage from "./components/NewsImage";
 
 import {
-  fetchHomePagePosts,
   fetchPosts,
-  Post as WordPressPost,
+  fetchHomePagePosts,
+  fetchPostsByCategory,
+  type Post as WordPressPost,
 } from "@/lib/wordpress";
 import BreakingNews from "./components/BreakingNews";
 import Card from "./components/Card";
+import Link from "next/link";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,6 +33,11 @@ interface Post {
   featuredImage?: string | null;
   excerpt?: string | null;
   images?: string[];
+   author?: {          
+    node?: {
+      name?: string;
+    };
+  } | null;
 }
 
 export async function getPosts(page: number = 1): Promise<Post[]> {
@@ -81,7 +88,7 @@ export function decodeHtmlEntities(text: string | null): string {
 
 export function getCleanContent(
   content: string | null,
-  maxLength: number = 200
+  maxLength: number = 200,
 ): string {
   if (!content) return "No preview available.";
 
@@ -97,7 +104,7 @@ export function getCleanContent(
     .replace(/\[[^\]]*\]/g, "")
     .replace(
       /\b(?:Photo|Image|Source|Credit|Getty|Reuters|AFP|AP|PTI)\b.*/gi,
-      ""
+      "",
     )
     .replace(/\s+\./g, ".")
     .replace(/\s+,/g, ",")
@@ -170,7 +177,35 @@ export function extractImagesFromContent(content: string | null): string[] {
 
   return [...new Set(images)];
 }
+interface Post {
+  id: string;
+  uri: string | null;
+  title: string | null;
+  slug: string;
+  status: string;
+  link: string;
+  date: string;
+  content: string | null;
+  featuredImage?: string | null;
+  excerpt?: string | null;
+  images?: string[];
+  categorySlug?: string;
+  author?: {           // 👈 add this block
+    node?: {
+      name?: string;
+    };
+  } | null;
+}
+
 export function mapWpPost(post: WordPressPost): Post {
+  const catSlug = post.categories?.nodes?.[0]?.slug;
+  const categorySlug =
+    catSlug === "business"
+      ? "economy"
+      : catSlug === "science-and-technology"
+        ? "technology"
+        : catSlug;
+
   return {
     id: post.id,
     uri: post.uri,
@@ -183,9 +218,23 @@ export function mapWpPost(post: WordPressPost): Post {
     excerpt: post.excerpt,
     featuredImage: post.featuredImage?.node?.sourceUrl || null,
     images: extractImagesFromContent(post.content),
+    categorySlug: categorySlug || undefined,
+    author:post.author,
   };
 }
-export function getPostUrl(post: { slug: string }): string {
+
+export function getPostUrl(post: {
+  slug: string;
+  categorySlug?: string;
+}): string {
+  if (
+    post.categorySlug &&
+    post.categorySlug !== "latest-news" &&
+    post.categorySlug !== "featured-news" &&
+    post.categorySlug !== "breaking-news"
+  ) {
+    return `/${post.categorySlug}/${post.slug}`;
+  }
   return `/news/${post.slug}`;
 }
 
@@ -230,129 +279,285 @@ export default async function HomePage() {
   // const secondaryPosts = initialPosts.slice(1, 4);
   // const trendingPosts = initialPosts.slice(4, 10);
   // const latestPosts = initialPosts.slice(10);
-  const { featured, trending, latest, breaking } = await fetchHomePagePosts();
+  const {
+    featured,
+    trending,
+    latest,
+    breaking,
+    economy,
+    politics,
+    sports,
+    international,
+    opinion,
+      multimedia,  
 
-  const featuredPost = featured[0] ? mapWpPost(featured[0]) : null;
-
-  const secondaryPosts = latest.slice(1, 4).map(mapWpPost);
-
-  const Posts = await fetchPosts(6);
+  } = await fetchHomePagePosts();
+  const Posts = await fetchPosts(10);
   const posts = Posts.map(mapWpPost);
-  const trendingPosts = trending.map(mapWpPost);
-  const latestPosts = latest.map(mapWpPost);
-  console.log("this is images form content ", posts);
+
+  // Featured hero = first economy post; secondary sidebar = next 3 economy posts
+  // (Falls back gracefully to latest posts if economy category has 0 posts in WordPress)
+  const economyPool =
+    economy && economy.length > 0
+      ? economy.map(mapWpPost)
+      : latest && latest.length > 0
+        ? latest.map(mapWpPost)
+        : posts;
+
+  const featuredPost = economyPool[0] || null;
+  const secondaryPosts = economyPool.slice(1, 4);
+
+  const rawNewsPosts = await fetchPostsByCategory("news", 7);
+  const newsPosts = rawNewsPosts.map(mapWpPost);
+  const politicsPosts =
+    politics && politics.length > 0
+      ? politics.map(mapWpPost)
+      : latest.length > 0
+        ? latest.map(mapWpPost)
+        : posts;
+  const sportsPosts = sports && sports.length > 0 ? sports.map(mapWpPost) : [];
+  const multimediaPosts =
+    multimedia && multimedia.length > 0
+      ? multimedia.map(mapWpPost)
+      : [];
+  const opinionPosts =
+    opinion && opinion.length > 0
+      ? opinion.map(mapWpPost)
+      : posts.slice(0, 4);
+
   return (
     <div
       className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
     >
-{breaking.length > 0 && (
-  <div className="pt-28 md:pt-8 lg:pt-16">
-    {breaking.slice(0, 3).map((item) => {
+      {breaking.length > 0 && (
+        <div className="pt-28 md:pt-8 lg:pt-16 w-full max-w-[1920px] mx-auto px-mobile-safe">
+          {breaking.slice(0, 3).map((item) => {
+            const contentImages = extractImagesFromContent(item.content);
+            const featuredImageUrl = item.featuredImage?.node?.sourceUrl;
+            const thumbnailImage =
+              featuredImageUrl ?? contentImages[0] ?? undefined;
+            const excerpt = getCleanContent(item.excerpt || item.content, 180);
 
-      return (
-        <BreakingNews
-          key={item.slug}
-          slug={item.slug}
-          title={getCleanTitle(item.title)}
-        />
-      );
-    })}
-  </div>
-)}
+            return (
+              <BreakingNews
+                key={item.slug}
+                slug={item.slug}
+                title={getCleanTitle(item.title)}
+                image={thumbnailImage}
+                excerpt={excerpt}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      <div></div>
       <main className="w-full">
-        <div className="h-8 md:h-12 lg:h-20 bg-transparent"></div>
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        {/* News Section */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        {newsPosts.length > 0 && (
+          <section className="w-full">
+            <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+              <div className="flex items-center mb-5 border-b border-gray-200 pb-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
+                  समाचार{" "}
+                  <span className="text-gray-400 font-poppins text-sm font-normal">
+                    / News
+                  </span>
+                </h2>
+              </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-7 md:gap-9 pb-6 md:pb-8">
+                {/* LEFT: Big featured post */}
+                {newsPosts[0] &&
+                  (() => {
+                    const post = newsPosts[0];
+                    const contentImages = extractImagesFromContent(
+                      post.content,
+                    );
+                    const featuredImageUrl = post.featuredImage;
+                    const thumbnailImage =
+                      featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                    return (
+                      <Link
+                        href={getPostUrl(post)}
+                        className="flex flex-col h-full group"
+                      >
+                        {thumbnailImage && (
+                          <div className="w-full h-[280px] md:h-[400px] lg:h-full overflow-hidden">
+                            <img
+                              src={thumbnailImage}
+                              alt={getCleanTitle(post.title)}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <h3 className="mt-4 text-xl md:text-2xl font-bold text-nepal-black group-hover:underline">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                        <p className="mt-2 text-sm md:text-base text-nepal-black/80">
+                          {getCleanContent(post.content, 150)}
+                        </p>
+                      </Link>
+                    );
+                  })()}
+
+                {/* RIGHT: 6 smaller posts, 3 columns x 2 rows */}
+                <div className="grid grid-cols-3 gap-4 md:gap-5">
+                  {newsPosts.slice(1, 7).map((post) => {
+                    const contentImages = extractImagesFromContent(
+                      post.content,
+                    );
+                    const featuredImageUrl = post.featuredImage;
+                    const thumbnailImage =
+                      featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                    return (
+                      <Link
+                        href={getPostUrl(post)}
+                        key={post.id}
+                        className="flex flex-col group"
+                      >
+                        {thumbnailImage && (
+                          <div className="w-full h-[90px] md:h-[120px] overflow-hidden">
+                            <img
+                              src={thumbnailImage}
+                              alt={getCleanTitle(post.title)}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <h3 className="mt-2 text-xs md:text-sm font-bold text-nepal-black group-hover:underline line-clamp-2">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
         {featuredPost ? (
           <div>
             {/* Featured + Latest */}
             {featuredPost && (
-            <section className="w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 md:gap-12 lg:gap-14 w-full max-w-[1920px] mx-auto px-mobile-safe">
-              <div className="lg:col-span-2 group cursor-pointer w-full">
-                <a href={getPostUrl(featuredPost)} className="block w-full h-full">
-                  <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-white shadow-lg md:shadow-2xl hover:shadow-xl md:hover:shadow-3xl transition-all duration-500 w-full h-full min-h-[450px] md:min-h-[550px] lg:min-h-[650px] border-2 border-gray-300 p-6 md:p-7 lg:p-8">
-                    {(() => {
-  const contentImages = extractImagesFromContent(featuredPost.content); // use similar helper
-  const featuredImageUrl = featuredPost.featuredImage;
-  const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
-                      if (thumbnailImage) {
-                        return (
-                          <div className="absolute inset-0 w-full h-full">
-                            <NewsImage
-                              post={featuredPost}
-                              images={thumbnailImage ? [thumbnailImage] : []}
-                              className="w-full h-full object-cover"
-                              fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
-                              isFeatured={true}
-                            />
-                          </div>
-                        );
-                      }
-        
-                      return null;
-                    })()}
-        
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-12 z-10 bg-linear-to-t from-nepal-black/90 via-nepal-black/50 to-transparent">
-                      <span className="bg-nepal-orange text-white px-5 py-2 md:px-7 md:py-3 rounded-lg text-sm md:text-base font-bold uppercase tracking-wide inline-block mb-5 md:mb-7 shadow-lg">
-                        Featured Story
+              <section className="w-full">
+                <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+                  <div className="flex items-center mb-6 md:mb-8 border-b-4 border-nepal-orange pb-3 md:pb-4">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black font-nepali-serif">
+                      अर्थतन्त्र{" "}
+                      <span className="text-gray-500 font-poppins text-lg font-normal">
+                        / Economy
                       </span>
-                      <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-white mb-5 md:mb-7 lg:mb-9 leading-tight">
-                        {getCleanTitle(featuredPost.title)}
-                      </h2>
-                      <p className="text-gray-200 text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed mb-5 md:mb-7 lg:mb-9 line-clamp-3 md:line-clamp-4">
-                        {getCleanContent(featuredPost.content, 200)}
-                      </p>
-                    </div>
+                    </h2>
                   </div>
-                </a>
-              </div>
-        
-              {/* Secondary posts on right */}
-              <div className="flex flex-col gap-2 space-y-10 md:space-y-12 w-full">
-                {secondaryPosts.map((post) => {
-                  const contentImages = extractImagesFromContent(post.content);
-                  const featuredImageUrl = post.featuredImage;
-                  const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
-        
-                  return (
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 w-full">
+                    <div className="lg:col-span-2 group cursor-pointer w-full">
                     <a
-                      key={post.id}
-                      href={getPostUrl(post)}
-                      className="group cursor-pointer bg-transparent rounded-xl md:rounded-2xl shadow-sm md:shadow-md hover:shadow-xl md:hover:shadow-2xl transition-all duration-100 overflow-hidden w-full block px-2 md:px-3 lg:px-4 py-2 lg:py-4"
+                      href={getPostUrl(featuredPost)}
+                      className="block w-full h-full"
                     >
-                      <div className="flex flex-col h-full">
-                        <div className="shrink-0 w-full h-40 md:h-44 lg:h-52 bg-gray-100 overflow-hidden">
-                          <NewsImage
-                            post={post}
-                            images={thumbnailImage ? [thumbnailImage] : []}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-100"
-                            fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0 py-4 px-2 flex flex-col">
-                          <div className="space-y-3 md:space-y-4">
-                            <h3 className="font-bold text-lg md:text-xl leading-tight transition-colors duration-300 line-clamp-2 md:line-clamp-3 group-hover:bg-linear-to-r group-hover:from-[#CC0001] group-hover:to-[#004AAD] group-hover:text-transparent group-hover:bg-clip-text">
-                              {getCleanTitle(post.title)}
-                            </h3>
-                          </div>
+                      <div className="relative overflow-hidden bg-white border border-gray-200 transition-colors duration-300 w-full h-full min-h-[450px] md:min-h-[550px] lg:min-h-[650px] p-6 md:p-8">
+                        {(() => {
+                          const contentImages = extractImagesFromContent(
+                            featuredPost.content,
+                          );
+                          const featuredImageUrl = featuredPost.featuredImage;
+                          const thumbnailImage =
+                            featuredImageUrl ?? contentImages[0] ?? undefined;
+                          if (thumbnailImage) {
+                            return (
+                              <div className="absolute inset-0 w-full h-full">
+                                <NewsImage
+                                  post={featuredPost}
+                                  images={
+                                    thumbnailImage ? [thumbnailImage] : []
+                                  }
+                                  className="w-full h-full object-cover"
+                                  fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                                  isFeatured={true}
+                                />
+                              </div>
+                            );
+                          }
+
+                          return null;
+                        })()}
+
+                        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-linear-to-t from-nepal-black/90 via-nepal-black/50 to-transparent">
+                          <span className="bg-nepal-red text-white px-4 py-1.5 text-xs font-bold uppercase tracking-wider inline-block mb-4">
+                            अर्थ
+                          </span>
+                          <h2 className="font-nepali-serif text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 leading-tight group-hover:text-nepal-red transition-colors duration-200">
+                            {getCleanTitle(featuredPost.title)}
+                          </h2>
+                          <p className="text-gray-200 font-poppins text-sm md:text-base leading-relaxed mb-4 line-clamp-3">
+                            {getCleanContent(featuredPost.content, 200)}
+                          </p>
                         </div>
                       </div>
                     </a>
-                  );
-                })}
+                  </div>
+
+                  {/* Secondary posts on right */}
+                  <div className="flex flex-col gap-6 w-full">
+                    {secondaryPosts.map((post) => {
+                      const contentImages = extractImagesFromContent(
+                        post.content,
+                      );
+                      const featuredImageUrl = post.featuredImage;
+                      const thumbnailImage =
+                        featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                      return (
+                        <a
+                          key={post.id}
+                          href={getPostUrl(post)}
+                          className="group cursor-pointer bg-white border border-gray-200 transition-colors duration-200 w-full block p-4"
+                        >
+                          <div className="flex flex-col h-full">
+                            <div className="shrink-0 w-full h-40 md:h-44 lg:h-52 bg-gray-100 overflow-hidden">
+                              <NewsImage
+                                post={post}
+                                images={thumbnailImage ? [thumbnailImage] : []}
+                                className="w-full h-full object-cover"
+                                fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0 py-3 flex flex-col">
+                              <div className="space-y-2">
+                                <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight transition-colors duration-200 line-clamp-2 md:line-clamp-3 group-hover:text-nepal-red">
+                                  {getCleanTitle(post.title)}
+                                </h3>
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
             )}
           </div>
         ) : (
           <section className="pt-20 md:pt-0 w-full">
             <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+              <div className="flex items-center mb-6 md:mb-8 border-b-1 border-gray-200 pb-3 md:pb-4">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black font-nepali-serif">
+                  राजनीति{" "}
+                  <span className="text-gray-500 font-poppins text-lg font-normal">
+                    / Politics
+                  </span>
+                </h2>
+              </div>
               {/* Section title */}
               <div className="flex items-center mb-6 md:mb-8 border-b-4 border-nepal-orange pb-3 md:pb-4">
-                <h2 className="text-2xl md:text-3xl pl-6 md:pl-0 lg:text-4xl font-bold text-nepal-black">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-nepal-black">
                   News
                 </h2>
               </div>
@@ -363,10 +568,12 @@ export default async function HomePage() {
               <div className="flex flex-col md:flex-wrap md:flex-row 2xl:grid grid-cols-5 justify-start gap-6 md:gap-8 lg:gap-10">
                 {posts.length > 0 ? (
                   posts.map((post) => {
-                   
-              const contentImages = extractImagesFromContent(post.content);
-              const featuredImageUrl = post.featuredImage;
-              const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                    const contentImages = extractImagesFromContent(
+                      post.content,
+                    );
+                    const featuredImageUrl = post.featuredImage;
+                    const thumbnailImage =
+                      featuredImageUrl ?? contentImages[0] ?? undefined;
 
                     return (
                       <Card
@@ -388,97 +595,405 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Trending */}
-        <div className="h-12 md:h-16 lg:h-20 bg-transparent"></div>
-        {trendingPosts.length > 0 && (
+        {/* Politics Section */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        {politicsPosts.length > 0 && (
+          <section className="w-full">
+            <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+              <div className="flex items-center mb-6 md:mb-8 border-b-2 border-gray-200 pb-3 md:pb-4">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black font-nepali-serif">
+                  राजनीति{" "}
+                  <span className="text-gray-500 font-poppins text-lg font-normal">
+                    / Politics
+                  </span>
+                </h2>
+              </div>
+
+              <div className="h-2 md:h-2 bg-transparent"></div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 md:gap-11 lg:gap-13 w-full">
+                {politicsPosts.map((post) => {
+                  const contentImages = extractImagesFromContent(post.content);
+                  const featuredImageUrl = post.featuredImage;
+                  const thumbnailImage =
+                    featuredImageUrl ?? contentImages[0] ?? undefined;
+                  return (
+                    <a
+                      key={post.id}
+                      href={getPostUrl(post)}
+                      className="group cursor-pointer bg-white border border-gray-200 p-5 transition-colors duration-150 w-full block"
+                    >
+                      <div className="flex gap-4 md:gap-5 w-full items-start">
+                        <div className="flex-1 min-w-0 space-y-3">
+                          <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight transition-colors duration-150 line-clamp-2 mb-2 group-hover:text-nepal-red">
+                            {getCleanTitle(post.title)}
+                          </h3>
+                          <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-2">
+                            {getCleanContent(post.content, 120)}
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 w-18 h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 bg-gray-100 overflow-hidden">
+                          <NewsImage
+                            post={post}
+                            images={thumbnailImage ? [thumbnailImage] : []}
+                            className="w-full h-full object-cover"
+                            fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                          />
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+        {/* Three-column Category Sections: Sports, Health & Lifestyle, Multimedia */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        <section className="w-full">
+          <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12 lg:gap-14">
+              {/* Sports Column */}
+              <div className="flex flex-col">
+                <div className="flex items-center mb-5 border-b-4 border-nepal-orange pb-3">
+                  <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
+                    खेलकुद{" "}
+                    <span className="text-gray-500 font-poppins text-sm font-normal">
+                      / Sports
+                    </span>
+                  </h2>
+                </div>
+
+                {sportsPosts.length > 0 ? (
+                  <div className="flex flex-col gap-0">
+                    {/* Featured first post with image */}
+                    {(() => {
+                      const post = sportsPosts[0];
+                      const contentImages = extractImagesFromContent(
+                        post.content,
+                      );
+                      const featuredImageUrl = post.featuredImage;
+                      const thumbnailImage =
+                        featuredImageUrl ?? contentImages[0] ?? undefined;
+                      return (
+                        <a href={getPostUrl(post)} className="group block mb-5">
+                          <div className="w-full h-48 md:h-52 bg-gray-100 overflow-hidden mb-3">
+                            <NewsImage
+                              post={post}
+                              images={thumbnailImage ? [thumbnailImage] : []}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                            />
+                          </div>
+                          <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                            {getCleanTitle(post.title)}
+                          </h3>
+                        </a>
+                      );
+                    })()}
+
+                    {/* Remaining posts as compact list */}
+                    {sportsPosts.slice(1, 5).map((post) => (
+                      <a
+                        key={post.id}
+                        href={getPostUrl(post)}
+                        className="group block py-3 border-t border-gray-100"
+                      >
+                        <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 font-poppins text-sm py-8">
+                    No content available
+                  </p>
+                )}
+              </div>
+
+              {/* Health & Lifestyle Column */}
+              <div className="flex flex-col">
+                <div className="flex items-center mb-5 border-b-4 border-nepal-orange pb-3">
+                  <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
+                    स्वास्थ्य{" "}
+                    <span className="text-gray-500 font-poppins text-sm font-normal">
+                      / Health & Lifestyle
+                    </span>
+                  </h2>
+                </div>
+
+                {(() => {
+                  // Health & Lifestyle currently may not have a WP category, so we fall back to society posts
+                  const healthPosts = politicsPosts.slice(0, 5);
+                  return healthPosts.length > 0 ? (
+                    <div className="flex flex-col gap-0">
+                      {/* Featured first post with image */}
+                      {(() => {
+                        const post = healthPosts[0];
+                        const contentImages = extractImagesFromContent(
+                          post.content,
+                        );
+                        const featuredImageUrl = post.featuredImage;
+                        const thumbnailImage =
+                          featuredImageUrl ?? contentImages[0] ?? undefined;
+                        return (
+                          <a
+                            href={getPostUrl(post)}
+                            className="group block mb-5"
+                          >
+                            <div className="w-full h-48 md:h-52 bg-gray-100 overflow-hidden mb-3">
+                              <NewsImage
+                                post={post}
+                                images={thumbnailImage ? [thumbnailImage] : []}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                              />
+                            </div>
+                            <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                              {getCleanTitle(post.title)}
+                            </h3>
+                          </a>
+                        );
+                      })()}
+
+                      {/* Remaining posts as compact list */}
+                      {healthPosts.slice(1, 5).map((post) => (
+                        <a
+                          key={post.id}
+                          href={getPostUrl(post)}
+                          className="group block py-3 border-t border-gray-100"
+                        >
+                          <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                            {getCleanTitle(post.title)}
+                          </h3>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 font-poppins text-sm py-8">
+                      No content available
+                    </p>
+                  );
+                })()}
+              </div>
+
+              {/* International Column */}
+              <div className="flex flex-col">
+                <div className="flex items-center mb-5 border-b-4 border-nepal-orange pb-3">
+                  <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
+                    अन्तराष्ट्रिय{" "}
+                    <span className="text-gray-500 font-poppins text-sm font-normal">
+                      / International
+                    </span>
+                  </h2>
+                </div>
+
+                {multimediaPosts.length > 0 ? (
+                  <div className="flex flex-col gap-0">
+                    {/* Featured first post with image */}
+                    {(() => {
+                      const post = multimediaPosts[0];
+                      const contentImages = extractImagesFromContent(
+                        post.content,
+                      );
+                      const featuredImageUrl = post.featuredImage;
+                      const thumbnailImage =
+                        featuredImageUrl ?? contentImages[0] ?? undefined;
+                      return (
+                        <a href={getPostUrl(post)} className="group block mb-5">
+                          <div className="w-full h-48 md:h-52 bg-gray-100 overflow-hidden mb-3">
+                            <NewsImage
+                              post={post}
+                              images={thumbnailImage ? [thumbnailImage] : []}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                            />
+                          </div>
+                          <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                            {getCleanTitle(post.title)}
+                          </h3>
+                        </a>
+                      );
+                    })()}
+
+                    {/* Remaining posts as compact list */}
+                    {multimediaPosts.slice(1, 5).map((post) => (
+                      <a
+                        key={post.id}
+                        href={getPostUrl(post)}
+                        className="group block py-3 border-t border-gray-100"
+                      >
+                        <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 font-poppins text-sm py-8">
+                    No content available
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* Opinion Section - 4-Column Layout */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        {opinionPosts.length > 0 && (
           <section className="w-full">
             <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
               <div className="flex items-center mb-6 md:mb-8 border-b-4 border-nepal-orange pb-3 md:pb-4">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black">
-                  Trending Now
+                <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black font-nepali-serif">
+                  विचार{" "}
+                  <span className="text-gray-500 font-poppins text-lg font-normal">
+                    / Opinion
+                  </span>
                 </h2>
               </div>
 
-              <div className="h-4 md:h-6 bg-transparent"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
+                {opinionPosts.slice(0, 4).map((post) => {
+                  const contentImages = extractImagesFromContent(post.content);
+                  const featuredImageUrl = post.featuredImage;
+                  const thumbnailImage =
+                    featuredImageUrl ?? contentImages[0] ?? undefined;
+                  const formattedDate = new Date(post.date).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                    },
+                  );
 
-              <div className="relative w-full">
-                <div className="flex overflow-x-auto pb-6 md:pb-8 gap-7 md:gap-9 scrollbar-hide">
-                  {trendingPosts.map((post) =>{
-                    const contentImages = extractImagesFromContent(post.content);
-                    const featuredImageUrl = post.featuredImage;
-                    const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
-                    return (
-                      <Card
-                      link={getPostUrl(post)}
+                  return (
+                    <a
                       key={post.id}
-                      images={thumbnailImage ? [thumbnailImage] : []}
-                      title={getCleanTitle(post.title)}
-                      content={getCleanContent(post.content, 150)}
-                    />
-                    )
-                    
-                  })}
-                </div>
-
-                <div className="absolute top-0 right-0 w-8 md:w-12 lg:w-16 h-full bg-linear-to-l from-white to-transparent pointer-events-none"></div>
-                <div className="absolute top-0 left-0 w-8 md:w-12 lg:w-16 h-full bg-linear-to-r from-white to-transparent pointer-events-none"></div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Latest */}
-        <div className="h-12 md:h-16 lg:h-20 bg-transparent"></div>
-        {latestPosts.length > 0 && (
-          <section className="w-full">
-            <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
-              <div className="flex items-center mb-6 md:mb-8 border-b-4 border-nepal-black pb-3 md:pb-4">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black">
-                  Latest Stories
-                </h2>
-              </div>
-
-              <div className="h-4 md:h-6 bg-transparent"></div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 md:gap-11 lg:gap-13 w-full">
-                {latestPosts.map((post) => {
-                                const contentImages = extractImagesFromContent(post.content);
-                                const featuredImageUrl = post.featuredImage;
-                                const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
-                  return(
-
-                  <a
-                    key={post.id}
-                    href={getPostUrl(post)}
-                    className="group cursor-pointer bg-white rounded-xl md:rounded-2xl p-7 md:p-8 lg:p-9 shadow-sm md:shadow-lg hover:shadow-md md:hover:shadow-lg transition-all duration-100 hover:border-nepal-orange/50 w-full block"
-                  >
-                    <div className="flex gap-5 md:gap-6 lg:gap-7 w-full items-start">
-                      <div className="flex-1 min-w-0 space-y-4 md:space-y-5">
-                        <h3 className="font-bold text-base md:text-lg leading-tight transition-colors duration-100 line-clamp-2 mb-3 md:mb-4 group-hover:bg-linear-to-r group-hover:from-[#CC0001] group-hover:to-[#004AAD] group-hover:text-transparent group-hover:bg-clip-text">
-                          {getCleanTitle(post.title)}
-                        </h3>
-                        <p className="text-gray-700 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-3">
-                          {getCleanContent(post.content, 120)}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0 w-18 h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 bg-gray-100 rounded-lg md:rounded-xl overflow-hidden shadow-md md:shadow-lg group-hover:shadow-xl md:group-hover:shadow-xl transition-shadow duration-100">
+                      href={getPostUrl(post)}
+                      className="group flex flex-col cursor-pointer bg-white border border-gray-200 p-4 transition-all duration-200 hover:shadow-md"
+                    >
+                      {/* Image container */}
+                      <div className="w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4 border border-gray-100 relative">
                         <NewsImage
                           post={post}
                           images={thumbnailImage ? [thumbnailImage] : []}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-100"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
                         />
                       </div>
-                    </div>
-                  </a>
-                )})}
+
+                      {/* Content */}
+                      <div className="flex flex-col flex-1">
+                        <span className="text-xs font-bold uppercase tracking-wider text-nepal-red mb-1.5 font-poppins">
+                          विचार
+                        </span>
+                        <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-3 mb-2">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                        <div className="mt-auto pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-poppins font-medium">
+                       <span>
+  {(() => {
+    const authorName = post.author?.node?.name?.trim();
+    const isValidAuthor =
+      authorName && authorName.toLowerCase() !== "news";
+    return isValidAuthor ? authorName : "KTM Time Opinions";
+  })()}
+</span>
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </section>
         )}
 
-        <div className="h-16 md:h-12 lg:h-24 bg-transparent"></div>
+
+{/* Multimedia / Videos Section - Dark Layout */}
+<div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+{multimediaPosts.length > 0 && (
+  <section className="w-full bg-[#1a1a1a] py-10 md:py-14">
+    <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-white">
+          <span className="text-white">मल्टिमिडिया</span>{" "}
+          <span className="text-nepal-red">भिडियो</span>
+        </h2>
+        <Link
+          href="/multimedia"
+          className="hidden md:flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider hover:text-nepal-red transition-colors"
+        >
+          View More <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        {multimediaPosts.slice(0, 4).map((post) => {
+          const contentImages = extractImagesFromContent(post.content);
+          const featuredImageUrl = post.featuredImage;
+          const thumbnailImage =
+            featuredImageUrl ?? contentImages[0] ?? undefined;
+          const authorName = post.author?.node?.name?.trim();
+          const displayAuthor =
+            authorName && authorName.toLowerCase() !== "news"
+              ? authorName
+              : "KTM Post";
+
+          return (
+            <Link
+              href={getPostUrl(post)}
+              key={post.id}
+              className="group flex flex-col"
+            >
+              {/* Thumbnail with play button */}
+              <div className="relative w-full aspect-video bg-gray-800 overflow-hidden">
+                {thumbnailImage && (
+                  <img
+                    src={thumbnailImage}
+                    alt={getCleanTitle(post.title)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                )}
+                {/* Play button overlay */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/90 flex items-center justify-center group-hover:bg-white transition-colors">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-5 h-5 md:w-6 md:h-6 text-black ml-0.5"
+                      fill="currentColor"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title + author */}
+              <h3 className="mt-4 text-base md:text-lg font-bold text-white leading-snug line-clamp-2 group-hover:text-nepal-red transition-colors">
+                {getCleanTitle(post.title)}
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">{displayAuthor}</p>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Mobile "View More" */}
+      <Link
+        href="/multimedia"
+        className="md:hidden flex items-center justify-center gap-2 mt-8 text-white text-sm font-bold uppercase tracking-wider hover:text-nepal-red transition-colors"
+      >
+        View More <span aria-hidden="true">→</span>
+      </Link>
+    </div>
+  </section>
+)}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
       </main>
     </div>
   );
