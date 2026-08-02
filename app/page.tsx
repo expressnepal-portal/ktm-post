@@ -15,6 +15,8 @@ import {
 import BreakingNews from "./components/BreakingNews";
 import Card from "./components/Card";
 import Link from "next/link";
+import Image from "next/image";
+import React from "react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -324,35 +326,64 @@ export default async function HomePage() {
     opinion && opinion.length > 0
       ? opinion.map(mapWpPost)
       : posts.slice(0, 4);
-
+const internationalPosts =
+  international && international.length > 0
+    ? international.map(mapWpPost)
+    : [];
   return (
     <div
       className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
     >
-      {breaking.length > 0 && (
-        <div className="pt-28 md:pt-8 lg:pt-16 w-full max-w-[1920px] mx-auto px-mobile-safe">
-          {breaking.slice(0, 3).map((item) => {
-            const contentImages = extractImagesFromContent(item.content);
-            const featuredImageUrl = item.featuredImage?.node?.sourceUrl;
-            const thumbnailImage =
-              featuredImageUrl ?? contentImages[0] ?? undefined;
-            const excerpt = getCleanContent(item.excerpt || item.content, 180);
+{breaking.length > 0 && (
+  <div className="pt-28 md:pt-8 lg:pt-16 w-full max-w-[1920px] mx-auto px-mobile-safe">
+    {breaking.slice(0, 3).map((item, index) => {
+      const contentImages = extractImagesFromContent(item.content);
+      const featuredImageUrl = item.featuredImage?.node?.sourceUrl;
+      const thumbnailImage =
+        featuredImageUrl ?? contentImages[0] ?? undefined;
+      const excerpt = getCleanContent(item.excerpt || item.content, 180);
 
-            return (
-              <BreakingNews
-                key={item.slug}
-                slug={item.slug}
-                title={getCleanTitle(item.title)}
-                image={thumbnailImage}
-                excerpt={excerpt}
+      // Add/replace banner images here — one per breaking news slot, in order
+      const breakingBanners = [
+        "/banner/ncell.gif",
+        "/banner/bizmandu.gif",
+        "/banner/banner-3.png",
+      ];
+      const bannerImage = breakingBanners[index];
+
+      return (
+
+        <React.Fragment key={item.slug}>
+          {bannerImage && (
+            <div className="w-full flex justify-center py-6 md:py-8">
+              <img
+                src={bannerImage}
+                alt={`Banner ${index + 1}`}
+                className="w-full max-w-4xl h-auto"
               />
-            );
-          })}
-        </div>
-      )}
+            </div>
+          )}
+          <BreakingNews
+            slug={item.slug}
+            title={getCleanTitle(item.title)}
+            image={thumbnailImage}
+            excerpt={excerpt}
+          />
+
+          
+        </React.Fragment>
+      );
+    })}
+  </div>
+)}
 
       <main className="w-full">
         <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        {/*Banner Section*/}
+
+
+        {/* Breaking News - 100% Width Red Marquee */}
+
         {/* News Section */}
         <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
         {newsPosts.length > 0 && (
@@ -428,7 +459,7 @@ export default async function HomePage() {
                             />
                           </div>
                         )}
-                        <h3 className="mt-2 text-xs md:text-sm font-bold text-nepal-black group-hover:underline line-clamp-2">
+                        <h3 className="mt-2 text-sm md:text-lg font-bold text-nepal-black group-hover:underline line-clamp-3">
                           {getCleanTitle(post.title)}
                         </h3>
                       </Link>
@@ -700,7 +731,7 @@ export default async function HomePage() {
                         href={getPostUrl(post)}
                         className="group block py-3 border-t border-gray-100"
                       >
-                        <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                        <h3 className="font-nepali-serif font-bold text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
                           {getCleanTitle(post.title)}
                         </h3>
                       </a>
@@ -765,7 +796,7 @@ export default async function HomePage() {
                           href={getPostUrl(post)}
                           className="group block py-3 border-t border-gray-100"
                         >
-                          <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                          <h3 className="font-nepali-serif text-xl font-bold text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
                             {getCleanTitle(post.title)}
                           </h3>
                         </a>
@@ -790,11 +821,11 @@ export default async function HomePage() {
                   </h2>
                 </div>
 
-                {multimediaPosts.length > 0 ? (
+                {internationalPosts.length > 0 ? (
                   <div className="flex flex-col gap-0">
                     {/* Featured first post with image */}
                     {(() => {
-                      const post = multimediaPosts[0];
+                      const post = internationalPosts[0];
                       const contentImages = extractImagesFromContent(
                         post.content,
                       );
@@ -819,13 +850,13 @@ export default async function HomePage() {
                     })()}
 
                     {/* Remaining posts as compact list */}
-                    {multimediaPosts.slice(1, 5).map((post) => (
+                    {internationalPosts.slice(1, 5).map((post) => (
                       <a
                         key={post.id}
                         href={getPostUrl(post)}
                         className="group block py-3 border-t border-gray-100"
                       >
-                        <h3 className="font-nepali-serif font-bold text-base text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
+                        <h3 className="font-nepali-serif font-bold text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 line-clamp-2">
                           {getCleanTitle(post.title)}
                         </h3>
                       </a>
