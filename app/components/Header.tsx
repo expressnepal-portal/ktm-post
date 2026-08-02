@@ -3,7 +3,7 @@
 import React from "react";
 import { Playfair_Display } from "next/font/google";
 import Link from "next/link";
-import { House, X, Menu } from "lucide-react";
+import { House, X, Menu, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Category } from "@/lib/type";
 import NepaliDateTime from "./NepaliDateTime";
@@ -71,21 +71,7 @@ export default function Header() {
 
         {/* Logo Masthead */}
         <div className="flex items-center justify-between w-full">
-          {/* Brand Logo (left-aligned on mobile, centered on desktop) */}
-          <div className="flex-grow flex justify-start lg:justify-center py-1">
-            <Link href={"/"} className="transition-opacity hover:opacity-90">
-              <Image
-                src="/logo.png"
-                width={200}
-                height={40}
-                alt="KTM Post Logo"
-                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
-                priority
-              />
-            </Link>
-          </div>
-
-          {/* Mobile Hamburger menu on the right */}
+          {/* Mobile: Hamburger on left */}
           <div className="lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -99,21 +85,37 @@ export default function Header() {
               )}
             </button>
           </div>
+
+          {/* Brand Logo (centered) */}
+          <div className="flex-grow flex justify-center py-1">
+            <Link href={"/"} className="transition-opacity hover:opacity-90">
+              <Image
+                src="/logo.png"
+                width={200}
+                height={40}
+                alt="KTM Post Logo"
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                priority
+              />
+            </Link>
+          </div>
+
+          {/* Mobile: Search on right */}
+          <div className="lg:hidden">
+            <button
+              className="p-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
+              aria-label="Search"
+            >
+              <Search className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* MOBILE COMPACT HEADER WHEN SCROLLED */}
       {scrolled && (
         <div className="lg:hidden flex items-center justify-between px-mobile-safe py-2 border-b border-gray-100 bg-white">
-          <Link href={"/"} className="transition-opacity hover:opacity-90">
-            <Image
-              src="/logo.png"
-              width={120}
-              height={26}
-              alt="KTM Post Logo"
-              className="h-7 w-auto object-contain"
-            />
-          </Link>
+          {/* Hamburger left */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
@@ -124,6 +126,23 @@ export default function Header() {
             ) : (
               <Menu className="w-5 h-5 text-gray-700" />
             )}
+          </button>
+          {/* Logo center */}
+          <Link href={"/"} className="transition-opacity hover:opacity-90">
+            <Image
+              src="/logo.png"
+              width={120}
+              height={26}
+              alt="KTM Post Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
+          {/* Search right */}
+          <button
+            className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5 text-gray-700" />
           </button>
         </div>
       )}

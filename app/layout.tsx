@@ -3,7 +3,7 @@ import { Mukta, Poppins, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import SummaryButton from "./components/SummaryButton";
+
 import { MobileMenuProvider } from "./components/MobileMenuContext"; 
 import BannerAdsTop from "./components/BannersAdsTop";
 
@@ -52,8 +52,6 @@ export default function RootLayout({
             {children}
           </main>
 
-          {/* FLOATING SUMMARY BUTTON */}
-          <SummaryButton />
           <Footer />
         </MobileMenuProvider>
       </body>

@@ -2,7 +2,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 import CommentsSection from "@/app/components/CommentsSection"
-import SocialShareBar from "@/app/components/SocialShareBar"
+
 import { Inter } from "next/font/google"
 import { fetchPostBySlug, fetchRelatedPosts, fetchHomePagePosts, type Post } from "../../../lib/wordpress"
 import { getCleanContent } from "@/app/page"
@@ -371,10 +371,7 @@ export default async function NewsSlugPage({
           )}
         </article>
 
-        {/* Social Share Bar - configurable placement */}
-        <div className="fixed top-[calc(var(--header-height)+5.75rem)] left-2 z-50">
-          <SocialShareBar title={getCleanTitle(post.title)} />
-        </div>
+
       </main>
 
       {/* Spacer */}
