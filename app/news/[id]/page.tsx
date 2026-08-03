@@ -2,6 +2,11 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 import CommentsSection from "@/app/components/CommentsSection"
+import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
+import UpcomingHolidays from "@/app/components/UpcomingHolidays"
+import ForexRatesWidget from "@/app/components/ForexRatesWidget"
+import SidebarAds from "@/app/components/SidebarAds"
+import { Suspense } from "react"
 
 import { Inter } from "next/font/google"
 import { fetchPostBySlug, fetchRelatedPosts, fetchHomePagePosts, type Post } from "../../../lib/wordpress"
@@ -193,30 +198,11 @@ export default async function NewsSlugPage({
   const contentImages = extractImagesFromContent(post.content)
   const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined
 
-  // Determine thumbnail for card
-  let cardThumbnail: string | undefined
-  let conditionalFeaturedImage: string | undefined
-  if (featuredImageUrl) {
-    cardThumbnail = featuredImageUrl
-    conditionalFeaturedImage = undefined // card uses featured
-  } else if (contentImages.length > 0) {
-    cardThumbnail = contentImages[0] // card uses first content image
-  }
+  // Main hero image to show on the detail page (prefer featured image, fallback to first content image)
+  const heroImage = featuredImageUrl || (contentImages.length > 0 ? contentImages[0] : undefined)
 
-  // Determine which image to show in post content (NewsImage)
-  let postThumbnail: string[] = []
-
-  // If card uses featured image, don't show it in NewsImage — show remaining content images
-  if (featuredImageUrl && cardThumbnail === featuredImageUrl) {
-    postThumbnail = contentImages // remove the featured image if it exists
-  }
-  // If card uses first content image, remove that from content images for NewsImage
-  else if (!featuredImageUrl && contentImages.length > 0 && cardThumbnail === contentImages[0]) {
-    postThumbnail = contentImages.slice(1) // skip first content image
-  }
-
-  // Remove card thumbnail from post content
-  const cleanedContent = removeThumbnailFromContent(post.content, cardThumbnail)
+  // Clean content (remove hero image from body text if embedded)
+  const cleanedContent = removeThumbnailFromContent(post.content, heroImage)
 
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
@@ -225,23 +211,21 @@ export default async function NewsSlugPage({
   })
 
   return (
-    <div
-      className={`${inter.className} min-h-screen text-nepal-black w-full border-2 border-blue-200 gradient-white-to-orange`}
-    >
+    <div className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}>
       <div className="pt-18 sm:pt-14 md:pt-4 lg:pt-0"></div>
 
       <main className="w-full flex items-center justify-center" style={{ paddingTop: "var(--header-height)" }}>
-        <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col  gap-10">
+        <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col gap-10">
           {/* Main content + Advertisement side by side */}
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-10 items-start ">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-10 items-start">
             {/* Main Content */}
             <div className="flex flex-col gap-8">
               <header className="flex flex-col gap-3 justify-center items-center text-center">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-nepal-black">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-nepal-black font-nepali-serif">
                   {getCleanTitle(post.title)}
                 </h1>
 
-                <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 text-gray-600 text-sm md:text-base">
+                <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 text-gray-600 text-sm md:text-base font-poppins">
                   <time dateTime={post.date} className="font-medium">
                     {formattedDate}
                   </time>
@@ -253,19 +237,19 @@ export default async function NewsSlugPage({
                 </div>
               </header>
 
-              <div className="bg-white/90 rounded-2xl shadow-md border border-gray-100 p-6 md:p-8 ">
-                {conditionalFeaturedImage && (
-                  <div className=" w-full mb-8 md:mb-12">
-                    <div className="\ w-full h-64 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden">
+              <div className="bg-white p-2 md:p-4">
+                {heroImage && (
+                  <div className="w-full mb-8 md:mb-12">
+                    <div className="w-full h-64 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden rounded-lg">
                       <NewsImage
                         post={{
                           id: post.id,
                           title: post.title,
-                          featuredImage: featuredImageUrl,
+                          featuredImage: heroImage,
                           content: post.content,
-                          images: postThumbnail,
+                          images: contentImages,
                         }}
-                        images={postThumbnail}
+                        images={[heroImage]}
                         className="w-full h-full object-cover"
                         fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
                       />
@@ -274,92 +258,93 @@ export default async function NewsSlugPage({
                 )}
 
                 <div
-                  className="prose prose-lg max-w-none text-gray-800"
+                  className="prose prose-lg max-w-none text-gray-800 font-poppins"
                   dangerouslySetInnerHTML={{
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
                   style={{ lineHeight: "1.8", fontSize: "1.125rem" }}
                 />
               </div>
-
-
             </div>
 
-            {/* Advertisement Sidebar */}
-            <aside className="flex flex-col gap-6 w-full">
-              <div className="space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
-                    Advertisement
-                  </div>
-                  <div className="aspect-4/5 w-full rounded-lg bg-linear-to-br from-gray-100 via-white to-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm"></div>
+            {/* Sidebar: Ads + Calendar + Holidays + Forex */}
+            <aside className="flex flex-col gap-5 w-full">
+
+              {/* ── CMS Banner Ads (top of sidebar, highest visibility) ── */}
+              <Suspense fallback={null}>
+                <SidebarAds
+                  category={nonMetaCategorySlugs[0]}
+                  maxAds={2}
+                />
+              </Suspense>
+
+              {/* Nepali Calendar */}
+              <NepaliCalendarWidget compact />
+
+              {/* Upcoming Holidays */}
+              <UpcomingHolidays maxItems={4} />
+
+              {/* ── More ads mid-sidebar ── */}
+              <Suspense fallback={null}>
+                <SidebarAds
+                  category={nonMetaCategorySlugs[0]}
+                  maxAds={1}
+                />
+              </Suspense>
+
+              {/* Forex Rates */}
+              <Suspense fallback={
+                <div className="border border-gray-200 h-40 flex items-center justify-center text-gray-400 text-xs font-poppins">
+                  विनिमय दर लोड हुँदैछ...
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Sponsored</div>
-                  <div className="aspect-2/1 w-full rounded-lg bg-linear-to-br from-gray-100 via-white to-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm">
-                    {/* <img src={activeBanners[0].adImage || "/placeholder.svg"} alt="" /> */}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Sponsored</div>
-                  <div className="aspect-2/1 w-full rounded-lg bg-linear-to-br from-gray-100 via-white to-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm">
-                    {/* <img src={activeBanners[1].adImage || "/placeholder.svg"} alt="" /> */}
-                  </div>
-                </div>
-              </div>
+              }>
+                <ForexRatesWidget />
+              </Suspense>
             </aside>
           </div>
 
           {/* Related News - full width below content + ads */}
           {relatedPosts.length > 0 && (
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+            <div className="border-t border-gray-200 pt-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-nepal-black">सम्बन्धित समाचार</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">सम्बन्धित समाचार</h2>
               </div>
 
               {/* Cards grid */}
-              {/* Cards grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4  ">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedPosts.map((item) => {
                   const contentImages = extractImagesFromContent(item.content)
                   const featuredImageUrl = item.featuredImage?.node?.sourceUrl
 
-                  // Merge featured + content images
                   const images = contentImages.length > 0 ? contentImages : featuredImageUrl ? [featuredImageUrl] : []
-                  console.log("This is post url fetching ", item.slug)
                   return (
                     <a
                       key={item.id}
                       href={`/news/${item.slug}`}
                       className="
-        group cursor-pointer bg-white
-        rounded-xl md:rounded-2xl
-        shadow-sm md:shadow-md
-        hover:shadow-lg
-        transition-all duration-200
-        flex flex-col
-        flex-1
-        min-w-[280px] md:min-w-[300px] lg:min-w-[320px]
-        max-w-full
-        p-6 md:p-7 lg:p-8
-      "
+                        group cursor-pointer bg-white
+                        border border-gray-200
+                        transition-colors duration-200
+                        flex flex-col
+                        gap-4
+                        p-5
+                      "
                     >
                       {/* IMAGE SLIDER */}
-                      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden rounded-lg">
-                        <ImageSlider images={images} title={post.title ?? "News image"} />
+                      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
+                        <ImageSlider images={images} title={item.title ?? "News image"} />
                       </div>
 
                       {/* CONTENT */}
-                      <div className="flex-1 flex flex-col mt-4">
+                      <div className="flex-1 flex flex-col gap-2 mt-2">
                         <h3
-                          className="font-bold text-base md:text-lg leading-snug line-clamp-2 mb-2
-          group-hover:bg-linear-to-r group-hover:from-[#CC0001] group-hover:to-[#004AAD]
-          group-hover:text-transparent group-hover:bg-clip-text"
+                          className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug line-clamp-2 mb-2
+                          group-hover:text-nepal-red transition-colors duration-200"
                         >
                           {getCleanTitle(item.title)}
                         </h3>
 
-                        <p className="text-gray-600 text-sm md:text-base leading-relaxed line-clamp-4 flex-1">
+                        <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-4 flex-1">
                           {getCleanContent(item.content, 150)}
                         </p>
                       </div>

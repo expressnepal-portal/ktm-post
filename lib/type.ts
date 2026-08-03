@@ -22,6 +22,7 @@ export  interface HomePagePosts {
   multimedia?:Post[];
   international?:Post[];
   opinion?:Post[];
+  legal?:Post[];
 }
 
 

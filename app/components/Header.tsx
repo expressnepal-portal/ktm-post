@@ -10,27 +10,24 @@ import NepaliDateTime from "./NepaliDateTime";
 import Image from "next/image";
 import { useMobileMenu } from "./MobileMenuContext"; 
 
+import SearchDropdown from "./SearchDropdown";
+
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "700", "900"],
 });
 
 const categories: Category[] = [
-    { nepali: "होमपेज", english: "Homepage", slug: "/" },
+  { nepali: "होमपेज", english: "Homepage", slug: "/" },
   { nepali: "समाचार", english: "News", slug: "news" },
   { nepali: "राजनीति", english: "News", slug: "politics" },
-      { nepali: "विचार", english: "Opinion", slug: "opinion" },
-    { nepali: "अर्थ", english: "Economy", slug: "economy" },
+  { nepali: "विचार", english: "Opinion", slug: "opinion" },
+  { nepali: "अर्थ", english: "Economy", slug: "economy" },
   { nepali: "अन्तराष्ट्रिय", english: "International", slug: "international" },
-    { nepali: "खेलकुद", english: "खेलकुद", slug: "sports" },
+  { nepali: "खेलकुद", english: "खेलकुद", slug: "sports" },
   { nepali: "स्वास्थ्य/जीवन शैली", english: "Health and Lifestyle", slug: "health-and-lifestyle" },
-      { nepali: "मल्टिमिडिया", english: "Multimedia", slug: "multimedia" },
-  // { nepali: "अन्य", english: "Others", slug: "others" },
-
-  // { nepali: "समाज", english: "News", slug: "society" },
-  // { nepali: "विज्ञान प्रविधि", english: "विज्ञान प्रविधि", slug: "technology" },
-  // { nepali: "कला साहित्य", english: "कला साहित्य", slug: "arts" },
-  // { nepali: "विश्व", english: "विश्व", slug: "world" },
+  { nepali: "कानून", english: "Legal", slug: "legal" },
+  { nepali: "मल्टिमिडिया", english: "Multimedia", slug: "multimedia" },
 ];
 
 export default function Header() {
@@ -49,7 +46,7 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
+
   return (
     <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300">
       {/* TOP UTILITY & LOGO BAR (Hides on scroll > 80px) */}
@@ -70,7 +67,7 @@ export default function Header() {
         </div>
 
         {/* Logo Masthead */}
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full gap-4">
           {/* Mobile: Hamburger on left */}
           <div className="lg:hidden">
             <button
@@ -100,14 +97,9 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Mobile: Search on right */}
-          <div className="lg:hidden">
-            <button
-              className="p-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
-              aria-label="Search"
-            >
-              <Search className="w-6 h-6 text-gray-700" />
-            </button>
+          {/* Search Dropdown Inline */}
+          <div className="hidden lg:block">
+            <SearchDropdown />
           </div>
         </div>
       </div>
@@ -115,7 +107,6 @@ export default function Header() {
       {/* MOBILE COMPACT HEADER WHEN SCROLLED */}
       {scrolled && (
         <div className="lg:hidden flex items-center justify-between px-mobile-safe py-2 border-b border-gray-100 bg-white">
-          {/* Hamburger left */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
@@ -127,7 +118,6 @@ export default function Header() {
               <Menu className="w-5 h-5 text-gray-700" />
             )}
           </button>
-          {/* Logo center */}
           <Link href={"/"} className="transition-opacity hover:opacity-90">
             <Image
               src="/logo.png"
@@ -137,22 +127,15 @@ export default function Header() {
               className="h-7 w-auto object-contain"
             />
           </Link>
-          {/* Search right */}
-          <button
-            className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
-            aria-label="Search"
-          >
-            <Search className="w-5 h-5 text-gray-700" />
-          </button>
+          <SearchDropdown />
         </div>
       )}
 
       {/* DESKTOP STICKY NAVBAR */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex justify-center items-center px-12 py-1 relative">
-          {/* Small brand logo on left when scrolled */}
-          {scrolled && (
-            <div className="absolute left-6 flex items-center">
+        <div className="max-w-[1920px] mx-auto flex justify-between items-center px-mobile-safe py-1 relative">
+          {scrolled ? (
+            <div className="flex items-center">
               <Link href={"/"} className="transition-opacity hover:opacity-90">
                 <Image
                   src="/logo.png"
@@ -163,10 +146,9 @@ export default function Header() {
                 />
               </Link>
             </div>
-          )}
+          ) : <div />}
 
-          <div className="flex items-center gap-1">
-            {/* Category Links */}
+          <div className="flex items-center gap-1 mx-auto">
             <ul className="flex items-center gap-1 font-extrabold">
               {categories.map((item, index) => {
                 const isHome = item.slug === "/";
@@ -178,7 +160,7 @@ export default function Header() {
                   <li key={index}>
                     <Link href={href}>
                       <span
-                        className={`inline-block px-4 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-lg ${
+                        className={`inline-block px-2.5 xl:px-3.5 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-sm xl:text-base ${
                           isActive
                             ? "text-nepal-red border-nepal-red"
                             : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
@@ -192,6 +174,12 @@ export default function Header() {
               })}
             </ul>
           </div>
+
+          {scrolled && (
+            <div className="shrink-0">
+              <SearchDropdown />
+            </div>
+          )}
         </div>
       </nav>
 

@@ -183,6 +183,18 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
               date
               content(format: RENDERED)
               excerpt(format: RENDERED)
+              categories {
+                nodes {
+                  id
+                  name
+                  slug
+                }
+              }
+              author {
+                node {
+                  name
+                }
+              }
               featuredImage {
                 node {
                   sourceUrl
@@ -343,10 +355,10 @@ export async function getPostsForHomepage() {
 }
 
 export async function fetchPostBySlug(slug: string): Promise<Post | null> {
-  console.log(`Fetching post with slug: ${slug}...`);
+  const decodedSlug = decodeURIComponent(slug);
+  console.log(`Fetching post with slug: ${decodedSlug}...`);
 
-  // Escape the slug to prevent GraphQL injection issues
-  const escapedSlug = slug
+  const escapedSlug = decodedSlug
     .replace(/"/g, '\\"')
     .replace(/\n/g, "")
     .replace(/\r/g, "");
@@ -407,32 +419,67 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
       errors?: Array<{ message: string }>;
     } = await response.json();
 
-    // Check for GraphQL errors
-    if (json.errors && json.errors.length > 0) {
-      console.error(" GraphQL Errors:", json.errors);
-      throw new Error(`GraphQL query failed: ${json.errors[0].message}`);
+    if (json.data?.postBy) {
+      const post = json.data.postBy;
+      if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+      }
+      return post;
     }
 
-    if (!json.data?.postBy) {
-      console.log(` No post found with slug: ${slug}`);
-      return null;
-    }
+    // Fallback: try querying by post URI if slug lookup failed
+    const uriQuery = `
+      query GetPostByUri {
+        post(id: "${escapedSlug}", idType: SLUG) {
+          id
+          uri
+          title(format: RENDERED)
+          slug
+          status
+          link
+          date
+          content(format: RENDERED)
+          excerpt(format: RENDERED)
+          categories {
+            nodes {
+              id
+              name
+              slug
+            }
+          }
+          featuredImage {
+            node {
+              sourceUrl
+              altText
+              mediaDetails {
+                width
+                height
+              }
+            }
+          }
+        }
+      }
+    `;
 
-    const post = json.data.postBy;
+    const uriRes = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: uriQuery }),
+      next: { revalidate: 300 },
+    });
 
-    // Ensure featured image URLs are absolute
-    if (post.featuredImage?.node?.sourceUrl) {
-      let imageUrl = post.featuredImage.node.sourceUrl;
-      if (imageUrl.startsWith("/")) {
-        imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
-        post.featuredImage.node.sourceUrl = imageUrl;
+    if (uriRes.ok) {
+      const uriJson = await uriRes.json();
+      if (uriJson.data?.post) {
+        const post = uriJson.data.post;
+        if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+          post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+        }
+        return post;
       }
     }
 
-    // console.log(
-    //   `Successfully fetched post: ${post.title?.substring(0, 30)}...`
-    // );
-    return post;
+    return null;
   } catch (error) {
     console.error(" Error fetching post by slug:", error);
     return null;
@@ -570,13 +617,20 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       ) {
         nodes { ${postFields} }
       }
+
+      legal: posts(
+        first: 6
+        where: { categoryName: "legal", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
     }
   `;
 
   const emptyResult: HomePagePosts = {
     featured: [], trending: [], latest: [], politics: [], society: [],
     breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    multimedia: [], international: [], opinion: [],
+    multimedia: [], international: [], opinion: [], legal: [],
   };
 
   try {
@@ -630,6 +684,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       multimedia: normalize(json.data.multimedia?.nodes || []),
       international: normalize(json.data.international?.nodes || []),
       opinion: normalize(json.data.opinion?.nodes || []),
+      legal: normalize(json.data.legal?.nodes || []),
     };
   } catch (error) {
     // Catches DNS failures, network errors, timeouts, etc.
@@ -760,6 +815,78 @@ export async function fetchAdsBanner(): Promise<BannerAd[]> {
     return banners;
   } catch (error) {
     console.error("Error fetching banner ads:", error);
+    return [];
+  }
+}
+
+// ── WordPress-native search (supports Nepali + English) ──────────────────────
+export async function searchPosts(query: string, first: number = 15): Promise<Post[]> {
+  if (!query || query.trim().length === 0) return [];
+
+  const gql = `
+    query SearchPosts($search: String!) {
+      posts(first: ${first}, where: { search: $search, orderby: { field: DATE, order: DESC } }) {
+        edges {
+          node {
+            id
+            uri
+            title(format: RENDERED)
+            slug
+            status
+            link
+            date
+            content(format: RENDERED)
+            excerpt(format: RENDERED)
+            categories {
+              nodes {
+                id
+                name
+                slug
+              }
+            }
+            author {
+              node {
+                name
+              }
+            }
+            featuredImage {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query: gql, variables: { search: query.trim() } }),
+      next: { revalidate: 60 },
+    });
+
+    if (!response.ok) return [];
+    const json: PostsResponse = await response.json();
+    if (json.errors) return [];
+    if (!json.data?.posts?.edges) return [];
+
+    return json.data.posts.edges.map((edge) => {
+      const post = edge.node;
+      if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+      }
+      return post;
+    });
+  } catch (error) {
+    console.error("Search error:", error);
     return [];
   }
 }
