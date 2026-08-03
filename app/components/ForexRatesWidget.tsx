@@ -120,9 +120,9 @@ export default async function ForexRatesWidget() {
   )
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-gray-200">
+    <div className="flex flex-col md:grid md:grid-cols-2 gap-0 border border-gray-200 w-full overflow-hidden bg-white">
       {/* ── FOREX TABLE ── */}
-      <div className="border-b lg:border-b-0 lg:border-r border-gray-200">
+      <div className="border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="px-4 py-3 text-center border-b border-gray-200"
           style={{ background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)" }}>

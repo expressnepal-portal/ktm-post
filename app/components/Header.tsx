@@ -84,14 +84,14 @@ export default function Header() {
           </div>
 
           {/* Brand Logo (centered) */}
-          <div className="flex-grow flex justify-center py-1">
+          <div className="flex-grow flex justify-center py-2">
             <Link href={"/"} className="transition-opacity hover:opacity-90">
               <Image
                 src="/logo.png"
-                width={200}
-                height={40}
+                width={360}
+                height={90}
                 alt="KTM Post Logo"
-                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                className="h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 w-auto object-contain"
                 priority
               />
             </Link>
@@ -121,15 +121,41 @@ export default function Header() {
           <Link href={"/"} className="transition-opacity hover:opacity-90">
             <Image
               src="/logo.png"
-              width={120}
-              height={26}
+              width={220}
+              height={50}
               alt="KTM Post Logo"
-              className="h-7 w-auto object-contain"
+              className="h-10 md:h-12 w-auto object-contain"
             />
           </Link>
           <SearchDropdown />
         </div>
       )}
+
+      {/* MOBILE HORIZONTAL CATEGORY SCROLLBAR */}
+      <div className="lg:hidden bg-white border-t border-b border-gray-200 overflow-x-auto scrollbar-hide py-1.5 px-3">
+        <ul className="flex items-center gap-2 font-bold text-xs whitespace-nowrap">
+          {categories.map((item, index) => {
+            const isHome = item.slug === "/";
+            const href = isHome ? "/" : `/${item.slug}`;
+            const isActive = isHome ? pathname === "/" : pathname.startsWith(`/${item.slug}`);
+            return (
+              <li key={index} className="shrink-0">
+                <Link href={href}>
+                  <span
+                    className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide transition-all uppercase ${
+                      isActive
+                        ? "bg-nepal-red text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {item.nepali}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
 
       {/* DESKTOP STICKY NAVBAR */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
@@ -139,10 +165,10 @@ export default function Header() {
               <Link href={"/"} className="transition-opacity hover:opacity-90">
                 <Image
                   src="/logo.png"
-                  width={110}
-                  height={24}
+                  width={180}
+                  height={40}
                   alt="KTM Post Logo"
-                  className="h-6 w-auto object-contain"
+                  className="h-9 lg:h-10 w-auto object-contain"
                 />
               </Link>
             </div>

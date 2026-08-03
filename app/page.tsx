@@ -336,10 +336,13 @@ export default async function HomePage() {
     international && international.length > 0
       ? international.map(mapWpPost)
       : [];
+  const rawLegalPosts = await fetchPostsByCategory("legal", 3);
   const legalPosts =
-    legal && legal.length > 0
-      ? legal.map(mapWpPost)
-      : posts.slice(0, 3);
+    rawLegalPosts && rawLegalPosts.length > 0
+      ? rawLegalPosts.map(mapWpPost)
+      : legal && legal.length > 0
+        ? legal.map(mapWpPost)
+        : [];
   return (
     <div
       className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
