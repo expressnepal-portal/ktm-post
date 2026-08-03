@@ -756,33 +756,30 @@ export async function fetchRelatedPosts(
 }
 
 
-export async function fetchAdsBanner(): Promise<BannerAd[]> {
-  try {
-    const baseUrl = API_URL;
-
-    const query = `
-      query {
- finalbannerads {
-  nodes {
-    id
-    title
-    date
-    finalBannerFields {
-      adimage { node { title sourceUrl } }
-      link
-      addtitle
-      priority
-      active
-      category
-      slug
-    }
-  }
-}
-
+export async function getBannerAds(): Promise<BannerAd[]> {
+  // Matches the exact schema confirmed in WPGraphQL IDE
+  const query = `
+    query GetBannerAds {
+      bannerAds {
+        nodes {
+          title
+          featuredImage {
+            node {
+              sourceUrl
+            }
+          }
+          bannerAdDetails {
+            link
+            active
+            priority
+          }
+        }
       }
-    `;
+    }
+  `;
 
-    const res = await fetch(baseUrl, {
+  try {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
@@ -790,29 +787,84 @@ export async function fetchAdsBanner(): Promise<BannerAd[]> {
     });
 
     if (!res.ok) return [];
+    const json = await res.json();
+    if (json.errors || !json.data?.bannerAds?.nodes) return [];
 
-    const data = await res.json();
-    console.log("RAW banners:", data);
+    const banners: BannerAd[] = json.data.bannerAds.nodes
+      .filter((node: any) => node.bannerAdDetails?.active)
+      .map((node: any) => ({
+        id: node.title,
+        title: node.title,
+        adTitle: node.title,
+        adImage: node.featuredImage?.node?.sourceUrl || null,
+        link: node.bannerAdDetails?.link || "",
+        active: true,
+        priority: Number(node.bannerAdDetails?.priority || 0),
+        category: null,
+      }));
 
-    if (!data?.data?.finalbannerads?.nodes) return [];
-
-    const banners: BannerAd[] = data.data.finalbannerads.nodes.map((node: any) => ({
-      id: node.id,
-      title: node.title,
-      slug: node.finalBannerFields?.slug ?? null,
-      category: node.finalBannerFields?.category ?? null,
-      adTitle: node.finalBannerFields?.addtitle ?? "",
-      adImage: node.finalBannerFields?.adimage?.node?.sourceUrl ?? null,
-      link: node.finalBannerFields?.link ?? "",
-      priority: Number(node.finalBannerFields?.priority ?? 0),
-      active: Boolean(node.finalBannerFields?.active),
-    }));
-    
-    
-    // Sort by priority descending
     banners.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    console.log("This is banner ads",banners)
     return banners;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchAdsBanner(): Promise<BannerAd[]> {
+  try {
+    // 1. Try bannerAds (confirmed working in WPGraphQL IDE — Snickers ad)
+    const newAds = await getBannerAds();
+    if (newAds.length > 0) return newAds;
+
+    // 2. Fallback to finalbannerads (legacy CPT)
+    const queryFinal = `
+      query GetFinalBannerAds {
+        finalbannerads {
+          nodes {
+            id
+            title
+            date
+            finalBannerFields {
+              adimage { node { title sourceUrl } }
+              link
+              addtitle
+              priority
+              active
+              category
+              slug
+            }
+          }
+        }
+      }
+    `;
+
+    const resFinal = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: queryFinal }),
+      cache: "no-store",
+    });
+
+    if (resFinal.ok) {
+      const jsonFinal = await resFinal.json();
+      if (jsonFinal?.data?.finalbannerads?.nodes?.length > 0) {
+        const banners: BannerAd[] = jsonFinal.data.finalbannerads.nodes.map((node: any) => ({
+          id: node.id,
+          title: node.title,
+          slug: node.finalBannerFields?.slug ?? null,
+          category: node.finalBannerFields?.category ?? null,
+          adTitle: node.finalBannerFields?.addtitle || node.title || "",
+          adImage: node.finalBannerFields?.adimage?.node?.sourceUrl ?? null,
+          link: node.finalBannerFields?.link ?? "",
+          priority: Number(node.finalBannerFields?.priority ?? 0),
+          active: node.finalBannerFields?.active !== undefined ? Boolean(node.finalBannerFields?.active) : true,
+        }));
+        banners.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        return banners;
+      }
+    }
+
+    return [];
   } catch (error) {
     console.error("Error fetching banner ads:", error);
     return [];

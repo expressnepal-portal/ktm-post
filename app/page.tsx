@@ -17,6 +17,8 @@ import {
   type Post as WordPressPost,
 } from "@/lib/wordpress";
 import BreakingNews from "./components/BreakingNews";
+import SidebarAds from "./components/SidebarAds";
+import BannerAdSlot from "./components/BannerAdSlot";
 import Card from "./components/Card";
 import Link from "next/link";
 import Image from "next/image";
@@ -351,34 +353,26 @@ export default async function HomePage() {
         featuredImageUrl ?? contentImages[0] ?? undefined;
       const excerpt = getCleanContent(item.excerpt || item.content, 180);
 
-      // Add/replace banner images here — one per breaking news slot, in order
-      const breakingBanners = [
-        "/banner/ncell.gif",
-        "/banner/bizmandu.gif",
-        "/banner/banner-3.png",
-      ];
-      const bannerImage = breakingBanners[index];
-
       return (
-
         <React.Fragment key={item.slug}>
-          {bannerImage && (
-            <div className="w-full flex justify-center py-6 md:py-8">
-              <img
-                src={bannerImage}
-                alt={`Banner ${index + 1}`}
-                className="w-full max-w-4xl h-auto"
-              />
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <BannerAdSlot
+              index={index}
+              fallbackImage={
+                index === 0
+                  ? "/banner/ncell.gif"
+                  : index === 1
+                  ? "/banner/bizmandu.gif"
+                  : "/banner/banner-3.png"
+              }
+            />
+          </Suspense>
           <BreakingNews
             slug={item.slug}
             title={getCleanTitle(item.title)}
             image={thumbnailImage}
             excerpt={excerpt}
           />
-
-          
         </React.Fragment>
       );
     })}

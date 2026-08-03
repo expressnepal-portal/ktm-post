@@ -284,11 +284,12 @@ export default async function NewsSlugPage({
               {/* Upcoming Holidays */}
               <UpcomingHolidays maxItems={4} />
 
-              {/* ── More ads mid-sidebar ── */}
+              {/* ── More ads mid-sidebar (shows 3rd ad onwards) ── */}
               <Suspense fallback={null}>
                 <SidebarAds
                   category={nonMetaCategorySlugs[0]}
                   maxAds={1}
+                  startIndex={2}
                 />
               </Suspense>
 

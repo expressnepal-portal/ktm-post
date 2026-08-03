@@ -8,25 +8,26 @@ interface SidebarAdsProps {
   category?: string
   /** Max number of ads to show (default: 3) */
   maxAds?: number
+  /** Starting index for offset pagination (default: 0) */
+  startIndex?: number
 }
 
-export default async function SidebarAds({ category, maxAds = 3 }: SidebarAdsProps) {
+export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 }: SidebarAdsProps) {
   let ads = await fetchAdsBanner()
 
   // Filter: active only
-  ads = ads.filter((ad) => ad.active)
+  ads = ads.filter((ad) => ad.active !== false)
 
-  // Filter by category if specified
-  if (category) {
+  // Filter by category if specified and matches
+  if (category && ads.length > 0) {
     const catFiltered = ads.filter(
-      (ad) => ad.category?.toLowerCase() === category.toLowerCase()
+      (ad) => !ad.category || ad.category.toLowerCase() === category.toLowerCase()
     )
-    // Fall back to all ads if no category match
     if (catFiltered.length > 0) ads = catFiltered
   }
 
-  // Limit
-  ads = ads.slice(0, maxAds)
+  // Offset & Limit
+  ads = ads.slice(startIndex, startIndex + maxAds)
 
   // If no CMS ads active, display elegant ad placeholder slots so section is visible
   const displayAds = ads.length > 0 ? ads : Array.from({ length: Math.min(maxAds, 2) }).map((_, i) => ({
