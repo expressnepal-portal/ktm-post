@@ -4,7 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-import { MobileMenuProvider } from "./components/MobileMenuContext"; 
+import { MobileMenuProvider } from "./components/MobileMenuContext";
 import BannerAdsTop from "./components/BannersAdsTop";
 
 export const metadata: Metadata = {
@@ -44,11 +44,8 @@ export default function RootLayout({
         <MobileMenuProvider>
           {/* FIXED HEADER */}
           <Header />
-          <div className="h-5 md:h-5" />
-
-          {/* <BannerAdsTop/> */}
           {/* CONTENT OFFSET FOR FIXED HEADER */}
-          <main className="pt -28 md:pt-32 lg:pt-36 min-h-screen">
+          <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen">
             {children}
           </main>
 

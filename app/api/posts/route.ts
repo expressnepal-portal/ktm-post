@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const API_URL = process.env.API_URL || "https://cms.bodhiberry.com/?graphql";
+const API_URL = process.env.API_URL || "https://cms.ktmpost.com/?graphql";
 
 export async function GET(request: Request) {
   try {
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
       if (post.featuredImage?.node?.sourceUrl) {
         let imageUrl = post.featuredImage.node.sourceUrl;
         if (imageUrl.startsWith('/')) {
-          imageUrl = `http://cms.bodhiberry.com${imageUrl}`;
+          imageUrl = `http://cms.ktmpost.com${imageUrl}`;
         }
         post.featuredImage.node.sourceUrl = imageUrl;
       }
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
           if (match[1]) {
             let imageUrl = match[1];
             if (imageUrl.startsWith('/')) {
-              imageUrl = `http://cms.bodhiberry.com${imageUrl}`;
+              imageUrl = `http://cms.ktmpost.com${imageUrl}`;
             }
             images.push(imageUrl);
           }

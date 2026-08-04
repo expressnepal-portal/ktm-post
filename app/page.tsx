@@ -178,7 +178,7 @@ export function extractImagesFromContent(content: string | null): string[] {
     if (!src) return;
 
     if (src.startsWith("//")) src = `https:${src}`;
-    if (src.startsWith("/")) src = `http://cms.bodhiberry.com${src}`;
+    if (src.startsWith("/")) src = `https://cms.ktmpost.com${src}`;
 
     images.push(src);
   });
@@ -348,7 +348,7 @@ export default async function HomePage() {
       className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
     >
 {breaking.length > 0 && (
-  <div className="pt-28 md:pt-8 lg:pt-16 w-full max-w-[1920px] mx-auto px-mobile-safe">
+  <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe">
     {breaking.slice(0, 3).map((item, index) => {
       const contentImages = extractImagesFromContent(item.content);
       const featuredImageUrl = item.featuredImage?.node?.sourceUrl;

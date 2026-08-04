@@ -54,11 +54,11 @@ export default function Header() {
         className={`w-full max-w-[1920px] mx-auto px-mobile-safe relative flex flex-col items-center transition-all duration-300 ${
           scrolled
             ? "max-h-0 opacity-0 py-0 overflow-hidden"
-            : "max-h-60 opacity-100 py-3"
+            : "max-h-60 opacity-100 py-1.5 sm:py-2"
         }`}
       >
         {/* Date & Location (Top utility line) */}
-        <div className="w-full flex items-center justify-between border-b border-gray-100 pb-2 mb-3 text-xs tracking-wider text-gray-500 uppercase font-medium">
+        <div className="w-full flex items-center justify-between border-b border-gray-100 pb-1 mb-1.5 text-xs tracking-wider text-gray-500 uppercase font-medium">
           <span className="hidden sm:inline">Kathmandu, Nepal</span>
           <div className="mx-auto sm:mx-0">
             <NepaliDateTime />
@@ -67,12 +67,12 @@ export default function Header() {
         </div>
 
         {/* Logo Masthead */}
-        <div className="flex items-center justify-between w-full gap-4">
+        <div className="flex items-center justify-between w-full gap-2 px-2 py-1">
           {/* Mobile: Hamburger on left */}
-          <div className="lg:hidden">
+          <div className="lg:hidden shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? (
@@ -84,21 +84,21 @@ export default function Header() {
           </div>
 
           {/* Brand Logo (centered) */}
-          <div className="flex-grow flex justify-center py-2">
+          <div className="flex-grow flex justify-center py-1">
             <Link href={"/"} className="transition-opacity hover:opacity-90">
               <Image
                 src="/logo.png"
                 width={360}
                 height={90}
                 alt="KTM Post Logo"
-                className="h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 w-auto object-contain"
+                className="h-10 sm:h-14 md:h-20 lg:h-24 xl:h-28 w-auto object-contain"
                 priority
               />
             </Link>
           </div>
 
           {/* Search Dropdown Inline */}
-          <div className="hidden lg:block">
+          <div className="shrink-0">
             <SearchDropdown />
           </div>
         </div>
@@ -131,31 +131,7 @@ export default function Header() {
         </div>
       )}
 
-      {/* MOBILE HORIZONTAL CATEGORY SCROLLBAR */}
-      <div className="lg:hidden bg-white border-t border-b border-gray-200 overflow-x-auto scrollbar-hide py-1.5 px-3">
-        <ul className="flex items-center gap-2 font-bold text-xs whitespace-nowrap">
-          {categories.map((item, index) => {
-            const isHome = item.slug === "/";
-            const href = isHome ? "/" : `/${item.slug}`;
-            const isActive = isHome ? pathname === "/" : pathname.startsWith(`/${item.slug}`);
-            return (
-              <li key={index} className="shrink-0">
-                <Link href={href}>
-                  <span
-                    className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide transition-all uppercase ${
-                      isActive
-                        ? "bg-nepal-red text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {item.nepali}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+
 
       {/* DESKTOP STICKY NAVBAR */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">

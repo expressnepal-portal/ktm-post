@@ -66,15 +66,15 @@ export default function SearchDropdown() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xs md:max-w-sm">
+    <div ref={containerRef} className="relative w-full max-w-[160px] sm:max-w-xs md:max-w-sm">
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2 text-gray-700 text-sm font-medium border border-gray-200 bg-gray-50/50"
+          className="p-2 sm:px-3 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1.5 sm:gap-2 text-gray-700 text-xs sm:text-sm font-medium border border-gray-200 bg-gray-50/50"
           title="समाचार खोज्नुहोस्"
         >
-          <Search className="w-4 h-4 text-nepal-red" />
-          <span className="text-gray-500 font-poppins text-xs">समाचार खोज्नुहोस्...</span>
+          <Search className="w-4 h-4 text-nepal-red shrink-0" />
+          <span className="text-gray-500 font-poppins text-[11px] sm:text-xs truncate">खोज्नुहोस्...</span>
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="relative flex items-center w-full">

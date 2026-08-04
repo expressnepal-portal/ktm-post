@@ -1,7 +1,7 @@
 import { BannerAd, HomePagePosts } from "./type";
 
 const API_URL =
-  process.env.API_URL || "https://cms.bodhiberry.com/?graphql";
+  process.env.API_URL || "https://cms.ktmpost.com/?graphql";
 
 export interface FeaturedImage {
   sourceUrl: string;
@@ -124,7 +124,7 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
       if (post.featuredImage?.node?.sourceUrl) {
         let imageUrl = post.featuredImage.node.sourceUrl;
         if (imageUrl.startsWith("/")) {
-          imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
+          imageUrl = `https://cms.ktmpost.com${imageUrl}`;
           post.featuredImage.node.sourceUrl = imageUrl;
         }
       }
@@ -243,7 +243,7 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
           if (post.featuredImage?.node?.sourceUrl) {
             let imageUrl = post.featuredImage.node.sourceUrl;
             if (imageUrl.startsWith("/")) {
-              imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
+              imageUrl = `https://cms.ktmpost.com${imageUrl}`;
               post.featuredImage.node.sourceUrl = imageUrl;
             }
           }
@@ -286,11 +286,11 @@ export function extractFirstImageFromContent(
 
         // Convert to absolute URL if relative
         if (imageUrl.startsWith("/")) {
-          imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
+          imageUrl = `https://cms.ktmpost.com${imageUrl}`;
         } else if (imageUrl.startsWith("//")) {
           imageUrl = `https:${imageUrl}`;
         } else if (!imageUrl.startsWith("http")) {
-          imageUrl = `https://cms.bodhiberry.com/${imageUrl}`;
+          imageUrl = `https://cms.ktmpost.com/${imageUrl}`;
         }
 
         // console.log("Extracted image from content:", imageUrl);
@@ -422,7 +422,7 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
     if (json.data?.postBy) {
       const post = json.data.postBy;
       if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+        post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
       }
       return post;
     }
@@ -473,7 +473,7 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
       if (uriJson.data?.post) {
         const post = uriJson.data.post;
         if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-          post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+          post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
         }
         return post;
       }
@@ -663,7 +663,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     const normalize = (posts: Post[]) =>
       posts.map((post) => {
         if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-          post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+          post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
         }
         return post;
       });
@@ -746,7 +746,7 @@ export async function fetchRelatedPosts(
     if (post.featuredImage?.node?.sourceUrl) {
       let imageUrl = post.featuredImage.node.sourceUrl;
       if (imageUrl.startsWith("/")) {
-        imageUrl = `https://cms.bodhiberry.com${imageUrl}`;
+        imageUrl = `https://cms.ktmpost.com${imageUrl}`;
         post.featuredImage.node.sourceUrl = imageUrl;
       }
     }
@@ -933,7 +933,7 @@ export async function searchPosts(query: string, first: number = 15): Promise<Po
     return json.data.posts.edges.map((edge) => {
       const post = edge.node;
       if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-        post.featuredImage.node.sourceUrl = `https://cms.bodhiberry.com${post.featuredImage.node.sourceUrl}`;
+        post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
       }
       return post;
     });

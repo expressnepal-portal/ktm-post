@@ -91,7 +91,7 @@ function extractImagesFromContent(content: string | null): string[] {
     if (!src) return
 
     if (src.startsWith("//")) src = `https:${src}`
-    if (src.startsWith("/")) src = `http://cms.bodhiberry.com${src}`
+    if (src.startsWith("/")) src = `https://cms.ktmpost.com${src}`
 
     images.push(src)
   })

@@ -18,6 +18,21 @@ const nextConfig = {
         pathname: "/**",
       },
       {
+        protocol: "http",
+        hostname: "cms.ktmpost.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cms.ktmpost.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.ktmpost.com",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
         hostname: "www.onlinekhabar.com",
         pathname: "/**",
