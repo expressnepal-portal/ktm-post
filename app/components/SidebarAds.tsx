@@ -42,12 +42,9 @@ export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 
   return (
     <div className="flex flex-col gap-3">
       {displayAds.map((ad, index) => (
-        <a
+        <div
           key={ad.id}
-          href={ad.link || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full group overflow-hidden border border-gray-200 bg-white hover:border-nepal-red transition-colors duration-200"
+          className="block w-full overflow-hidden border border-gray-200 bg-white"
           title={ad.adTitle || ad.title}
         >
           {/* "Ad" label */}
@@ -64,7 +61,7 @@ export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 
               <img
                 src={ad.adImage}
                 alt={ad.adTitle || ad.title || "Advertisement"}
-                className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                className="w-full h-auto object-cover"
                 loading="lazy"
               />
             </div>
@@ -77,8 +74,8 @@ export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 
               </p>
             </div>
           )}
-        </a>
+        </div>
       ))}
     </div>
-  )
+  );
 }

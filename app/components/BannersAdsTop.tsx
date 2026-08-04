@@ -36,12 +36,7 @@ export default function BannerAdsTop({ maxHeight = 200 }: BannerAdsTopProps) {
 
   return (
     <div className="w-full bg-gray-100 flex items-center py-2 mt-44 -mb-40">
-      <Link
-        href={ad.link || "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block w-full max-w-7xl px-4"
-      >
+      <div className="block w-full max-w-7xl px-4">
         <div
           className="w-full overflow-hidden rounded-lg flex justify-center items-center"
           style={{ maxHeight }}
@@ -52,8 +47,7 @@ export default function BannerAdsTop({ maxHeight = 200 }: BannerAdsTopProps) {
             className="w-full h-[100px] object-contain"
           />
         </div>
-      </Link>
-     
+      </div>
     </div>
   );
 }

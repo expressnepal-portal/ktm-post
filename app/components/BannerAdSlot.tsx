@@ -34,15 +34,9 @@ export default async function BannerAdSlot({
 
   return (
     <div className="w-full flex justify-center py-4 md:py-6">
-      <a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block transition-transform duration-200 hover:scale-[1.01]"
-        title={title}
-      >
+      <div className="block" title={title}>
         <img src={imageUrl} alt={title} className={className} loading="lazy" />
-      </a>
+      </div>
     </div>
   );
 }
