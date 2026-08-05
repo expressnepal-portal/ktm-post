@@ -1,4 +1,5 @@
 import { BannerAd, HomePagePosts } from "./type";
+import { transliterateSlug } from "./transliterate";
 
 const API_URL =
   process.env.API_URL || "https://cms.ktmpost.com/?graphql";
@@ -476,6 +477,114 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
           post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
         }
         return post;
+      }
+    }
+
+    // Fallback 3: try querying by DATABASE_ID if input is numeric or database ID
+    const databaseId = parseInt(escapedSlug, 10);
+    if (!isNaN(databaseId)) {
+      const idQuery = `
+        query GetPostById {
+          post(id: "${databaseId}", idType: DATABASE_ID) {
+            id
+            uri
+            title(format: RENDERED)
+            slug
+            status
+            link
+            date
+            content(format: RENDERED)
+            excerpt(format: RENDERED)
+            categories {
+              nodes {
+                id
+                name
+                slug
+              }
+            }
+            featuredImage {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const idRes = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: idQuery }),
+        next: { revalidate: 300 },
+      });
+
+      if (idRes.ok) {
+        const idJson = await idRes.json();
+        if (idJson.data?.post) {
+          const post = idJson.data.post;
+          if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+            post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
+          }
+          return post;
+        }
+      }
+    }
+
+    // Fallback 4: If input is a transliterated Latin slug, search recent posts and match by transliterateSlug
+    const searchRes = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `
+          query GetRecentPostsForSlugMatch {
+            posts(first: 100) {
+              nodes {
+                id
+                uri
+                title(format: RENDERED)
+                slug
+                status
+                link
+                date
+                content(format: RENDERED)
+                excerpt(format: RENDERED)
+                categories {
+                  nodes { id name slug }
+                }
+                featuredImage {
+                  node {
+                    sourceUrl
+                    altText
+                    mediaDetails { width height }
+                  }
+                }
+              }
+            }
+          }
+        `,
+      }),
+      next: { revalidate: 300 },
+    });
+
+    if (searchRes.ok) {
+      const searchJson = await searchRes.json();
+      const posts: Post[] = searchJson.data?.posts?.nodes || [];
+      const match = posts.find((p) => {
+        if (!p.slug) return false;
+        const roman = transliterateSlug(p.slug);
+        return roman === escapedSlug.toLowerCase() || p.slug === escapedSlug;
+      });
+
+      if (match) {
+        if (match.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+          match.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${match.featuredImage.node.sourceUrl}`;
+        }
+        return match;
       }
     }
 

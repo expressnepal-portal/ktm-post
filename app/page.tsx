@@ -231,19 +231,22 @@ export function mapWpPost(post: WordPressPost): Post {
   };
 }
 
+import { transliterateSlug } from "@/lib/transliterate";
+
 export function getPostUrl(post: {
   slug: string;
   categorySlug?: string;
 }): string {
+  const cleanSlug = transliterateSlug(post.slug);
   if (
     post.categorySlug &&
     post.categorySlug !== "latest-news" &&
     post.categorySlug !== "featured-news" &&
     post.categorySlug !== "breaking-news"
   ) {
-    return `/${post.categorySlug}/${post.slug}`;
+    return `/${post.categorySlug}/${cleanSlug}`;
   }
-  return `/news/${post.slug}`;
+  return `/news/${cleanSlug}`;
 }
 
 export default async function HomePage() {

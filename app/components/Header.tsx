@@ -57,48 +57,50 @@ export default function Header() {
             : "max-h-60 opacity-100 py-1.5 sm:py-2"
         }`}
       >
-        {/* Date & Location (Top utility line) */}
-        <div className="w-full flex items-center justify-between border-b border-gray-100 pb-1 mb-1.5 text-xs tracking-wider text-gray-500 uppercase font-medium">
-          <span className="hidden sm:inline">Kathmandu, Nepal</span>
-          <div className="mx-auto sm:mx-0">
+        {/* Date & Location (Top utility line) - 3-column grid for perfect alignment */}
+        <div className="w-full grid grid-cols-3 items-center border-b border-gray-100 pb-1 mb-1.5 text-xs tracking-wider text-gray-500 uppercase font-medium">
+          <span className="hidden sm:block text-left">Kathmandu, Nepal</span>
+          <div className="col-span-3 sm:col-span-1 text-center">
             <NepaliDateTime />
           </div>
-          <span className="hidden sm:inline">English / नेपाली</span>
+          <span className="hidden sm:block text-right">English / नेपाली</span>
         </div>
 
         {/* Logo Masthead */}
-        <div className="flex items-center justify-between w-full gap-2 px-2 py-1">
-          {/* Mobile: Hamburger on left */}
-          <div className="lg:hidden shrink-0">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-700" />
-              )}
-            </button>
+        <div className="flex items-center justify-between w-full px-2 py-2 relative">
+          {/* Left: Mobile menu */}
+          <div className="flex items-center justify-start min-w-[120px]">
+            <div className="lg:hidden shrink-0">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+                aria-label="Toggle Menu"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6 text-gray-700" />
+                ) : (
+                  <Menu className="w-6 h-6 text-gray-700" />
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Brand Logo (centered) */}
-          <div className="flex-grow flex justify-center py-1">
+          {/* Center: Brand Logo */}
+          <div className="flex justify-center flex-1">
             <Link href={"/"} className="transition-opacity hover:opacity-90">
               <Image
                 src="/logo.png"
                 width={360}
                 height={90}
                 alt="KTM Post Logo"
-                className="h-10 sm:h-14 md:h-20 lg:h-24 xl:h-28 w-auto object-contain"
+                className="h-12 sm:h-16 md:h-20 lg:h-24 w-auto object-contain"
                 priority
               />
             </Link>
           </div>
 
-          {/* Search Dropdown Inline */}
-          <div className="shrink-0">
+          {/* Right: Search */}
+          <div className="flex justify-end min-w-[120px]">
             <SearchDropdown />
           </div>
         </div>
@@ -131,25 +133,25 @@ export default function Header() {
         </div>
       )}
 
-
-
-      {/* DESKTOP STICKY NAVBAR */}
+      {/* DESKTOP STICKY NAVBAR - cleanly centered */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between px-mobile-safe py-1 relative">
-          <div className="flex items-center min-w-[180px]">
-            {scrolled && (
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between px-mobile-safe py-1.5">
+          {/* Left: logo when scrolled */}
+          {scrolled ? (
+            <div className="flex items-center shrink-0 mr-4">
               <Link href={"/"} className="transition-opacity hover:opacity-90">
                 <Image
                   src="/logo.png"
                   width={180}
                   height={40}
                   alt="KTM Post Logo"
-                  className="h-9 lg:h-10 w-auto object-contain"
+                  className="h-8 lg:h-9 w-auto object-contain"
                 />
               </Link>
-            )}
-          </div>
+            </div>
+          ) : null}
 
+          {/* Center: category links */}
           <div className="flex items-center justify-center flex-1">
             <ul className="flex items-center justify-center flex-wrap gap-1 font-extrabold">
               {categories.map((item, index) => {
@@ -159,13 +161,13 @@ export default function Header() {
                   ? pathname === "/"
                   : pathname.startsWith(`/${item.slug}`);
                 return (
-                  <li key={index}>
+                  <li key={index} className="shrink-0">
                     <Link href={href}>
                       <span
-                        className={`inline-block px-2 xl:px-3 py-1.5 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-sm xl:text-base ${
+                        className={`inline-block px-2 xl:px-3 py-1 font-bold tracking-wide transition-all uppercase border-b-2 text-sm xl:text-base ${
                           isActive
                             ? "text-nepal-red border-nepal-red"
-                            : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
+                            : "text-gray-800 border-transparent hover:text-nepal-red hover:border-nepal-red"
                         }`}
                       >
                         {item.nepali}
@@ -177,9 +179,12 @@ export default function Header() {
             </ul>
           </div>
 
-          <div className="flex items-center justify-end min-w-[180px]">
-            {scrolled && <SearchDropdown />}
-          </div>
+          {/* Right: search when scrolled */}
+          {scrolled ? (
+            <div className="flex items-center shrink-0 ml-4">
+              <SearchDropdown />
+            </div>
+          ) : null}
         </div>
       </nav>
 

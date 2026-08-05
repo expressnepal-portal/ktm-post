@@ -13,6 +13,7 @@ import { fetchPostBySlug, fetchRelatedPosts, fetchHomePagePosts, type Post } fro
 import { getCleanContent } from "@/app/page"
 import ImageSlider from "@/app/components/ImageSlider"
 import NewsImage from "@/app/components/NewsImage"
+import { transliterateSlug } from "@/lib/transliterate"
 import * as cheerio from "cheerio"
 
 const inter = Inter({
@@ -319,7 +320,7 @@ export default async function NewsSlugPage({
                   return (
                     <a
                       key={item.id}
-                      href={`/news/${item.slug}`}
+                      href={`/news/${transliterateSlug(item.slug)}`}
                       className="
                         group cursor-pointer bg-white
                         border border-gray-200

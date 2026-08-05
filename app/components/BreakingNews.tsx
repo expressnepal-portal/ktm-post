@@ -1,12 +1,12 @@
 import { BreakingNewsType } from "@/lib/type";
+import { transliterateSlug } from "@/lib/transliterate";
 import Image from "next/image";
 import Link from "next/link";
 
-
-
 export default function BreakingNews({ title, slug, image, excerpt }: BreakingNewsType) {
+  const cleanSlug = transliterateSlug(slug);
   return (
-    <Link href={`/news/${slug}`}>
+    <Link href={`/news/${cleanSlug}`}>
       <div className="w-full max-w-[1920px] mx-auto px-mobile-safe py-6 border-b border-gray-200">
         <div className="flex flex-col items-center gap-3 max-w-5xl mx-auto group cursor-pointer">
         {/* Title */}
