@@ -212,15 +212,13 @@ export default async function NewsSlugPage({
 
   return (
     <div className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}>
-      <div className="pt-18 sm:pt-14 md:pt-4 lg:pt-0"></div>
-
-      <main className="w-full flex items-center justify-center" style={{ paddingTop: "var(--header-height)" }}>
-        <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col gap-10">
+      <main className="w-full flex items-center justify-center pt-2 md:pt-4" style={{ paddingTop: "calc(var(--header-height) + 8px)" }}>
+        <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col gap-6">
           {/* Main content + Advertisement side by side */}
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-10 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-8 items-start">
             {/* Main Content */}
-            <div className="flex flex-col gap-8">
-              <header className="flex flex-col gap-3 justify-center items-center text-center">
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-col gap-2 justify-center items-center text-center">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-nepal-black font-nepali-serif">
                   {getCleanTitle(post.title)}
                 </h1>
@@ -239,8 +237,8 @@ export default async function NewsSlugPage({
 
               <div className="bg-white p-2 md:p-4">
                 {heroImage && (
-                  <div className="w-full mb-8 md:mb-12">
-                    <div className="w-full h-64 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden rounded-lg">
+                  <div className="w-full mb-4 md:mb-6">
+                    <div className="w-full relative overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
                       <NewsImage
                         post={{
                           id: post.id,
@@ -250,7 +248,7 @@ export default async function NewsSlugPage({
                           images: contentImages,
                         }}
                         images={[heroImage]}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-contain block mx-auto"
                         fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
                       />
                     </div>

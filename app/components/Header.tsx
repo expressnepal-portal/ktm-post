@@ -135,9 +135,9 @@ export default function Header() {
 
       {/* DESKTOP STICKY NAVBAR */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex justify-between items-center px-mobile-safe py-1 relative">
-          {scrolled ? (
-            <div className="flex items-center">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between px-mobile-safe py-1 relative">
+          <div className="flex items-center min-w-[180px]">
+            {scrolled && (
               <Link href={"/"} className="transition-opacity hover:opacity-90">
                 <Image
                   src="/logo.png"
@@ -147,11 +147,11 @@ export default function Header() {
                   className="h-9 lg:h-10 w-auto object-contain"
                 />
               </Link>
-            </div>
-          ) : <div />}
+            )}
+          </div>
 
-          <div className="flex items-center gap-1 mx-auto">
-            <ul className="flex items-center gap-1 font-extrabold">
+          <div className="flex items-center justify-center flex-1">
+            <ul className="flex items-center justify-center flex-wrap gap-1 font-extrabold">
               {categories.map((item, index) => {
                 const isHome = item.slug === "/";
                 const href = isHome ? "/" : `/${item.slug}`;
@@ -162,7 +162,7 @@ export default function Header() {
                   <li key={index}>
                     <Link href={href}>
                       <span
-                        className={`inline-block px-2.5 xl:px-3.5 py-2 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-sm xl:text-base ${
+                        className={`inline-block px-2 xl:px-3 py-1.5 font-bold tracking-wide transition-all uppercase border-b-2 border-transparent text-sm xl:text-base ${
                           isActive
                             ? "text-nepal-red border-nepal-red"
                             : "text-gray-800 hover:text-nepal-red hover:border-nepal-red"
@@ -177,11 +177,9 @@ export default function Header() {
             </ul>
           </div>
 
-          {scrolled && (
-            <div className="shrink-0">
-              <SearchDropdown />
-            </div>
-          )}
+          <div className="flex items-center justify-end min-w-[180px]">
+            {scrolled && <SearchDropdown />}
+          </div>
         </div>
       </nav>
 

@@ -14,18 +14,20 @@ export default function BreakingNews({ title, slug, image, excerpt }: BreakingNe
           {title}
         </h1>
 
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2">
-          <Image src="/logo.png" width={30} height={20} alt="KTM Post" className="h-5 w-auto object-contain" />
+        {/* KTM POST Red Badge */}
+        <div className="flex items-center justify-center mt-1">
+          <span className="bg-[#E93B32] text-white font-bold text-xs md:text-sm px-3 py-1 rounded-sm uppercase tracking-wide">
+            KTM POST
+          </span>
         </div>
 
-        {/* Image (below logo) */}
+        {/* Image (below badge) - uncropped original ratio */}
         {image && (
-          <div className="w-full max-w-5xl aspect-video relative overflow-hidden bg-gray-100 mt-1 border border-gray-200">
+          <div className="w-full max-w-5xl relative overflow-hidden bg-gray-100 mt-2 border border-gray-200 rounded-md">
             <img
               src={image}
               alt={title}
-              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+              className="w-full h-auto object-contain block mx-auto group-hover:scale-[1.01] transition-transform duration-300"
             />
           </div>
         )}

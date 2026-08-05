@@ -167,14 +167,14 @@ export default function NewsImage({
         <img 
           src={currentImage} 
           alt={alt}
-          className={`${className} w-full h-full transition-all duration-1000 ease-in-out object-cover`}
+          className={`${className} transition-all duration-1000 ease-in-out`}
           loading="lazy"
           onError={handleImageError}
           onLoad={() => setImageLoaded(true)}
           style={{ 
             width: '100%',
-            height: '100%',
-            objectFit: 'cover',
+            height: className.includes('h-auto') ? 'auto' : '100%',
+            objectFit: className.includes('object-contain') ? 'contain' : 'cover',
             objectPosition: 'center center'
           }}
         />
