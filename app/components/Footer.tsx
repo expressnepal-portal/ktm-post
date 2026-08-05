@@ -25,8 +25,10 @@ export default function Footer() {
               className="h-8 w-auto object-contain"
             />
           </Link>
-          <p className="text-xs text-gray-500 font-poppins text-center md:text-left">
+          <p className="text-xs text-gray-500 font-poppins text-center md:text-left leading-relaxed">
             &copy; {currentYear} KTM Post. All rights reserved.
+            <br />
+            डिजी भिजन प्रा. लि., सूचना विभाग द.नं. ५३१६-२०८२/०८३
           </p>
         </div>
         {/* Quick Links */}

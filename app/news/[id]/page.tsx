@@ -239,7 +239,7 @@ export default async function NewsSlugPage({
             {/* Main Content */}
             <div className="flex flex-col gap-6">
               <header className="flex flex-col gap-2 justify-center items-center text-center">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-nepal-black font-nepali-serif">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-snug text-nepal-black font-nepali-serif">
                   {getCleanTitle(post.title)}
                 </h1>
 
@@ -255,9 +255,9 @@ export default async function NewsSlugPage({
                 </div>
               </header>
 
-              <div className="bg-white p-2 md:p-4">
+              <div className="bg-white p-3 sm:p-4 md:p-6">
                 {heroImage && (
-                  <div className="w-full mb-4 md:mb-6">
+                  <div className="w-full mb-5 md:mb-8">
                     <div className="w-full relative overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
                       <NewsImage
                         post={{
@@ -276,11 +276,15 @@ export default async function NewsSlugPage({
                 )}
 
                 <div
-                  className="prose prose-lg max-w-none text-gray-800 font-poppins"
+                  className="prose prose-lg md:prose-xl max-w-none text-gray-800 font-poppins
+                    prose-p:text-base prose-p:sm:text-lg prose-p:md:text-xl prose-p:leading-[1.9]
+                    prose-headings:font-nepali-serif prose-headings:text-nepal-black
+                    prose-li:text-base prose-li:sm:text-lg prose-li:md:text-xl
+                    prose-img:rounded-lg prose-img:mx-auto"
                   dangerouslySetInnerHTML={{
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
-                  style={{ lineHeight: "1.8", fontSize: "1.125rem" }}
+                  style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
                 />
               </div>
             </div>

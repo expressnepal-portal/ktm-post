@@ -139,6 +139,78 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ============================
+   WordPress Content Spacing
+   Preserve paragraph gaps, empty lines, and <br> breaks
+   exactly as written in the WordPress editor.
+   ============================ */
+
+/* Ensure empty paragraphs from WordPress are visible as spacing */
+.prose p:empty,
+.prose p:has(> br:only-child) {
+  min-height: 1.2em;
+  display: block;
+}
+
+/* WordPress sometimes uses &nbsp; in empty paragraphs for spacing */
+.prose p:only-child {
+  margin-top: 0;
+}
+
+/* Preserve line breaks inside paragraphs */
+.prose br {
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+}
+
+/* WordPress paragraph spacing — match the editor's default gap */
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+/* First paragraph after heading needs no extra top margin */
+.prose h1 + p,
+.prose h2 + p,
+.prose h3 + p,
+.prose h4 + p {
+  margin-top: 0.75em;
+}
+
+/* WordPress uses multiple <br> tags for extra spacing; preserve them */
+.prose p br + br {
+  display: block;
+  content: "";
+  margin-top: 0.75em;
+}
+
+/* Preserve WordPress blockquote spacing */
+.prose blockquote {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  padding-left: 1.25em;
+  border-left: 4px solid var(--color-nepal-red);
+  font-style: italic;
+}
+
+/* WordPress image captions */
+.prose figcaption,
+.prose .wp-caption-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 0.5em;
+}
+
+/* WordPress embedded content (iframes, videos) */
+.prose iframe,
+.prose .wp-block-embed {
+  max-width: 100%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
 @media (min-width: 1024px) {
   :root {
     --header-height: 130px;
