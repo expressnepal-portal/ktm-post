@@ -23,6 +23,7 @@ export  interface HomePagePosts {
   international?:Post[];
   opinion?:Post[];
   legal?:Post[];
+  health?:Post[];
 }
 
 

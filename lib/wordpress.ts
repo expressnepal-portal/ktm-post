@@ -733,13 +733,20 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       ) {
         nodes { ${postFields} }
       }
+
+      health: posts(
+        first: 6
+        where: { categoryName: "health-and-lifestyle", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
     }
   `;
 
   const emptyResult: HomePagePosts = {
     featured: [], trending: [], latest: [], politics: [], society: [],
     breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    multimedia: [], international: [], opinion: [], legal: [],
+    multimedia: [], international: [], opinion: [], legal: [], health: [],
   };
 
   try {
@@ -794,6 +801,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       international: normalize(json.data.international?.nodes || []),
       opinion: normalize(json.data.opinion?.nodes || []),
       legal: normalize(json.data.legal?.nodes || []),
+      health: normalize(json.data.health?.nodes || []),
     };
   } catch (error) {
     // Catches DNS failures, network errors, timeouts, etc.

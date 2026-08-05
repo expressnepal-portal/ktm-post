@@ -302,6 +302,7 @@ export default async function HomePage() {
     opinion,
     multimedia,
     legal,
+    health,
   } = await fetchHomePagePosts();
   const Posts = await fetchPosts(10);
   const posts = Posts.map(mapWpPost);
@@ -339,6 +340,13 @@ export default async function HomePage() {
     international && international.length > 0
       ? international.map(mapWpPost)
       : [];
+  const healthCategoryPosts = await fetchPostsByCategory("health-and-lifestyle", 5);
+  const healthPostsList =
+    healthCategoryPosts && healthCategoryPosts.length > 0
+      ? healthCategoryPosts.map(mapWpPost)
+      : health && health.length > 0
+        ? health.map(mapWpPost)
+        : [];
   const rawLegalPosts = await fetchPostsByCategory("legal", 3);
   const legalPosts =
     rawLegalPosts && rawLegalPosts.length > 0
@@ -424,26 +432,26 @@ export default async function HomePage() {
                         className="flex flex-col h-full group"
                       >
                         {thumbnailImage && (
-                          <div className="w-full h-[280px] md:h-[400px] lg:h-full overflow-hidden">
+                          <div className="w-full h-[220px] sm:h-[300px] md:h-[380px] lg:h-[420px] xl:h-[480px] overflow-hidden rounded-sm bg-gray-100">
                             <img
                               src={thumbnailImage}
                               alt={getCleanTitle(post.title)}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                             />
                           </div>
                         )}
-                        <h3 className="mt-4 text-xl md:text-2xl font-bold text-nepal-black group-hover:underline">
+                        <h3 className="mt-3 text-lg md:text-2xl font-bold text-nepal-black group-hover:text-nepal-red transition-colors font-nepali-serif">
                           {getCleanTitle(post.title)}
                         </h3>
-                        <p className="mt-2 text-sm md:text-base text-nepal-black/80">
+                        <p className="mt-2 text-sm md:text-base text-gray-600 line-clamp-3 leading-relaxed">
                           {getCleanContent(post.content, 150)}
                         </p>
                       </Link>
                     );
                   })()}
 
-                {/* RIGHT: 6 smaller posts, 3 columns x 2 rows */}
-                <div className="grid grid-cols-3 gap-4 md:gap-5">
+                {/* RIGHT: 6 smaller posts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
                   {newsPosts.slice(1, 7).map((post) => {
                     const contentImages = extractImagesFromContent(
                       post.content,
@@ -459,15 +467,15 @@ export default async function HomePage() {
                         className="flex flex-col group"
                       >
                         {thumbnailImage && (
-                          <div className="w-full h-[90px] md:h-[120px] overflow-hidden">
+                          <div className="w-full aspect-video sm:h-[140px] md:h-[150px] overflow-hidden rounded-sm bg-gray-100">
                             <img
                               src={thumbnailImage}
                               alt={getCleanTitle(post.title)}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                             />
                           </div>
                         )}
-                        <h3 className="mt-2 text-sm md:text-lg font-bold text-nepal-black group-hover:underline line-clamp-3">
+                        <h3 className="mt-2.5 text-sm md:text-base font-bold text-nepal-black group-hover:text-nepal-red transition-colors line-clamp-2 font-nepali-serif leading-snug">
                           {getCleanTitle(post.title)}
                         </h3>
                       </Link>
@@ -660,19 +668,19 @@ export default async function HomePage() {
                     <a
                       key={post.id}
                       href={getPostUrl(post)}
-                      className="group cursor-pointer bg-white border border-gray-200 p-5 transition-colors duration-150 w-full block"
+                      className="group cursor-pointer bg-white border border-gray-200 p-6 md:p-7 transition-colors duration-150 w-full block shadow-xs hover:shadow-md"
                     >
-                      <div className="flex gap-4 md:gap-5 w-full items-start">
-                        <div className="flex-1 min-w-0 space-y-3">
-                          <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight transition-colors duration-150 line-clamp-2 mb-2 group-hover:text-nepal-red">
+                      <div className="flex gap-5 md:gap-6 w-full items-start">
+                        <div className="flex-1 min-w-0 space-y-3 pr-2">
+                          <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug transition-colors duration-150 line-clamp-2 mb-2 group-hover:text-nepal-red">
                             {getCleanTitle(post.title)}
                           </h3>
-                          <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-2">
+                          <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-2 pt-1">
                             {getCleanContent(post.content, 120)}
                           </p>
                         </div>
 
-                        <div className="shrink-0 w-18 h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 bg-gray-100 overflow-hidden">
+                        <div className="shrink-0 w-20 h-20 md:w-24 md:h-24 lg:w-26 lg:h-26 bg-gray-100 overflow-hidden rounded-sm">
                           <NewsImage
                             post={post}
                             images={thumbnailImage ? [thumbnailImage] : []}
@@ -765,8 +773,7 @@ export default async function HomePage() {
                 </div>
 
                 {(() => {
-                  // Health & Lifestyle currently may not have a WP category, so we fall back to society posts
-                  const healthPosts = politicsPosts.slice(0, 5);
+                  const healthPosts = healthPostsList;
                   return healthPosts.length > 0 ? (
                     <div className="flex flex-col gap-0">
                       {/* Featured first post with image */}

@@ -55,14 +55,13 @@ export default async function CategoryPage({
         <div className="w-full max-w-[1920px] mx-auto px-mobile-safe pt-6 pb-16">
 
           {/* Section title */}
-          <div className="flex justify-center mb-8 border-b border-gray-200 pb-4 flex-col items-start">
+          <div className="flex justify-center mb-8 border-b-4 border-nepal-red pb-4 flex-col items-start">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-nepal-black font-nepali-serif">
               {displayNames.nepali}{" "}
               <span className="text-gray-500 font-poppins text-lg font-normal">
                 / {displayNames.english}
               </span>
             </h1>
-            <div className="bg-nepal-red h-[3px] rounded-none w-24 mt-2" />
           </div>
 
           {/* Grid cards */}

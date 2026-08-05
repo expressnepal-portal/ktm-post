@@ -15,6 +15,29 @@ import ImageSlider from "@/app/components/ImageSlider"
 import NewsImage from "@/app/components/NewsImage"
 import { transliterateSlug } from "@/lib/transliterate"
 import * as cheerio from "cheerio"
+import NepaliDate from "bikram-sambat-js"
+
+const nepaliMonths = [
+  "बैशाख", "जेठ", "असार", "श्रावण", "भदौ", "आश्विन",
+  "कार्तिक", "मंसिर", "पौष", "माघ", "फाल्गुण", "चैत्र"
+]
+
+const toNepaliDigits = (num: number | string) => {
+  const nepali = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"]
+  return num.toString().replace(/\d/g, (d) => nepali[parseInt(d)])
+}
+
+function getFormattedNepaliDate(dateStr: string): string {
+  try {
+    const dateObj = new Date(dateStr)
+    const bsDate = new NepaliDate(dateObj)
+    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number)
+    const monthName = nepaliMonths[bsMonth - 1] || ""
+    return `${monthName} ${toNepaliDigits(bsDay)}, ${toNepaliDigits(bsYear)}`
+  } catch {
+    return dateStr
+  }
+}
 
 const inter = Inter({
   subsets: ["latin"],
@@ -205,11 +228,7 @@ export default async function NewsSlugPage({
   // Clean content (remove hero image from body text if embedded)
   const cleanedContent = removeThumbnailFromContent(post.content, heroImage)
 
-  const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+  const formattedDate = getFormattedNepaliDate(post.date)
 
   return (
     <div className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}>

@@ -18,19 +18,21 @@ export default async function NewsPage() {
 
 
   return (
-    <section className="pt-44   w-full">
-      <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+    <section className="w-full" style={{ paddingTop: "var(--header-height)" }}>
+      <div className="w-full max-w-[1920px] mx-auto px-mobile-safe pt-6 pb-16">
 
-        {/* Section title */}
-        <div className="flex justify-center mb-6 md:mb-8 pb-3 md:pb-4 flex-col" >
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-nepal-black">
-            News
+        {/* Section title - matching other category sections */}
+        <div className="flex justify-center mb-8 border-b-4 border-nepal-red pb-4 flex-col items-start">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-nepal-black font-nepali-serif">
+            समाचार{" "}
+            <span className="text-gray-500 font-poppins text-lg font-normal">
+              / News
+            </span>
           </h2>
-          <h1 className="bg-nepal-orange h-[3px] rounded-full w-[20%]"></h1>
         </div>
 
         {/* FLEX GRID: professional cards */}
-        <div className="flex flex-col md:flex-wrap md:flex-row 2xl:grid grid-cols-5 justify-start gap-y-6 md:gap-8 lg:gap-10 mb-10 ">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {posts.length > 0 ? (
             posts.map((post) =>{
 
@@ -47,11 +49,10 @@ export default async function NewsPage() {
               )
             })
           ) : (
-            <div className=" w-screen text-2xl md:text-3xl text-center text-gray-600 flex items-center justify-center h-[50vh]">
+            <div className="col-span-full w-full text-center text-gray-500 font-poppins py-20">
               No Content Available For Now
             </div>
           )}
-
         </div>
       </div>
     </section>
