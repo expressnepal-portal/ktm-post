@@ -157,6 +157,52 @@ function removeThumbnailFromContent(content: string | null, thumbnail?: string):
   return $.html()
 }
 
+import type { Metadata } from "next"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const post = await fetchPostBySlug(id)
+
+  if (!post) {
+    return {
+      title: "समाचार भेटिएन - KTM Post",
+      description: "समाचार पृष्ठ उपलब्ध छैन।",
+    }
+  }
+
+  const cleanTitle = getCleanTitle(post.title)
+  const rawContent = post.content || ""
+  const cleanDescription = getCleanContent(rawContent, 160)
+
+  const contentImages = extractImagesFromContent(rawContent)
+  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined
+  const heroImage = featuredImageUrl || (contentImages.length > 0 ? contentImages[0] : undefined)
+
+  const images = heroImage ? [{ url: heroImage }] : []
+
+  return {
+    title: `${cleanTitle} - KTM Post`,
+    description: cleanDescription,
+    openGraph: {
+      title: cleanTitle,
+      description: cleanDescription,
+      type: "article",
+      siteName: "KTM Post",
+      images: images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: cleanTitle,
+      description: cleanDescription,
+      images: images.map((i) => i.url),
+    },
+  }
+}
+
 export default async function NewsSlugPage({
   params,
 }: {

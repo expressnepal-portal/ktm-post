@@ -109,16 +109,21 @@
 
 :root {
   --header-height: 100px;
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Devanagari text styling */
 .font-mukta {
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
 }
 
 .font-nepali-serif {
@@ -126,11 +131,13 @@ body {
 }
 
 p, span, div {
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 @media (min-width: 768px) {
