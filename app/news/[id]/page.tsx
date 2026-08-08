@@ -162,10 +162,10 @@ import type { Metadata } from "next"
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; category?: string }>
 }): Promise<Metadata> {
-  const { id } = await params
-  const post = await fetchPostBySlug(id)
+  const { id, category } = await params
+  const post = await fetchPostBySlug(id, category)
 
   if (!post) {
     return {
@@ -206,13 +206,13 @@ export async function generateMetadata({
 export default async function NewsSlugPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; category?: string }>
 }) {
-  const { id } = await params
+  const { id, category } = await params
   // const ads = await fetchAdsBanner();
   // const activeBanners = ads.filter((banner) => banner.active);
 
-  const post = await fetchPostBySlug(id)
+  const post = await fetchPostBySlug(id, category)
 
   if (!post) {
     return (
@@ -278,7 +278,7 @@ export default async function NewsSlugPage({
 
   return (
     <div className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}>
-      <main className="w-full flex items-center justify-center pt-2 md:pt-4" style={{ paddingTop: "calc(var(--header-height) + 8px)" }}>
+      <main className="w-full flex items-center justify-center pt-3 lg:pt-4" style={{ paddingTop: "var(--header-height)" }}>
         <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col gap-6">
           {/* Main content + Advertisement side by side */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-8 items-start">

@@ -1,7 +1,18 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import PostDetailPage from "../../news/[id]/page";
+import PostDetailPage, { generateMetadata as generateNewsMetadata } from "../../news/[id]/page";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string; id: string }>;
+}) {
+  const resolvedParams = await params;
+  return generateNewsMetadata({
+    params: Promise.resolve({ id: resolvedParams.id, category: resolvedParams.category }),
+  });
+}
 
 export default async function CategoryPostDetailPage({
   params,
@@ -9,5 +20,10 @@ export default async function CategoryPostDetailPage({
   params: Promise<{ category: string; id: string }>;
 }) {
   const resolvedParams = await params;
-  return <PostDetailPage params={Promise.resolve({ id: resolvedParams.id })} />;
+  return (
+    <PostDetailPage
+      params={Promise.resolve({ id: resolvedParams.id, category: resolvedParams.category })}
+    />
+  );
 }
+

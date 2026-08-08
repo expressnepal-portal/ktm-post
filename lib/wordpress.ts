@@ -355,7 +355,7 @@ export async function getPostsForHomepage() {
   return await fetchPostsWithImages(12);
 }
 
-export async function fetchPostBySlug(slug: string): Promise<Post | null> {
+export async function fetchPostBySlug(slug: string, categorySlug?: string): Promise<Post | null> {
   const decodedSlug = decodeURIComponent(slug);
   console.log(`Fetching post with slug: ${decodedSlug}...`);
 
@@ -542,7 +542,10 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
       body: JSON.stringify({
         query: `
           query GetRecentPostsForSlugMatch {
-            posts(first: 100) {
+            posts(
+              first: ${categorySlug ? 200 : 100}
+              ${categorySlug ? `where: { categoryName: "${categorySlug}" }` : ""}
+            ) {
               nodes {
                 id
                 uri
@@ -1059,3 +1062,185 @@ export async function searchPosts(query: string, first: number = 15): Promise<Po
     return [];
   }
 }
+
+// ── WordPress Categories & Footer Pages ───────────────────────────────────────
+export interface WPCategory {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+export interface WPFooterPage {
+  id: string;
+  title: string;
+  slug: string;
+  uri: string;
+}
+
+export async function fetchWPCategories(): Promise<WPCategory[]> {
+  const query = `
+    query GetCategories {
+      categories(first: 50, where: { hideEmpty: true }) {
+        nodes {
+          id
+          name
+          slug
+          count
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 300, tags: ["layout"] },
+    });
+
+    if (!response.ok) return [];
+    const json = await response.json();
+    return json.data?.categories?.nodes || [];
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
+export async function fetchFooterPages(): Promise<WPFooterPage[]> {
+  const query = `
+    query GetFooterPages {
+      pages(where: { name: "footer-links" }, first: 1) {
+        nodes {
+          children(first: 50, where: { status: PUBLISH }) {
+            nodes {
+              ... on Page {
+                id
+                title
+                slug
+                uri
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 300, tags: ["layout"] },
+    });
+
+    if (!response.ok) return [];
+    const json = await response.json();
+    const childNodes = json.data?.pages?.nodes?.[0]?.children?.nodes;
+    return childNodes || [];
+  } catch (error) {
+    console.error("Error fetching footer pages:", error);
+    return [];
+  }
+}
+
+export interface NavbarMenuItem {
+  id: string;
+  title: string;
+  slug: string;
+  menuOrder?: number | null;
+}
+
+export async function fetchNavbarMenu(): Promise<NavbarMenuItem[]> {
+  const query = `
+    query GetNavbarMenu {
+      navbarMenu: pages(where: { name: "navbar-menu" }, first: 1) {
+        nodes {
+          children(first: 50, where: { status: PUBLISH }) {
+            nodes {
+              ... on Page {
+                id
+                title
+                slug
+                menuOrder
+              }
+            }
+          }
+        }
+      }
+      topPages: pages(first: 100, where: { status: PUBLISH }) {
+        nodes {
+          id
+          title
+          slug
+          menuOrder
+          parent {
+            node {
+              slug
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 300, tags: ["layout"] },
+    });
+
+    if (!response.ok) return [];
+    const json = await response.json();
+    const childNodes: NavbarMenuItem[] = json.data?.navbarMenu?.nodes?.[0]?.children?.nodes || [];
+    const topNodes: NavbarMenuItem[] = json.data?.topPages?.nodes || [];
+
+    const map = new Map<string, NavbarMenuItem>();
+
+    // Add pages with menuOrder set or pages under navbar-menu
+    topNodes.forEach((node) => {
+      if (
+        (node.menuOrder !== null && node.menuOrder !== undefined && node.menuOrder > 0) ||
+        (node as any).parent?.node?.slug === "navbar-menu"
+      ) {
+        map.set(node.slug, {
+          id: node.id,
+          title: node.title,
+          slug: node.slug,
+          menuOrder: node.menuOrder,
+        });
+      }
+    });
+
+    childNodes.forEach((node) => {
+      if (!map.has(node.slug)) {
+        map.set(node.slug, {
+          id: node.id,
+          title: node.title,
+          slug: node.slug,
+          menuOrder: node.menuOrder,
+        });
+      }
+    });
+
+    const result = Array.from(map.values());
+    result.sort((a, b) => {
+      const orderA = a.menuOrder && a.menuOrder > 0 ? a.menuOrder : 999;
+      const orderB = b.menuOrder && b.menuOrder > 0 ? b.menuOrder : 999;
+      return orderA - orderB;
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching navbar menu pages:", error);
+    return [];
+  }
+}
+
+
+
