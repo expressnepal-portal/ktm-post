@@ -743,13 +743,20 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       ) {
         nodes { ${postFields} }
       }
+
+      exclusive: posts(
+        first: 7
+        where: { categoryName: "exclusive", orderby: { field: DATE, order: DESC } }
+      ) {
+        nodes { ${postFields} }
+      }
     }
   `;
 
   const emptyResult: HomePagePosts = {
     featured: [], trending: [], latest: [], politics: [], society: [],
     breaking: [], world: [], sports: [], podcast: [], technology: [], arts: [], economy: [],
-    multimedia: [], international: [], opinion: [], legal: [], health: [],
+    multimedia: [], international: [], opinion: [], legal: [], health: [], exclusive: [],
   };
 
   try {
@@ -805,6 +812,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       opinion: normalize(json.data.opinion?.nodes || []),
       legal: normalize(json.data.legal?.nodes || []),
       health: normalize(json.data.health?.nodes || []),
+      exclusive: normalize(json.data.exclusive?.nodes || []),
     };
   } catch (error) {
     // Catches DNS failures, network errors, timeouts, etc.

@@ -24,6 +24,7 @@ export  interface HomePagePosts {
   opinion?:Post[];
   legal?:Post[];
   health?:Post[];
+  exclusive?:Post[];
 }
 
 

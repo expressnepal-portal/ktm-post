@@ -303,9 +303,18 @@ export default async function HomePage() {
     multimedia,
     legal,
     health,
+    exclusive,
   } = await fetchHomePagePosts();
   const Posts = await fetchPosts(10);
   const posts = Posts.map(mapWpPost);
+
+  const rawExclusivePosts = await fetchPostsByCategory("exclusive", 7);
+  const exclusivePosts =
+    rawExclusivePosts && rawExclusivePosts.length > 0
+      ? rawExclusivePosts.map(mapWpPost)
+      : exclusive && exclusive.length > 0
+        ? exclusive.map(mapWpPost)
+        : [];
 
   // Featured hero = first economy post; secondary sidebar = next 3 economy posts
   // (Falls back gracefully to latest posts if economy category has 0 posts in WordPress)
@@ -400,8 +409,172 @@ export default async function HomePage() {
 
         {/* Breaking News - 100% Width Red Marquee */}
 
+        {/* Exclusive Section — adapts to 1, 2-3, or 4+ posts */}
+        {exclusivePosts.length > 0 && (
+          <section className="w-full mb-10 md:mb-14">
+            <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+              <div className="flex items-center mb-5 border-b border-purple-200 pb-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif flex items-center gap-2">
+                  <span className="bg-purple-600 text-white text-xs md:text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-xs font-poppins">
+                    EXCLUSIVE
+                  </span>
+                  विशेष समाचार{" "}
+                  <span className="text-gray-400 font-poppins text-sm font-normal">
+                    / Exclusive
+                  </span>
+                </h2>
+              </div>
+
+              {/* ── SINGLE POST: full-width hero ── */}
+              {exclusivePosts.length === 1 && (() => {
+                const post = exclusivePosts[0];
+                const contentImages = extractImagesFromContent(post.content);
+                const featuredImageUrl = post.featuredImage;
+                const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                return (
+                  <Link href={getPostUrl(post)} className="block group">
+                    {thumbnailImage && (
+                      <div className="relative w-full h-[260px] sm:h-[340px] md:h-[420px] lg:h-[480px] xl:h-[540px] 2xl:h-[600px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                        <img
+                          src={thumbnailImage}
+                          alt={getCleanTitle(post.title)}
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-10">
+                          <span className="bg-[#9365c4] text-white px-4 py-2 text-sm md:text-base font-black uppercase tracking-wider shadow-md">
+                            EXCLUSIVE
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <h3 className="mt-4 md:mt-5 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
+                      {getCleanTitle(post.title)}
+                    </h3>
+                    <p className="mt-2 md:mt-3 text-sm md:text-base lg:text-lg text-gray-700 line-clamp-3 leading-relaxed max-w-4xl">
+                      {getCleanContent(post.content, 250)}
+                    </p>
+                  </Link>
+                );
+              })()}
+
+              {/* ── 2-3 POSTS: equal-width grid, no hero/sidebar split ── */}
+              {exclusivePosts.length >= 2 && exclusivePosts.length <= 3 && (
+                <div className={`grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-6 lg:gap-8`}>
+                  {exclusivePosts.map((post) => {
+                    const contentImages = extractImagesFromContent(post.content);
+                    const featuredImageUrl = post.featuredImage;
+                    const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                    return (
+                      <Link href={getPostUrl(post)} key={post.id} className="flex flex-col group">
+                        {thumbnailImage && (
+                          <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                            <img
+                              src={thumbnailImage}
+                              alt={getCleanTitle(post.title)}
+                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                            />
+                            <div className="absolute bottom-3 left-3 z-10">
+                              <span className="bg-[#9365c4] text-white px-2.5 py-1 text-xs md:text-sm font-black uppercase tracking-wider shadow-md">
+                                EXCLUSIVE
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <h3 className="mt-3 text-lg sm:text-xl md:text-2xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                        <p className="mt-1.5 text-sm md:text-base text-gray-700 line-clamp-2 leading-relaxed">
+                          {getCleanContent(post.content, 150)}
+                        </p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* ── 4+ POSTS: hero + sidebar grid ── */}
+              {exclusivePosts.length >= 4 && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                  {/* LEFT: Hero post */}
+                  {(() => {
+                    const post = exclusivePosts[0];
+                    const contentImages = extractImagesFromContent(post.content);
+                    const featuredImageUrl = post.featuredImage;
+                    const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                    return (
+                      <Link
+                        href={getPostUrl(post)}
+                        className="lg:col-span-6 2xl:col-span-7 flex flex-col group h-full"
+                      >
+                        {thumbnailImage && (
+                          <div className="relative w-full h-[240px] sm:h-[320px] md:h-[380px] lg:h-[400px] xl:h-[460px] 2xl:h-[520px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                            <img
+                              src={thumbnailImage}
+                              alt={getCleanTitle(post.title)}
+                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                            />
+                            <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
+                              <span className="bg-[#9365c4] text-white px-3 py-1.5 text-xs md:text-sm font-black uppercase tracking-wider shadow-md">
+                                EXCLUSIVE
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <h3 className="mt-3 md:mt-4 text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
+                          {getCleanTitle(post.title)}
+                        </h3>
+                        <p className="mt-2 text-sm md:text-base text-gray-700 line-clamp-3 leading-relaxed">
+                          {getCleanContent(post.content, 200)}
+                        </p>
+                      </Link>
+                    );
+                  })()}
+
+                  {/* RIGHT: Smaller posts grid */}
+                  <div className={`lg:col-span-6 2xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length >= 7 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-4 lg:gap-5`}>
+                    {exclusivePosts.slice(1, 7).map((post) => {
+                      const contentImages = extractImagesFromContent(post.content);
+                      const featuredImageUrl = post.featuredImage;
+                      const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+
+                      return (
+                        <Link
+                          href={getPostUrl(post)}
+                          key={post.id}
+                          className="flex flex-col group h-full"
+                        >
+                          {thumbnailImage && (
+                            <div className="relative w-full aspect-video sm:h-[130px] md:h-[140px] lg:h-[150px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                              <img
+                                src={thumbnailImage}
+                                alt={getCleanTitle(post.title)}
+                                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                              />
+                              <div className="absolute bottom-2 left-2 z-10">
+                                <span className="bg-[#9365c4] text-white px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                                  EXCLUSIVE
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <h3 className="mt-2 text-sm md:text-base font-bold text-nepal-black group-hover:text-purple-700 transition-colors line-clamp-2 font-nepali-serif leading-snug">
+                            {getCleanTitle(post.title)}
+                          </h3>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* News Section */}
-        <div className="h-10 md:h-14 lg:h-16 bg-transparent"></div>
+        <div className="h-6 md:h-8 bg-transparent"></div>
         {newsPosts.length > 0 && (
           <section className="w-full">
             <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
