@@ -335,9 +335,8 @@ export default async function NewsSlugPage({
               </div>
             </div>
 
-            {/* Sidebar: Ads + Calendar + Holidays + Forex */}
-            <aside className="flex flex-col gap-5 w-full">
-
+            {/* Sidebar: Ads + Calendar + Holidays + Forex (Desktop only: xl and up) */}
+            <aside className="hidden xl:flex flex-col gap-5 w-full">
               {/* ── CMS Banner Ads (top of sidebar, highest visibility) ── */}
               <Suspense fallback={null}>
                 <SidebarAds
@@ -372,7 +371,7 @@ export default async function NewsSlugPage({
             </aside>
           </div>
 
-          {/* Related News - full width below content + ads */}
+          {/* Related News - full width below content */}
           {relatedPosts.length > 0 && (
             <div className="border-t border-gray-200 pt-8 space-y-6">
               <div className="flex items-center justify-between">

@@ -542,10 +542,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
       body: JSON.stringify({
         query: `
           query GetRecentPostsForSlugMatch {
-            posts(
-              first: ${categorySlug ? 200 : 100}
-              ${categorySlug ? `where: { categoryName: "${categorySlug}" }` : ""}
-            ) {
+            posts(first: 300, where: { orderby: { field: DATE, order: DESC } }) {
               nodes {
                 id
                 uri
