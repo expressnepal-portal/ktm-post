@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import { fetchPostsByCategory, fetchWPCategories } from "@/lib/wordpress";
 import { extractImagesFromContent, getCleanContent, getCleanTitle, getPostUrl, mapWpPost } from "../page";

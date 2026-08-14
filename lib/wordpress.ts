@@ -96,7 +96,7 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
       },
       body: JSON.stringify({ query }),
       next: {
-        revalidate: 300, // 5 minutes cache
+        revalidate: 60, // 5 minutes cache
       },
     });
 
@@ -221,7 +221,7 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
         },
         body: JSON.stringify({ query }),
         next: {
-          revalidate: 300, // 5 minutes cache
+          revalidate: 60, // 5 minutes cache
         },
       });
 
@@ -406,7 +406,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
       },
       body: JSON.stringify({ query }),
       next: {
-        revalidate: 300,
+        revalidate: 60,
       },
     });
 
@@ -466,7 +466,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: uriQuery }),
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (uriRes.ok) {
@@ -520,7 +520,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: idQuery }),
-        next: { revalidate: 300 },
+        next: { revalidate: 60 },
       });
 
       if (idRes.ok) {
@@ -571,7 +571,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
           }
         `,
       }),
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (searchRes.ok) {
@@ -764,7 +764,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {
@@ -865,7 +865,7 @@ export async function fetchRelatedPosts(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query }),
-    next: { revalidate: 300 },
+    next: { revalidate: 60 },
   });
   const json = await res.json();
   const nodes = (json.data?.posts?.nodes as Post[]) ?? [];
@@ -1105,7 +1105,7 @@ export async function fetchWPCategories(): Promise<WPCategory[]> {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 300, tags: ["layout"] },
+      next: { revalidate: 60, tags: ["layout"] },
     });
 
     if (!response.ok) return [];
@@ -1142,7 +1142,7 @@ export async function fetchFooterPages(): Promise<WPFooterPage[]> {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 300, tags: ["layout"] },
+      next: { revalidate: 60, tags: ["layout"] },
     });
 
     if (!response.ok) return [];
@@ -1200,7 +1200,7 @@ export async function fetchNavbarMenu(): Promise<NavbarMenuItem[]> {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ query }),
-      next: { revalidate: 300, tags: ["layout"] },
+      next: { revalidate: 60, tags: ["layout"] },
     });
 
     if (!response.ok) return [];

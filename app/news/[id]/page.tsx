@@ -1,5 +1,5 @@
 export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 import CommentsSection from "@/app/components/CommentsSection"
 import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"

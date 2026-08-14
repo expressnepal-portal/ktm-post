@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 import * as cheerio from "cheerio";
 import NepaliCalendarWidget from "./components/NepaliCalendarWidget";
 import UpcomingHolidays from "./components/UpcomingHolidays";
@@ -59,7 +59,7 @@ export async function getPosts(page: number = 1): Promise<Post[]> {
         const res = await fetch(apiUrl, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-            cache: "no-store",
+            next: { revalidate: 60 },
         });
 
         if (!res.ok) return [];
