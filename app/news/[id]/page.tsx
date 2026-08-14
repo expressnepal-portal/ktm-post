@@ -293,9 +293,10 @@ export default async function NewsSlugPage({
                   <time dateTime={post.date} className="font-medium">
                     {formattedDate}
                   </time>
-                  {post.excerpt && (
+                  {post.author?.node?.name && (
                     <>
                       <span>•</span>
+                      <span className="font-medium">{post.author.node.name}</span>
                     </>
                   )}
                 </div>
@@ -332,42 +333,59 @@ export default async function NewsSlugPage({
                   }}
                   style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
                 />
+
+                {/* Comments Section */}
+                <CommentsSection
+                  postId={post.databaseId || parseInt(post.id, 10) || 0}
+                  initialCount={0}
+                  initialComments={[]}
+                />
               </div>
             </div>
 
-            {/* Sidebar: Ads + Calendar + Holidays + Forex (Desktop only: xl and up) */}
-            <aside className="hidden xl:flex flex-col gap-5 w-full">
-              {/* ── CMS Banner Ads (top of sidebar, highest visibility) ── */}
-              <Suspense fallback={null}>
-                <SidebarAds
-                  category={nonMetaCategorySlugs[0]}
-                  maxAds={2}
-                />
-              </Suspense>
+            {/* Sidebar: Ads + Calendar + Holidays + Forex (After content on mobile/tablet, right sidebar on desktop xl) */}
+            <aside className="flex flex-col md:grid md:grid-cols-2 xl:flex xl:flex-col gap-6 w-full mt-8 xl:mt-0">
+              {/* ── CMS Banner Ads ── */}
+              <div className="w-full md:col-span-2 xl:col-span-1">
+                <Suspense fallback={null}>
+                  <SidebarAds
+                    category={nonMetaCategorySlugs[0]}
+                    maxAds={2}
+                  />
+                </Suspense>
+              </div>
 
               {/* Nepali Calendar */}
-              <NepaliCalendarWidget compact />
+              <div className="w-full">
+                <NepaliCalendarWidget compact />
+              </div>
 
               {/* Upcoming Holidays */}
-              <UpcomingHolidays maxItems={4} />
-
-              {/* ── More ads mid-sidebar (shows 3rd ad onwards) ── */}
-              <Suspense fallback={null}>
-                <SidebarAds
-                  category={nonMetaCategorySlugs[0]}
-                  maxAds={1}
-                  startIndex={2}
-                />
-              </Suspense>
+              <div className="w-full">
+                <UpcomingHolidays maxItems={4} />
+              </div>
 
               {/* Forex Rates */}
-              <Suspense fallback={
-                <div className="border border-gray-200 h-40 flex items-center justify-center text-gray-400 text-xs font-poppins">
-                  विनिमय दर लोड हुँदैछ...
-                </div>
-              }>
-                <ForexRatesWidget />
-              </Suspense>
+              <div className="w-full md:col-span-2 xl:col-span-1">
+                <Suspense fallback={
+                  <div className="border border-gray-200 h-40 flex items-center justify-center text-gray-400 text-xs font-poppins">
+                    विनिमय दर लोड हुँदैछ...
+                  </div>
+                }>
+                  <ForexRatesWidget />
+                </Suspense>
+              </div>
+
+              {/* ── Additional Ads ── */}
+              <div className="w-full md:col-span-2 xl:col-span-1">
+                <Suspense fallback={null}>
+                  <SidebarAds
+                    category={nonMetaCategorySlugs[0]}
+                    maxAds={1}
+                    startIndex={2}
+                  />
+                </Suspense>
+              </div>
             </aside>
           </div>
 

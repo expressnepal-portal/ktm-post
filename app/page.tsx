@@ -236,17 +236,19 @@ import { transliterateSlug } from "@/lib/transliterate";
 export function getPostUrl(post: {
     slug: string;
     categorySlug?: string;
+    databaseId?: number;
 }): string {
     const cleanSlug = transliterateSlug(post.slug);
+    const idPrefix = post.databaseId ? `${post.databaseId}-` : "";
     if (
         post.categorySlug &&
         post.categorySlug !== "latest-news" &&
         post.categorySlug !== "featured-news" &&
         post.categorySlug !== "breaking-news"
     ) {
-        return `/${post.categorySlug}/${cleanSlug}`;
+        return `/${post.categorySlug}/${idPrefix}${cleanSlug}`;
     }
-    return `/news/${cleanSlug}`;
+    return `/news/${idPrefix}${cleanSlug}`;
 }
 
 export default async function HomePage() {

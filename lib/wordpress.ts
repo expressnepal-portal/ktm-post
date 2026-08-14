@@ -15,6 +15,7 @@ export interface FeaturedImage {
 
 export interface Post {
   id: string;
+  databaseId?: number;
   uri: string;
   title: string | null;
   slug: string;
@@ -61,9 +62,10 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
     query GetPosts {
       posts(first: ${first}, where: {orderby: {field: DATE, order: DESC}}) {
         edges {
-          node {
-            id
-            uri
+            node {
+              id
+              databaseId
+              uri
             title(format: RENDERED)
             slug
             status
@@ -196,6 +198,7 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
           edges {
             node {
               id
+              databaseId
               uri
               title(format: RENDERED)
               slug
@@ -376,7 +379,7 @@ export async function getPostsForHomepage() {
 }
 
 export async function fetchPostBySlug(slug: string, categorySlug?: string): Promise<Post | null> {
-  const decodedSlug = decodeURIComponent(slug);
+  const decodedSlug = decodeURIComponent(slug).trim();
   console.log(`Fetching post with slug: ${decodedSlug}...`);
 
   const escapedSlug = decodedSlug
@@ -384,75 +387,62 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
     .replace(/\n/g, "")
     .replace(/\r/g, "");
 
-  const query = `
-    query GetPostBySlug {
-      postBy(slug: "${escapedSlug}") {
-        id
-        uri
-        title(format: RENDERED)
-        slug
-        status
-        link
-        date
-        content(format: RENDERED)
-        excerpt(format: RENDERED)
-        categories {
-          nodes {
-            id
-            name
-            slug
-          }
-        }
-        featuredImage {
-          node {
-            sourceUrl
-            altText
-            mediaDetails {
-              width
-              height
-            }
-          }
-        }
-      }
+  const fixImage = (p: Post | null): Post | null => {
+    if (p?.featuredImage?.node?.sourceUrl?.startsWith("/")) {
+      p.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${p.featuredImage.node.sourceUrl}`;
     }
-  `;
+    return p;
+  };
 
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ query }),
-      next: {
-        revalidate: 60,
-      },
-    });
-
-    if (!response.ok) {
-      console.warn(`WordPress API unavailable (${response.status}) at ${API_URL}`);
-      return null;
-    }
-
-    const json: {
-      data?: { postBy: Post | null };
-      errors?: Array<{ message: string }>;
-    } = await response.json();
-
-    if (json.data?.postBy) {
-      const post = json.data.postBy;
-      if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-        post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
+    // 1. Try extracting numeric database ID from slug (e.g. "1552-tarai-ko..." or "1552")
+    const numericIdMatch = decodedSlug.match(/^(\d+)(?:-|$)/) || decodedSlug.match(/(?:^|-)(\d+)$/);
+    if (numericIdMatch) {
+      const dbId = parseInt(numericIdMatch[1], 10);
+      if (!isNaN(dbId)) {
+        const idQuery = `
+          query GetPostByDbId {
+            post(id: "${dbId}", idType: DATABASE_ID) {
+              id
+              databaseId
+              uri
+              title(format: RENDERED)
+              slug
+              status
+              link
+              date
+              content(format: RENDERED)
+              excerpt(format: RENDERED)
+              categories {
+                nodes { id name slug }
+              }
+              featuredImage {
+                node { sourceUrl altText mediaDetails { width height } }
+              }
+            }
+          }
+        `;
+        const idRes = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: idQuery }),
+          next: { revalidate: 60 },
+        });
+        if (idRes.ok) {
+          const idJson = await idRes.json();
+          if (idJson.data?.post) {
+            return fixImage(idJson.data.post);
+          }
+        }
       }
-      return post;
     }
 
-    // Fallback: try querying by post URI if slug lookup failed
-    const uriQuery = `
-      query GetPostByUri {
-        post(id: "${escapedSlug}", idType: SLUG) {
+    // 2. Direct slug lookup via postBy(slug)
+    const query = `
+      query GetPostBySlug {
+        postBy(slug: "${escapedSlug}") {
           id
+          databaseId
           uri
           title(format: RENDERED)
           slug
@@ -462,150 +452,130 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
           content(format: RENDERED)
           excerpt(format: RENDERED)
           categories {
-            nodes {
-              id
-              name
-              slug
-            }
+            nodes { id name slug }
           }
           featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails {
-                width
-                height
-              }
-            }
+            node { sourceUrl altText mediaDetails { width height } }
           }
         }
       }
     `;
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query }),
+      next: { revalidate: 60 },
+    });
+    if (response.ok) {
+      const json = await response.json();
+      if (json.data?.postBy) return fixImage(json.data.postBy);
+    }
 
+    // 3. Fallback slug lookup via post(id, SLUG)
+    const uriQuery = `
+      query GetPostByUri {
+        post(id: "${escapedSlug}", idType: SLUG) {
+          id
+          databaseId
+          uri
+          title(format: RENDERED)
+          slug
+          status
+          link
+          date
+          content(format: RENDERED)
+          excerpt(format: RENDERED)
+          categories {
+            nodes { id name slug }
+          }
+          featuredImage {
+            node { sourceUrl altText mediaDetails { width height } }
+          }
+        }
+      }
+    `;
     const uriRes = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: uriQuery }),
       next: { revalidate: 60 },
     });
-
     if (uriRes.ok) {
       const uriJson = await uriRes.json();
-      if (uriJson.data?.post) {
-        const post = uriJson.data.post;
-        if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-          post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
-        }
-        return post;
-      }
+      if (uriJson.data?.post) return fixImage(uriJson.data.post);
     }
 
-    // Fallback 3: try querying by DATABASE_ID if input is numeric or database ID
-    const databaseId = parseInt(escapedSlug, 10);
-    if (!isNaN(databaseId)) {
-      const idQuery = `
-        query GetPostById {
-          post(id: "${databaseId}", idType: DATABASE_ID) {
-            id
-            uri
-            title(format: RENDERED)
-            slug
-            status
-            link
-            date
-            content(format: RENDERED)
-            excerpt(format: RENDERED)
-            categories {
-              nodes {
-                id
-                name
-                slug
+    // 4. Paginated search (scanning pages of posts, matching transliterated or raw slug)
+    let hasNext = true;
+    let endCursor: string | null = null;
+    let page = 0;
+    const targetWords = escapedSlug.toLowerCase().split("-").filter((w) => w.length > 2);
+
+    while (hasNext && page < 10) {
+      page++;
+      const cursorParam: string = endCursor ? `, after: "${endCursor}"` : "";
+      const catParam: string = categorySlug ? `, categoryName: "${categorySlug}"` : "";
+      const pageQueryStr: string = `
+        query GetPostsPage {
+          posts(first: 100${cursorParam}, where: { orderby: { field: DATE, order: DESC }${catParam} }) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              id
+              databaseId
+              uri
+              title(format: RENDERED)
+              slug
+              status
+              link
+              date
+              content(format: RENDERED)
+              excerpt(format: RENDERED)
+              categories {
+                nodes { id name slug }
               }
-            }
-            featuredImage {
-              node {
-                sourceUrl
-                altText
-                mediaDetails {
-                  width
-                  height
-                }
+              featuredImage {
+                node { sourceUrl altText mediaDetails { width height } }
               }
             }
           }
         }
       `;
-
-      const idRes = await fetch(API_URL, {
+      const pRes: Response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: idQuery }),
+        body: JSON.stringify({ query: pageQueryStr }),
         next: { revalidate: 60 },
       });
 
-      if (idRes.ok) {
-        const idJson = await idRes.json();
-        if (idJson.data?.post) {
-          const post = idJson.data.post;
-          if (post.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-            post.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${post.featuredImage.node.sourceUrl}`;
+      if (!pRes.ok) break;
+
+      const pJson: {
+        data?: {
+          posts?: {
+            pageInfo?: { hasNextPage?: boolean; endCursor?: string };
+            nodes?: Post[];
+          };
+        };
+      } = await pRes.json();
+      const posts: Post[] = pJson.data?.posts?.nodes || [];
+
+      for (const p of posts) {
+        if (!p.slug) continue;
+        if (p.slug === escapedSlug) return fixImage(p);
+        const transliterated = transliterateSlug(p.slug).toLowerCase();
+        if (transliterated === escapedSlug.toLowerCase()) return fixImage(p);
+
+        // Fuzzy match if 60%+ words match
+        if (targetWords.length >= 2) {
+          const matches = targetWords.filter((w) => transliterated.includes(w) || p.slug.includes(w));
+          if (matches.length / targetWords.length >= 0.6) {
+            return fixImage(p);
           }
-          return post;
         }
       }
-    }
 
-    // Fallback 4: If input is a transliterated Latin slug, search recent posts and match by transliterateSlug
-    const searchRes = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `
-          query GetRecentPostsForSlugMatch {
-            posts(first: 300, where: { orderby: { field: DATE, order: DESC } }) {
-              nodes {
-                id
-                uri
-                title(format: RENDERED)
-                slug
-                status
-                link
-                date
-                content(format: RENDERED)
-                excerpt(format: RENDERED)
-                categories {
-                  nodes { id name slug }
-                }
-                featuredImage {
-                  node {
-                    sourceUrl
-                    altText
-                    mediaDetails { width height }
-                  }
-                }
-              }
-            }
-          }
-        `,
-      }),
-      next: { revalidate: 60 },
-    });
-
-    if (searchRes.ok) {
-      const searchJson = await searchRes.json();
-      const posts: Post[] = searchJson.data?.posts?.nodes || [];
-      const match = posts.find((p) => {
-        if (!p.slug) return false;
-        const roman = transliterateSlug(p.slug);
-        return roman === escapedSlug.toLowerCase() || p.slug === escapedSlug;
-      });
-
-      if (match) {
-        if (match.featuredImage?.node?.sourceUrl?.startsWith("/")) {
-          match.featuredImage.node.sourceUrl = `https://cms.ktmpost.com${match.featuredImage.node.sourceUrl}`;
-        }
-        return match;
-      }
+      hasNext = pJson.data?.posts?.pageInfo?.hasNextPage ?? false;
+      endCursor = pJson.data?.posts?.pageInfo?.endCursor ?? null;
     }
 
     return null;
@@ -618,6 +588,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
 export async function fetchHomePagePosts(): Promise<HomePagePosts> {
   const postFields = `
     id
+    databaseId
     uri
     title(format: RENDERED)
     slug
