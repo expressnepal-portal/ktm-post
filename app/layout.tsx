@@ -8,50 +8,50 @@ import { MobileMenuProvider } from "./components/MobileMenuContext";
 import BannerAdsTop from "./components/BannersAdsTop";
 
 export const metadata: Metadata = {
-  title: "KTM Post - Trusted News from Nepal",
-  description: "Independent journalism and latest news from Nepal",
+    title: "KTM Post - Trusted News from Nepal",
+    description: "Independent journalism and latest news from Nepal",
 };
 
 const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600", "700"],
+    variable: "--font-poppins",
 });
 
 const mukta = Mukta({
-  subsets: ["devanagari", "latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-mukta",
+    subsets: ["devanagari", "latin"],
+    weight: ["300", "400", "500", "600", "700"],
+    variable: "--font-mukta",
 });
 
 const notoSerifDevanagari = Noto_Serif_Devanagari({
-  subsets: ["devanagari", "latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-noto-serif-devanagari",
+    subsets: ["devanagari", "latin"],
+    weight: ["400", "500", "600", "700"],
+    variable: "--font-noto-serif-devanagari",
 });
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body
-        className={`${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black`}
+    return (
+        <html lang= "en" >
+        <body
+        className={ `${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black` }
       >
-        {/* <CHANGE> wrapped everything with MobileMenuProvider */}
+        {/* <CHANGE> wrapped everything with MobileMenuProvider */ }
         <MobileMenuProvider>
-          {/* FIXED HEADER */}
-          <Header />
-          {/* CONTENT OFFSET FOR FIXED HEADER */}
-          <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen">
-            {children}
-          </main>
+    {/* FIXED HEADER */ }
+    <Header />
+    {/* CONTENT OFFSET FOR FIXED HEADER */ }
+    <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen" >
+        { children }
+        </main>
 
-          <Footer />
+        < Footer />
         </MobileMenuProvider>
-      </body>
-    </html>
+        </body>
+        </html>
   );
 }
