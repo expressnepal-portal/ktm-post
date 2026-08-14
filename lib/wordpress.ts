@@ -153,14 +153,34 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
 
 // Fetch posts by category slug
 const categorySlugAliases: Record<string, string[]> = {
-  economy: ["business", "economy"],
-  business: ["business", "economy"],
-  technology: ["science-and-technology", "technology"],
-  "science-and-technology": ["science-and-technology", "technology"],
-  international: ["international", "world"],
-  world: ["world", "international"],
+  "समाचार": ["news", "latest-news", "featured-news", "समाचार"],
+  "news": ["news", "latest-news", "featured-news"],
+  "खेलकुद": ["sports", "खेलकुद"],
+  "sports": ["sports"],
+  "राजनीति": ["politics", "राजनीति"],
+  "politics": ["politics"],
+  "विचार": ["opinion", "विचार"],
+  "opinion": ["opinion"],
+  "अर्थ": ["business", "economy", "अर्थतन्त्र", "अर्थ"],
+  "अर्थतन्त्र": ["business", "economy", "अर्थतन्त्र", "अर्थ"],
+  "economy": ["business", "economy"],
+  "business": ["business", "economy"],
+  "स्वास्थ्य/जीवन शैली": ["health-and-lifestyle", "society"],
+  "स्वास्थ्य-जीवन-शैली": ["health-and-lifestyle", "society"],
   "health-and-lifestyle": ["health-and-lifestyle", "society"],
-  news: ["news"],
+  "कानून": ["legal", "कानून"],
+  "legal": ["legal"],
+  "मल्टिमिडिया": ["multimedia", "मल्टिमिडिया"],
+  "multimedia": ["multimedia"],
+  "अन्तराष्ट्रिय": ["international", "world", "अन्तराष्ट्रिय"],
+  "international": ["international", "world"],
+  "world": ["world", "international"],
+  "technology": ["science-and-technology", "technology"],
+  "science-and-technology": ["science-and-technology", "technology"],
+  "विज्ञान प्रविधि": ["science-and-technology"],
+  "कला साहित्य": ["arts"],
+  "arts": ["arts"],
+  "शिक्षा": ["शिक्षा"]
 };
 
 export async function fetchPostsByCategory(categorySlug: string, first: number = 12): Promise<Post[]> {

@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 export const revalidate = 60;
 
 import { fetchPostsByCategory, fetchWPCategories } from "@/lib/wordpress";
+import { transliterateSlug } from "@/lib/transliterate";
 import { extractImagesFromContent, getCleanContent, getCleanTitle, getPostUrl, mapWpPost } from "../page";
 import Card from "../components/Card";
 
@@ -11,15 +12,24 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const decodedCategory = decodeURIComponent(category).toLowerCase();
+  const decodedCategory = decodeURIComponent(category).toLowerCase().trim();
   
   // Fetch all WP categories to find matching category details dynamically
   const allCategories = await fetchWPCategories();
-  const matchedCategory = allCategories.find((c) => c.slug === decodedCategory);
+  const matchedCategory = allCategories.find((c) => {
+    const slugLower = c.slug.toLowerCase();
+    const nameLower = c.name.toLowerCase();
+    const transliteratedName = transliterateSlug(c.name).toLowerCase();
+    return (
+      slugLower === decodedCategory ||
+      nameLower === decodedCategory ||
+      transliteratedName === decodedCategory
+    );
+  });
 
   // Use matching category slug or fallback to decodedCategory
   const wpCategorySlug = matchedCategory ? matchedCategory.slug : decodedCategory;
-  const categoryDisplayName = matchedCategory ? matchedCategory.name : decodedCategory.toUpperCase();
+  const categoryDisplayName = matchedCategory ? matchedCategory.name : decodeURIComponent(category);
   
   // Fetch posts dynamically by category slug
   const rawPosts = await fetchPostsByCategory(wpCategorySlug, 15);
