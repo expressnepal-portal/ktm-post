@@ -4,7 +4,6 @@
    Custom Theme & Utilities
    ============================ */
 
-/* Define custom theme variables */
 @theme {
   /* Custom colors */
   --color-nepal-orange: #E93B32;
@@ -16,43 +15,100 @@
 }
 
 /* ============================
+   Base Styles
+   ============================ */
+
+:root {
+  --header-height: 100px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 100px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-height: 130px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Typography Base Rules */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+h1 {
+  font-size: clamp(2.1875rem, 5vw + 1.25rem, 3.75rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw + 1rem, 2.25rem);
+}
+
+h3 {
+  font-size: clamp(0.9375rem, 1.5vw + 0.75rem, 1.3125rem);
+}
+
+/* Devanagari Font Helper Classes */
+.font-mukta {
+  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
+}
+
+.font-nepali-serif {
+  font-family: var(--font-noto-serif-devanagari), serif;
+  line-height: 1.35;
+}
+
+/* ============================
    Custom Utility Classes
    ============================ */
 
 /* Subtle Newspaper Background */
 .newspaper-background {
   background-color: #f8f9fa !important;
-  /* Light gray base */
   background-image:
     linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-  background-size:
-    100% 24px,
-    /* Line spacing for text */
-    24px 100%,
-    /* Column spacing */
-    400px 400px;
-  /* Subtle dot pattern */
-  background-position:
-    0 0,
-    /* Align lines */
-    0 0,
-    /* Align columns */
-    0 0;
-  /* Align pattern */
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: 100% 24px, 24px 100%, 400px 400px;
+  background-position: 0 0, 0 0, 0 0;
   background-blend-mode: multiply;
   position: relative;
 }
 
-/* Optional: Add a very subtle paper texture overlay */
 .newspaper-background::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
   background-size: 300px 300px;
   opacity: 0.3;
@@ -60,10 +116,8 @@
   pointer-events: none;
 }
 
-/* Alternative simpler newspaper background */
 .paper-background {
   background-color: #f9f7f1 !important;
-  /* Classic newspaper cream color */
   background-image:
     linear-gradient(90deg, rgba(0, 0, 0, .03) 1px, transparent 1px),
     linear-gradient(rgba(0, 0, 0, .03) 1px, transparent 1px);
@@ -72,7 +126,6 @@
   position: relative;
 }
 
-/* Even simpler option - just a subtle texture */
 .subtle-paper {
   background-color: #f8f9fa !important;
   background-image:
@@ -115,151 +168,70 @@
   }
 }
 
-:root {
-  --header-height: 100px;
-  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
-}
-
-body {
-  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
-  line-height: 1.7;
-  letter-spacing: 0.01em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-
 /* ============================================================
    NEWS PORTAL PARAGRAPH STYLES
    ============================================================ */
 
-/* 1. Article Lead Paragraph (The opening summary of a main story) */
 @utility news-para-lead {
   font-family: var(--font-mukta), system-ui, sans-serif;
   font-size: clamp(1.125rem, 1.2vw + 0.875rem, 1.35rem);
-  /* ~18px to 21.6px */
   line-height: 1.6;
   font-weight: 500;
   color: #1f2937;
-  /* Dark charcoal (gray-800) for sharp readability */
   margin-bottom: 1.25rem;
 }
 
-/* 2. Standard Article Body Paragraph (Main article text) */
 @utility news-para-body {
   font-family: var(--font-mukta), system-ui, sans-serif;
   font-size: 1.0625rem;
-  /* 17px - ideal for Devanagari script legibility */
   line-height: 1.75;
-  /* Slightly looser for dense scripts like Mukta */
   font-weight: 400;
   color: var(--color-nepal-gray-dark);
-  /* #333333 */
   margin-bottom: 1.25rem;
 }
 
-/* 3. News Card Excerpt / Summary (Homepage & Category feeds) */
 @utility news-para-excerpt {
   font-family: var(--font-mukta), system-ui, sans-serif;
   font-size: 0.9375rem;
-  /* 15px */
   line-height: 1.55;
   font-weight: 400;
   color: var(--color-nepal-gray-light);
-  /* #666666 */
 }
 
-/* 4. Editorial / Opinion / Long-form Serif Paragraph (Classic Newspaper Feel) */
 @utility news-para-editorial {
   font-family: var(--font-noto-serif-devanagari), Georgia, serif;
   font-size: 1.125rem;
-  /* 18px */
   line-height: 1.8;
   font-weight: 400;
   color: #262626;
   margin-bottom: 1.5rem;
 }
 
-/* Devanagari text styling */
-.font-mukta {
-  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
-}
-
-.font-nepali-serif {
-  font-family: var(--font-noto-serif-devanagari), serif line-height 1.35em;
-
-}
-
-p,
-span,
-div {
-  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
-  font-size: 20px;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-mukta), system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-}
-
-h1 {
-  /* clamp(MIN, PREFERRED, MAX) */
-  font-size: clamp(2.1875rem, 5vw + 1.25rem, 3.75rem);
-}
-
-h2 {
-  font-size: clamp(1.5rem, 3vw + 1rem, 2.25rem);
-}
-
-h3 {
-  font-size: clamp(0.9375rem, 1.5vw + 0.75rem, 1.3125rem);
-}
-
-@media (min-width: 768px) {
-  :root {
-    --header-height: 100px;
-  }
-}
-
 /* ============================
-   WordPress Content Spacing
-   Preserve paragraph gaps, empty lines, and <br> breaks
-   exactly as written in the WordPress editor.
+   WordPress Content Formatting (.prose)
    ============================ */
 
-/* Ensure empty paragraphs from WordPress are visible as spacing */
 .prose p:empty,
 .prose p:has(> br:only-child) {
   min-height: 1.2em;
   display: block;
 }
 
-/* WordPress sometimes uses &nbsp; in empty paragraphs for spacing */
 .prose p:only-child {
   margin-top: 0;
 }
 
-/* Preserve line breaks inside paragraphs */
 .prose br {
   display: block;
   content: "";
   margin-top: 0.5em;
 }
 
-/* WordPress paragraph spacing — match the editor's default gap */
 .prose p {
   margin-top: 1.25em;
   margin-bottom: 1.25em;
 }
 
-/* First paragraph after heading needs no extra top margin */
 .prose h1+p,
 .prose h2+p,
 .prose h3+p,
@@ -267,14 +239,12 @@ h3 {
   margin-top: 0.75em;
 }
 
-/* WordPress uses multiple <br> tags for extra spacing; preserve them */
 .prose p br+br {
   display: block;
   content: "";
   margin-top: 0.75em;
 }
 
-/* Preserve WordPress blockquote spacing */
 .prose blockquote {
   margin-top: 1.5em;
   margin-bottom: 1.5em;
@@ -283,7 +253,6 @@ h3 {
   font-style: italic;
 }
 
-/* WordPress image captions */
 .prose figcaption,
 .prose .wp-caption-text {
   font-size: 0.875rem;
@@ -292,7 +261,6 @@ h3 {
   margin-top: 0.5em;
 }
 
-/* WordPress embedded content (iframes, videos) */
 .prose iframe,
 .prose .wp-block-embed {
   max-width: 100%;
@@ -300,46 +268,9 @@ h3 {
   margin-bottom: 1.5em;
 }
 
-@media (min-width: 1024px) {
-  :root {
-    --header-height: 130px;
-  }
-}
-
 /* ============================
-   Line clamp utilities (fixed)
+   UI & Layout Utilities
    ============================ */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  overflow: hidden;
-}
-
-.line-clamp-4 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
-  overflow: hidden;
-}
 
 /* Hide scrollbar */
 .scrollbar-hide {
@@ -351,7 +282,7 @@ h3 {
   display: none;
 }
 
-/* Text utilities for mobile */
+/* Mobile utilities */
 .mobile-text-safe {
   word-break: break-word;
   overflow-wrap: break-word;
@@ -362,11 +293,10 @@ h3 {
   overflow-x: hidden;
 }
 
-/* Footer headline for mobile - Remove any border/line */
+/* Footer headline */
 .footer-headline {
   font-size: 1.75rem;
   line-height: 1.2;
-  /* margin-bottom: 1rem; */
   border: none !important;
   outline: none !important;
 }
@@ -374,48 +304,25 @@ h3 {
 @media (min-width: 768px) {
   .footer-headline {
     font-size: 3rem;
-    border: none !important;
   }
 }
 
 @media (min-width: 1024px) {
   .footer-headline {
     font-size: 4rem;
-    border: none !important;
   }
 }
 
 @media (min-width: 1280px) {
   .footer-headline {
     font-size: 5rem;
-    border: none !important;
   }
 }
 
 @media (min-width: 1536px) {
   .footer-headline {
     font-size: 6rem;
-    border: none !important;
   }
-}
-
-/* ============================
-   Base Styles
-   ============================ */
-* {
-  box-sizing: border-box;
-  /* padding: 0; */
-  /* This overwrites all the padding done */
-  /* margin: 0; */
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
@@ -436,7 +343,7 @@ body {
   background: #d32a2a;
 }
 
-/* Selection styles */
+/* Text Selection */
 ::selection {
   background-color: #E93B32;
   color: white;
@@ -457,20 +364,12 @@ textarea:focus-visible {
   border-radius: 4px;
 }
 
-/* Remove border from footer newsletter section */
-.newsletter-section h4 {
-  border: none !important;
-  border-bottom: none !important;
-}
-
-.newsletter-title {
-  border: none !important;
-  border-bottom: none !important;
-}
-
-/* Utility to remove borders */
+/* Utility Helpers */
+.newsletter-section h4,
+.newsletter-title,
 .no-border {
   border: none !important;
+  border-bottom: none !important;
 }
 
 .no-border-bottom {
@@ -481,7 +380,6 @@ textarea:focus-visible {
   outline: none !important;
 }
 
-/* Text color utilities for better contrast */
 .text-on-light {
   color: #000000;
 }
@@ -490,7 +388,6 @@ textarea:focus-visible {
   color: #FFFFFF;
 }
 
-/* Card backgrounds for better visibility */
 .card-on-gradient {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
