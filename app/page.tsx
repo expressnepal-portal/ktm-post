@@ -857,7 +857,8 @@ content = { getCleanContent(post.content, 150) }
                                     { getCleanTitle(post.title)
             }
                 </h3>
-                <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-2 pt-1">
+                <p className="text-gray-600 font-poppins text-base md:text-lg text-center line-clamp-3 w-full leading-relaxed mt-1">                    
+                    
                     { getCleanContent(post.content, 120) }
                     </p>
                     </div>
