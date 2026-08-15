@@ -340,10 +340,66 @@ export default async function NewsSlugPage({
                   initialCount={0}
                   initialComments={[]}
                 />
+
+                {/* Related News - directly below content & comments */}
+                {relatedPosts.length > 0 && (
+                  <div className="border-t border-gray-200 pt-8 mt-8 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">सम्बन्धित समाचार</h2>
+                    </div>
+
+                    {/* Cards grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+                      {relatedPosts.map((item) => {
+                        const contentImages = extractImagesFromContent(item.content)
+                        const featuredImageUrl = item.featuredImage?.node?.sourceUrl
+
+                        const images = contentImages.length > 0 ? contentImages : featuredImageUrl ? [featuredImageUrl] : []
+                        return (
+                          <a
+                            key={item.id}
+                            href={getPostUrl({
+                              slug: item.slug,
+                              databaseId: item.databaseId,
+                              categorySlug: item.categories?.nodes?.[0]?.slug,
+                            })}
+                            className="
+                              group cursor-pointer bg-white
+                              border border-gray-200
+                              transition-colors duration-200
+                              flex flex-col
+                              gap-4
+                              p-5
+                            "
+                          >
+                            {/* IMAGE SLIDER */}
+                            <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
+                              <ImageSlider images={images} title={item.title ?? "News image"} />
+                            </div>
+
+                            {/* CONTENT */}
+                            <div className="flex-1 flex flex-col gap-2 mt-2">
+                              <h3
+                                className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug line-clamp-2 mb-2
+                                group-hover:text-nepal-red transition-colors duration-200"
+                              >
+                                {getCleanTitle(item.title)}
+                              </h3>
+
+                              <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-4 flex-1">
+                                {getCleanContent(item.content, 150)}
+                              </p>
+                            </div>
+                          </a>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Sidebar: Ads + Calendar + Holidays + Forex (After content on mobile/tablet, right sidebar on desktop xl) */}
+            {/* Sidebar: Ads + Calendar + Holidays + Forex (After content & related news on mobile/tablet, right sidebar on desktop xl) */}
             <aside className="flex flex-col md:grid md:grid-cols-2 xl:flex xl:flex-col gap-6 w-full mt-8 xl:mt-0">
               {/* ── CMS Banner Ads ── */}
               <div className="w-full md:col-span-2 xl:col-span-1">
@@ -388,62 +444,6 @@ export default async function NewsSlugPage({
               </div>
             </aside>
           </div>
-
-          {/* Related News - full width below content */}
-          {relatedPosts.length > 0 && (
-            <div className="border-t border-gray-200 pt-8 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">सम्बन्धित समाचार</h2>
-              </div>
-
-              {/* Cards grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedPosts.map((item) => {
-                  const contentImages = extractImagesFromContent(item.content)
-                  const featuredImageUrl = item.featuredImage?.node?.sourceUrl
-
-                  const images = contentImages.length > 0 ? contentImages : featuredImageUrl ? [featuredImageUrl] : []
-                  return (
-                    <a
-                      key={item.id}
-                      href={getPostUrl({
-                        slug: item.slug,
-                        databaseId: item.databaseId,
-                        categorySlug: item.categories?.nodes?.[0]?.slug,
-                      })}
-                      className="
-                        group cursor-pointer bg-white
-                        border border-gray-200
-                        transition-colors duration-200
-                        flex flex-col
-                        gap-4
-                        p-5
-                      "
-                    >
-                      {/* IMAGE SLIDER */}
-                      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
-                        <ImageSlider images={images} title={item.title ?? "News image"} />
-                      </div>
-
-                      {/* CONTENT */}
-                      <div className="flex-1 flex flex-col gap-2 mt-2">
-                        <h3
-                          className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug line-clamp-2 mb-2
-                          group-hover:text-nepal-red transition-colors duration-200"
-                        >
-                          {getCleanTitle(item.title)}
-                        </h3>
-
-                        <p className="text-gray-600 font-poppins text-sm md:text-base leading-relaxed line-clamp-4 flex-1">
-                          {getCleanContent(item.content, 150)}
-                        </p>
-                      </div>
-                    </a>
-                  )
-                })}
-              </div>
-            </div>
-          )}
         </article>
 
 
