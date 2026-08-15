@@ -170,6 +170,7 @@ const categorySlugAliases: Record<string, string[]> = {
   "स्वास्थ्य/जीवन शैली": ["health-and-lifestyle", "society"],
   "स्वास्थ्य-जीवन-शैली": ["health-and-lifestyle", "society"],
   "health-and-lifestyle": ["health-and-lifestyle", "society"],
+  "society": ["health-and-lifestyle", "society"],
   "कानून": ["legal", "कानून"],
   "legal": ["legal"],
   "मल्टिमिडिया": ["multimedia", "मल्टिमिडिया"],
@@ -394,8 +395,27 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
     return p;
   };
 
+  const postFields = `
+    id
+    databaseId
+    uri
+    title(format: RENDERED)
+    slug
+    status
+    link
+    date
+    content(format: RENDERED)
+    excerpt(format: RENDERED)
+    categories {
+      nodes { id name slug }
+    }
+    featuredImage {
+      node { sourceUrl altText mediaDetails { width height } }
+    }
+  `;
+
   try {
-    // 1. Try extracting numeric database ID from slug (e.g. "1552-tarai-ko..." or "1552")
+    // 1. Try extracting numeric database ID from slug (e.g. "1381-tarai-ko..." or "1381")
     const numericIdMatch = decodedSlug.match(/^(\d+)(?:-|$)/) || decodedSlug.match(/(?:^|-)(\d+)$/);
     if (numericIdMatch) {
       const dbId = parseInt(numericIdMatch[1], 10);
@@ -403,22 +423,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
         const idQuery = `
           query GetPostByDbId {
             post(id: "${dbId}", idType: DATABASE_ID) {
-              id
-              databaseId
-              uri
-              title(format: RENDERED)
-              slug
-              status
-              link
-              date
-              content(format: RENDERED)
-              excerpt(format: RENDERED)
-              categories {
-                nodes { id name slug }
-              }
-              featuredImage {
-                node { sourceUrl altText mediaDetails { width height } }
-              }
+              ${postFields}
             }
           }
         `;
@@ -441,22 +446,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
     const query = `
       query GetPostBySlug {
         postBy(slug: "${escapedSlug}") {
-          id
-          databaseId
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          categories {
-            nodes { id name slug }
-          }
-          featuredImage {
-            node { sourceUrl altText mediaDetails { width height } }
-          }
+          ${postFields}
         }
       }
     `;
@@ -475,22 +465,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
     const uriQuery = `
       query GetPostByUri {
         post(id: "${escapedSlug}", idType: SLUG) {
-          id
-          databaseId
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          categories {
-            nodes { id name slug }
-          }
-          featuredImage {
-            node { sourceUrl altText mediaDetails { width height } }
-          }
+          ${postFields}
         }
       }
     `;
@@ -505,37 +480,79 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
       if (uriJson.data?.post) return fixImage(uriJson.data.post);
     }
 
-    // 4. Paginated search (scanning pages of posts, matching transliterated or raw slug)
+    // 4. Multi-category and universal scan for transliterated or Nepali slug match
+    const targetWords = escapedSlug.toLowerCase().split("-").filter((w) => w.length >= 2);
+
+    const matchesPost = (p: Post): boolean => {
+      if (!p.slug) return false;
+      if (p.slug === escapedSlug) return true;
+      const transliterated = transliterateSlug(p.slug).toLowerCase();
+      if (transliterated === escapedSlug.toLowerCase()) return true;
+
+      // Fuzzy match if 50%+ words match
+      if (targetWords.length >= 2) {
+        const matches = targetWords.filter((w) => transliterated.includes(w) || p.slug.includes(w));
+        if (matches.length / targetWords.length >= 0.5) {
+          return true;
+        }
+      } else if (targetWords.length === 1) {
+        if (transliterated.includes(targetWords[0]) || p.slug.includes(targetWords[0])) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Determine category filters to check (if any)
+    const normalizedCategory = categorySlug ? categorySlug.toLowerCase().trim() : undefined;
+    const catAliasesToTry = normalizedCategory
+      ? (categorySlugAliases[normalizedCategory] || [normalizedCategory])
+      : [];
+
+    // Scan with category filter first if category is known
+    for (const catName of catAliasesToTry) {
+      const catQueryStr = `
+        query GetPostsByCategoryPage {
+          posts(first: 100, where: { orderby: { field: DATE, order: DESC }, categoryName: "${catName}" }) {
+            nodes {
+              ${postFields}
+            }
+          }
+        }
+      `;
+      try {
+        const catRes = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: catQueryStr }),
+          next: { revalidate: 60 },
+        });
+        if (catRes.ok) {
+          const catJson = await catRes.json();
+          const posts: Post[] = catJson.data?.posts?.nodes || [];
+          for (const p of posts) {
+            if (matchesPost(p)) return fixImage(p);
+          }
+        }
+      } catch (err) {
+        console.warn(`Failed scanning category ${catName}:`, err);
+      }
+    }
+
+    // 5. Global scan (across all categories) if not found in category
     let hasNext = true;
     let endCursor: string | null = null;
     let page = 0;
-    const targetWords = escapedSlug.toLowerCase().split("-").filter((w) => w.length > 2);
 
     while (hasNext && page < 10) {
       page++;
       const cursorParam: string = endCursor ? `, after: "${endCursor}"` : "";
-      const catParam: string = categorySlug ? `, categoryName: "${categorySlug}"` : "";
       const pageQueryStr: string = `
-        query GetPostsPage {
-          posts(first: 100${cursorParam}, where: { orderby: { field: DATE, order: DESC }${catParam} }) {
+        query GetPostsGlobalPage {
+          posts(first: 100${cursorParam}, where: { orderby: { field: DATE, order: DESC } }) {
             pageInfo { hasNextPage endCursor }
             nodes {
-              id
-              databaseId
-              uri
-              title(format: RENDERED)
-              slug
-              status
-              link
-              date
-              content(format: RENDERED)
-              excerpt(format: RENDERED)
-              categories {
-                nodes { id name slug }
-              }
-              featuredImage {
-                node { sourceUrl altText mediaDetails { width height } }
-              }
+              ${postFields}
             }
           }
         }
@@ -560,18 +577,7 @@ export async function fetchPostBySlug(slug: string, categorySlug?: string): Prom
       const posts: Post[] = pJson.data?.posts?.nodes || [];
 
       for (const p of posts) {
-        if (!p.slug) continue;
-        if (p.slug === escapedSlug) return fixImage(p);
-        const transliterated = transliterateSlug(p.slug).toLowerCase();
-        if (transliterated === escapedSlug.toLowerCase()) return fixImage(p);
-
-        // Fuzzy match if 60%+ words match
-        if (targetWords.length >= 2) {
-          const matches = targetWords.filter((w) => transliterated.includes(w) || p.slug.includes(w));
-          if (matches.length / targetWords.length >= 0.6) {
-            return fixImage(p);
-          }
-        }
+        if (matchesPost(p)) return fixImage(p);
       }
 
       hasNext = pJson.data?.posts?.pageInfo?.hasNextPage ?? false;
@@ -814,61 +820,84 @@ export async function fetchRelatedPosts(
   excludedPostId: string,
   limit = 4
 ): Promise<Post[]> {
-  const query = `
-    query RelatedPosts {
-      posts(
-        first: ${limit}
-        where: {
-          categoryName: "${categorySlug}"
-          notIn: ["${excludedPostId}"]
-          orderby: { field: DATE, order: DESC }
-        }
-      ) {
-        nodes {
-          id
-          uri
-          title(format: RENDERED)
-          slug
-          status
-          link
-          date
-          content(format: RENDERED)
-          excerpt(format: RENDERED)
-          featuredImage {
-            node {
-              sourceUrl
-              altText
-              mediaDetails {
-                width
-                height
+  const normalizedSlug = categorySlug ? categorySlug.toLowerCase().trim() : "";
+  const slugsToTry = normalizedSlug ? (categorySlugAliases[normalizedSlug] || [normalizedSlug]) : [""];
+
+  for (const targetSlug of slugsToTry) {
+    const catFilter = targetSlug ? `categoryName: "${targetSlug}"` : "";
+    const notInFilter = excludedPostId ? `notIn: ["${excludedPostId}"]` : "";
+    const whereConditions = [catFilter, notInFilter, `orderby: { field: DATE, order: DESC }`]
+      .filter(Boolean)
+      .join("\n          ");
+
+    const query = `
+      query RelatedPosts {
+        posts(
+          first: ${limit}
+          where: {
+            ${whereConditions}
+          }
+        ) {
+          nodes {
+            id
+            databaseId
+            uri
+            title(format: RENDERED)
+            slug
+            status
+            link
+            date
+            content(format: RENDERED)
+            excerpt(format: RENDERED)
+            categories {
+              nodes { id name slug }
+            }
+            featuredImage {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
+                }
               }
             }
           }
         }
       }
-    }
-  `;
+    `;
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-    next: { revalidate: 60 },
-  });
-  const json = await res.json();
-  const nodes = (json.data?.posts?.nodes as Post[]) ?? [];
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+        next: { revalidate: 60 },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const nodes = (json.data?.posts?.nodes as Post[]) ?? [];
 
-  nodes.forEach((post) => {
-    if (post.featuredImage?.node?.sourceUrl) {
-      let imageUrl = post.featuredImage.node.sourceUrl;
-      if (imageUrl.startsWith("/")) {
-        imageUrl = `https://cms.ktmpost.com${imageUrl}`;
-        post.featuredImage.node.sourceUrl = imageUrl;
+        if (nodes.length > 0) {
+          nodes.forEach((post) => {
+            if (post.featuredImage?.node?.sourceUrl) {
+              let imageUrl = post.featuredImage.node.sourceUrl;
+              if (imageUrl.startsWith("/")) {
+                imageUrl = `https://cms.ktmpost.com${imageUrl}`;
+                post.featuredImage.node.sourceUrl = imageUrl;
+              }
+            }
+          });
+
+          return nodes;
+        }
       }
+    } catch (err) {
+      console.error("Error in fetchRelatedPosts:", err);
     }
-  });
+  }
 
-  return nodes;
+  return [];
 }
 
 

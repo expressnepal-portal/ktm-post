@@ -187,6 +187,7 @@ export function extractImagesFromContent(content: string | null): string[] {
 }
 interface Post {
     id: string;
+    databaseId?: number;
     uri: string | null;
     title: string | null;
     slug: string;
@@ -216,6 +217,7 @@ export function mapWpPost(post: WordPressPost): Post {
 
     return {
         id: post.id,
+        databaseId: post.databaseId,
         uri: post.uri,
         title: post.title,
         slug: post.slug,
@@ -550,16 +552,16 @@ className="w-full h-full object-cover group-hover:scale-[1.03] transition-transf
             }
             />
                 </Suspense>
-                < BreakingNews
-            slug = { item.slug }
-            title = { getCleanTitle(item.title)
-        }
-    image = { thumbnailImage }
-    excerpt = { excerpt }
-        />
-        </React.Fragment>
-      );
-})}
+                <BreakingNews
+                  slug={item.slug}
+                  title={getCleanTitle(item.title)}
+                  image={thumbnailImage}
+                  excerpt={excerpt}
+                  link={getPostUrl(item)}
+                />
+              </React.Fragment>
+            );
+          })}
 </div>
 )}
 

@@ -10,7 +10,7 @@ import { Suspense } from "react"
 
 import { Inter } from "next/font/google"
 import { fetchPostBySlug, fetchRelatedPosts, fetchHomePagePosts, type Post } from "../../../lib/wordpress"
-import { getCleanContent } from "@/app/page"
+import { getCleanContent, getPostUrl } from "@/app/page"
 import ImageSlider from "@/app/components/ImageSlider"
 import NewsImage from "@/app/components/NewsImage"
 import { transliterateSlug } from "@/lib/transliterate"
@@ -406,7 +406,11 @@ export default async function NewsSlugPage({
                   return (
                     <a
                       key={item.id}
-                      href={`/news/${transliterateSlug(item.slug)}`}
+                      href={getPostUrl({
+                        slug: item.slug,
+                        databaseId: item.databaseId,
+                        categorySlug: item.categories?.nodes?.[0]?.slug,
+                      })}
                       className="
                         group cursor-pointer bg-white
                         border border-gray-200

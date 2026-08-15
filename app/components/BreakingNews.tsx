@@ -3,10 +3,28 @@ import { transliterateSlug } from "@/lib/transliterate";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function BreakingNews({ title, slug, image, excerpt }: BreakingNewsType) {
+export default function BreakingNews({
+  title,
+  slug,
+  image,
+  excerpt,
+  link,
+  databaseId,
+  categorySlug,
+}: BreakingNewsType) {
   const cleanSlug = transliterateSlug(slug);
+  const idPrefix = databaseId ? `${databaseId}-` : "";
+  const postUrl =
+    link ||
+    (categorySlug &&
+    categorySlug !== "latest-news" &&
+    categorySlug !== "featured-news" &&
+    categorySlug !== "breaking-news"
+      ? `/${categorySlug}/${idPrefix}${cleanSlug}`
+      : `/news/${idPrefix}${cleanSlug}`);
+
   return (
-    <Link href={`/news/${cleanSlug}`}>
+    <Link href={postUrl}>
       <div className="w-full max-w-[1920px] mx-auto px-mobile-safe py-6 border-b border-gray-200">
         <div className="flex flex-col items-center gap-3 w-full group cursor-pointer">
         {/* Title */}

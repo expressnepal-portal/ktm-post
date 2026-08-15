@@ -28,11 +28,14 @@ export  interface HomePagePosts {
 }
 
 
-export interface BreakingNewsType{
+export interface BreakingNewsType {
   title: string;
   slug: string;
   image?: string;
   excerpt?: string;
+  link?: string;
+  databaseId?: number;
+  categorySlug?: string;
 }
 
 export type CardType = {
