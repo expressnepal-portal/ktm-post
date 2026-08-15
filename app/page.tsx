@@ -831,7 +831,7 @@ content = { getCleanContent(post.content, 150) }
     politicsPosts.length > 0 && (
         <section className="w-full">
             <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
-                <div className="flex items-center mb-6 md:mb-8 border-b-2 border-gray-200 pb-3 md:pb-4">
+                <div className="flex items-left mb-6 md:mb-8 border-b-2 border-gray-200 pb-3 md:pb-4">
                     <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-nepal-black font-nepali-serif">
                         राजनीति{ " " }
     <span className="text-gray-500 font-poppins text-lg font-normal">
@@ -861,7 +861,7 @@ content = { getCleanContent(post.content, 150) }
                                     { getCleanTitle(post.title)
             }
                 </h3>
-                <p className="text-gray-600 font-poppins text-base md:text-lg text-center line-clamp-3 w-full leading-relaxed mt-1">                    
+                <p className="text-gray-600 font-poppins text-[calc(var(--text-base)*1.1)] text-center line-clamp-3 w-full leading-relaxed mt-1">                    
                     
                     { getCleanContent(post.content, 120) }
                     </p>
