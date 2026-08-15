@@ -1,7 +1,6 @@
 export const runtime = "nodejs"
 export const revalidate = 60
 
-import CommentsSection from "@/app/components/CommentsSection"
 import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
 import UpcomingHolidays from "@/app/components/UpcomingHolidays"
 import ForexRatesWidget from "@/app/components/ForexRatesWidget"
@@ -334,14 +333,7 @@ export default async function NewsSlugPage({
                   style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
                 />
 
-                {/* Comments Section */}
-                <CommentsSection
-                  postId={post.databaseId || parseInt(post.id, 10) || 0}
-                  initialCount={0}
-                  initialComments={[]}
-                />
-
-                {/* Related News - directly below content & comments */}
+                {/* Related News - directly below content */}
                 {relatedPosts.length > 0 && (
                   <div className="border-t border-gray-200 pt-8 mt-8 space-y-6">
                     <div className="flex items-center justify-between">
