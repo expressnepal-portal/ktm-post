@@ -199,7 +199,8 @@ interface Post {
     excerpt?: string | null;
     images?: string[];
     categorySlug?: string;
-    author?: {           // 👈 add this block
+    categoryName?: string;
+    author?: {
         node?: {
             name?: string;
         };
@@ -207,7 +208,8 @@ interface Post {
 }
 
 export function mapWpPost(post: WordPressPost): Post {
-    const catSlug = post.categories?.nodes?.[0]?.slug;
+    const primaryCat = post.categories?.nodes?.[0];
+    const catSlug = primaryCat?.slug;
     const categorySlug =
         catSlug === "business"
             ? "economy"
@@ -229,6 +231,7 @@ export function mapWpPost(post: WordPressPost): Post {
         featuredImage: post.featuredImage?.node?.sourceUrl || null,
         images: extractImagesFromContent(post.content),
         categorySlug: categorySlug || undefined,
+        categoryName: primaryCat?.name || "विशेष",
         author: post.author,
     };
 }
@@ -369,163 +372,183 @@ export default async function HomePage() {
                 : [];
     return (
         <div
-      className= {`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`
-}
-    >
-{
-    exclusivePosts.length > 0 && (
-        <section className="w-full pt-4 md:pt-6 mb-8">
-            <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
-                {/* ── SINGLE POST: full-width hero ── */ }
-            {
-    exclusivePosts.length === 1 && (() => {
-        const post = exclusivePosts[0];
-        const contentImages = extractImagesFromContent(post.content);
-        const featuredImageUrl = post.featuredImage;
-        const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+            className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
+        >
+            {exclusivePosts.length > 0 && (
+                <section className="w-full pt-4 md:pt-6 mb-8">
+                    <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+                        {/* ── SINGLE POST: full-width hero with overlay ── */}
+                        {exclusivePosts.length === 1 && (() => {
+                            const post = exclusivePosts[0];
+                            const contentImages = extractImagesFromContent(post.content);
+                            const featuredImageUrl = post.featuredImage;
+                            const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                            const excerpt = getCleanContent(post.excerpt || post.content, 240);
 
-        return (
-            <Link href={ getPostUrl(post) } className="block group">
-                { thumbnailImage && (
-                    <div className="relative w-full h-[260px] sm:h-[340px] md:h-[420px] lg:h-[480px] xl:h-[540px] 2xl:h-[600px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                        <img
-                        src={ thumbnailImage }
-        alt = { getCleanTitle(post.title) }
-        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-            />
-            <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-10">
-                <span className="bg-[#9365c4] text-white px-3 py-1.5 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                    विशेष खबर
-                        </span>
-                        </div>
-                        </div>
-                  )
-    }
-                  <h3 className="mt-4 md:mt-5 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-        { getCleanTitle(post.title) }
-        </h3>
-        </Link>
-              );
-}) ()}
+                            return (
+                                <Link href={getPostUrl(post)} className="block group">
+                                    <div className="relative w-full h-[320px] sm:h-[400px] md:h-[480px] lg:h-[560px] xl:h-[620px] 2xl:h-[680px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
+                                        {thumbnailImage && (
+                                            <img
+                                                src={thumbnailImage}
+                                                alt={getCleanTitle(post.title)}
+                                                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                                            />
+                                        )}
+                                        {/* Dark bottom gradient overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
-{/* ── 2-3 POSTS: equal-width grid, no hero/sidebar split ── */ }
-{
-    exclusivePosts.length >= 2 && exclusivePosts.length <= 3 && (
-        <div className={ `grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-6 lg:gap-8` }>
-        {
-            exclusivePosts.map((post) => {
-                const contentImages = extractImagesFromContent(post.content);
-                const featuredImageUrl = post.featuredImage;
-                const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                                        {/* Bottom overlay content */}
+                                        <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 md:p-8 lg:p-10 z-10 flex flex-col items-start max-w-5xl">
+                                            <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-3 inline-block">
+                                                {post.categoryName || "विशेष"}
+                                            </span>
+                                            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3">
+                                                {getCleanTitle(post.title)}
+                                            </h2>
+                                            {excerpt && (
+                                                <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg font-nepali leading-relaxed line-clamp-2 md:line-clamp-3 text-shadow-sm">
+                                                    {excerpt}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        })()}
 
-                return (
-                    <Link href={ getPostUrl(post) } key={ post.id } className="flex flex-col group">
-                        { thumbnailImage && (
-                            <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                                <img
-                            src={ thumbnailImage }
-                alt = { getCleanTitle(post.title)
-        }
-    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-        />
-        <div className="absolute bottom-3 left-3 z-10">
-            <span className="bg-[#9365c4] text-white px-2.5 py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                विशेष खबर
-                    </span>
-                    </div>
-                    </div>
-                      )
-}
-<h3 className="mt-3 text-lg sm:text-xl md:text-2xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-    { getCleanTitle(post.title) }
-    </h3>
-    </Link>
-                  );
-                })}
-</div>
-            )}
+                        {/* ── 2-3 POSTS: equal-width grid with overlay cards ── */}
+                        {exclusivePosts.length >= 2 && exclusivePosts.length <= 3 && (
+                            <div className={`grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-4 md:gap-6`}>
+                                {exclusivePosts.map((post) => {
+                                    const contentImages = extractImagesFromContent(post.content);
+                                    const featuredImageUrl = post.featuredImage;
+                                    const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                                    const excerpt = getCleanContent(post.excerpt || post.content, 140);
 
-{/* ── 4+ POSTS: hero + sidebar grid ── */ }
-{
-    exclusivePosts.length >= 4 && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-            {/* LEFT: Hero post */ }
-    {
-        (() => {
-            const post = exclusivePosts[0];
-            const contentImages = extractImagesFromContent(post.content);
-            const featuredImageUrl = post.featuredImage;
-            const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                                    return (
+                                        <Link href={getPostUrl(post)} key={post.id} className="block group">
+                                            <div className="relative w-full h-[280px] sm:h-[340px] md:h-[400px] lg:h-[460px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
+                                                {thumbnailImage && (
+                                                    <img
+                                                        src={thumbnailImage}
+                                                        alt={getCleanTitle(post.title)}
+                                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                                                    />
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
-            return (
-                <Link
-                      href={ getPostUrl(post) }
-            className="lg:col-span-6 2xl:col-span-7 flex flex-col group h-full"
-                >
-                { thumbnailImage && (
-                    <div className="relative w-full h-[240px] sm:h-[320px] md:h-[380px] lg:h-[400px] xl:h-[460px] 2xl:h-[520px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                        <img
-                            src={ thumbnailImage }
-            alt = { getCleanTitle(post.title) }
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                />
-                <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
-                    <span className="bg-[#9365c4] text-white px-3 py-1.5 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                        विशेष खबर
-                            </span>
+                                                <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 md:p-6 z-10 flex flex-col items-start">
+                                                    <span className="bg-[#ea3323] text-white px-2 py-0.5 text-xs font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-1.5 md:mb-2 inline-block">
+                                                        {post.categoryName || "विशेष"}
+                                                    </span>
+                                                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-snug tracking-tight drop-shadow-sm mb-1.5">
+                                                        {getCleanTitle(post.title)}
+                                                    </h3>
+                                                    {excerpt && (
+                                                        <p className="text-white/90 text-xs sm:text-sm font-nepali leading-relaxed line-clamp-2 text-shadow-sm">
+                                                            {excerpt}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </div>
-                            </div>
-                      )
-        }
-                      <h3 className="mt-3 md:mt-4 text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-            { getCleanTitle(post.title) }
-            </h3>
-            </Link>
-                  );
-    }) ()
-}
-
-{/* RIGHT: Smaller posts grid */ }
-<div className={ `lg:col-span-6 2xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length >= 7 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-4 lg:gap-5` }>
-{
-    exclusivePosts.slice(1, 7).map((post) => {
-        const contentImages = extractImagesFromContent(post.content);
-        const featuredImageUrl = post.featuredImage;
-        const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
-
-        return (
-            <Link
-                        href={ getPostUrl(post) }
-        key={ post.id }
-        className="flex flex-col group h-full"
-            >
-            { thumbnailImage && (
-                <div className="relative w-full aspect-video sm:h-[130px] md:h-[140px] lg:h-[150px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                    <img
-                              src={ thumbnailImage }
-        alt = { getCleanTitle(post.title)
-}
-className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-    />
-    <div className="absolute bottom-2 left-2 z-10">
-        <span className="bg-[#9365c4] text-white px-1.5 py-0.5 text-[10px] font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif">
-            विशेष खबर
-                </span>
-                </div>
-                </div>
                         )}
-<h3 className="mt-2 text-sm md:text-base font-bold text-nepal-black group-hover:text-purple-700 transition-colors line-clamp-2 font-nepali-serif leading-snug">
-    { getCleanTitle(post.title) }
-    </h3>
-    </Link>
-                    );
-                  })}
-</div>
-    </div>
+
+                        {/* ── 4+ POSTS: hero + sidebar grid with overlay cards ── */}
+                        {exclusivePosts.length >= 4 && (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+                                {/* LEFT: Hero post */}
+                                {(() => {
+                                    const post = exclusivePosts[0];
+                                    const contentImages = extractImagesFromContent(post.content);
+                                    const featuredImageUrl = post.featuredImage;
+                                    const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                                    const excerpt = getCleanContent(post.excerpt || post.content, 200);
+
+                                    return (
+                                        <Link
+                                            href={getPostUrl(post)}
+                                            className="lg:col-span-7 xl:col-span-7 2xl:col-span-8 block group relative w-full h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden rounded-xs bg-gray-950 shadow-md"
+                                        >
+                                            <div className="relative w-full h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden">
+                                                {thumbnailImage && (
+                                                    <img
+                                                        src={thumbnailImage}
+                                                        alt={getCleanTitle(post.title)}
+                                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out absolute inset-0"
+                                                    />
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
+
+                                                <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 md:p-8 z-10 flex flex-col items-start">
+                                                    <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-2.5 inline-block">
+                                                        {post.categoryName || "विशेष"}
+                                                    </span>
+                                                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-sm mb-2 md:mb-2.5">
+                                                        {getCleanTitle(post.title)}
+                                                    </h3>
+                                                    {excerpt && (
+                                                        <p className="text-white/90 text-xs sm:text-sm md:text-base font-nepali leading-relaxed line-clamp-2 md:line-clamp-3 text-shadow-sm">
+                                                            {excerpt}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    );
+                                })()}
+
+                                {/* RIGHT: Grid of secondary exclusive posts */}
+                                <div className={`lg:col-span-5 xl:col-span-5 2xl:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 ${exclusivePosts.length >= 7 ? "xl:grid-cols-2" : "xl:grid-cols-2"} gap-3.5 sm:gap-4`}>
+                                    {exclusivePosts.slice(1, 7).map((post) => {
+                                        const contentImages = extractImagesFromContent(post.content);
+                                        const featuredImageUrl = post.featuredImage;
+                                        const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                                        const excerpt = getCleanContent(post.excerpt || post.content, 90);
+
+                                        return (
+                                            <Link
+                                                href={getPostUrl(post)}
+                                                key={post.id}
+                                                className="block group relative w-full h-[180px] sm:h-[200px] md:h-[220px] lg:h-[190px] xl:h-[200px] overflow-hidden rounded-xs bg-gray-950 shadow-sm"
+                                            >
+                                                <div className="relative w-full h-full overflow-hidden">
+                                                    {thumbnailImage && (
+                                                        <img
+                                                            src={thumbnailImage}
+                                                            alt={getCleanTitle(post.title)}
+                                                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                                                        />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
+
+                                                    <div className="absolute bottom-0 inset-x-0 p-3 sm:p-3.5 z-10 flex flex-col items-start">
+                                                        <span className="bg-[#ea3323] text-white px-1.5 py-0.5 text-[10px] font-bold rounded-xs tracking-wide shadow-xs font-nepali-serif mb-1 inline-block">
+                                                            {post.categoryName || "विशेष"}
+                                                        </span>
+                                                        <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-red-400 transition-colors font-nepali-serif line-clamp-2 leading-snug drop-shadow-sm">
+                                                            {getCleanTitle(post.title)}
+                                                        </h4>
+                                                        {excerpt && (
+                                                            <p className="hidden sm:block text-white/80 text-[11px] font-nepali line-clamp-1 mt-0.5">
+                                                                {excerpt}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
             )}
-</div>
-    </section>
-      )}
 
             {
                 breaking.length > 0 && (
