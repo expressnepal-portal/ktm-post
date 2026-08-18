@@ -376,150 +376,206 @@ export default async function HomePage() {
     exclusivePosts.length > 0 && (
         <section className="w-full pt-4 md:pt-6 mb-8">
             <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
-                {/* ── SINGLE POST: full-width hero ── */ }
+                {/* ── SINGLE POST: full-width hero with overlay title and excerpt box ── */ }
             {
     exclusivePosts.length === 1 && (() => {
         const post = exclusivePosts[0];
         const contentImages = extractImagesFromContent(post.content);
         const featuredImageUrl = post.featuredImage;
         const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+        const excerptText = getCleanContent(post.content, 240);
 
         return (
-            <Link href={ getPostUrl(post) } className="block group">
-                { thumbnailImage && (
-                    <div className="relative w-full h-[260px] sm:h-[340px] md:h-[420px] lg:h-[480px] xl:h-[540px] 2xl:h-[600px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+            <Link href={ getPostUrl(post) } className="block group exclusive-hero-banner">
+                <div className="exclusive-hero-image-wrapper">
+                    { thumbnailImage && (
                         <img
-                        src={ thumbnailImage }
-        alt = { getCleanTitle(post.title) }
-        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-            />
-            <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-10">
-                <span className="bg-[#9365c4] text-white px-3 py-1.5 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                    विशेष खबर
+                            src={ thumbnailImage }
+                            alt={ getCleanTitle(post.title) }
+                            className="exclusive-hero-img"
+                        />
+                    )}
+                    <div className="exclusive-hero-overlay" />
+                    
+                    {/* Badge at Bottom Left */}
+                    <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-20">
+                        <span className="exclusive-badge">
+                            विशेष खबर
                         </span>
-                        </div>
-                        </div>
-                  )
-    }
-                  <h3 className="mt-4 md:mt-5 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-        { getCleanTitle(post.title) }
-        </h3>
-        </Link>
-              );
-}) ()}
+                    </div>
 
-{/* ── 2-3 POSTS: equal-width grid, no hero/sidebar split ── */ }
+                    {/* Centered / Bottom Overlaid Content */}
+                    <div className="exclusive-hero-center-content">
+                        <h2 className="exclusive-hero-title">
+                            { getCleanTitle(post.title) }
+                        </h2>
+                        { excerptText && (
+                            <div className="exclusive-hero-excerpt-box">
+                                <p className="exclusive-hero-excerpt-text">
+                                    { excerptText }
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Link>
+        );
+    }) ()}
+
+{/* ── 2-3 POSTS: equal-width grid ── */ }
 {
     exclusivePosts.length >= 2 && exclusivePosts.length <= 3 && (
         <div className={ `grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-6 lg:gap-8` }>
         {
-            exclusivePosts.map((post) => {
+            exclusivePosts.map((post, index) => {
                 const contentImages = extractImagesFromContent(post.content);
                 const featuredImageUrl = post.featuredImage;
                 const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+                const excerptText = getCleanContent(post.content, 140);
+
+                if (index === 0) {
+                    return (
+                        <Link href={ getPostUrl(post) } key={ post.id } className="block group exclusive-hero-banner h-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px]">
+                            <div className="relative w-full h-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px] overflow-hidden">
+                                { thumbnailImage && (
+                                    <img
+                                        src={ thumbnailImage }
+                                        alt={ getCleanTitle(post.title) }
+                                        className="exclusive-hero-img"
+                                    />
+                                )}
+                                <div className="exclusive-hero-overlay" />
+                                <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 z-20">
+                                    <span className="exclusive-badge">
+                                        विशेष खबर
+                                    </span>
+                                </div>
+                                <div className="absolute inset-x-0 bottom-0 p-4 md:p-6 text-center z-10 flex flex-col items-center">
+                                    <h3 className="exclusive-hero-title !text-xl md:!text-2xl lg:!text-3xl mb-2">
+                                        { getCleanTitle(post.title) }
+                                    </h3>
+                                    { excerptText && (
+                                        <div className="exclusive-hero-excerpt-box !py-1.5 !px-3">
+                                            <p className="exclusive-hero-excerpt-text !text-xs sm:!text-sm line-clamp-2">
+                                                { excerptText }
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </Link>
+                    );
+                }
 
                 return (
                     <Link href={ getPostUrl(post) } key={ post.id } className="flex flex-col group">
                         { thumbnailImage && (
-                            <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                            <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[300px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
                                 <img
-                            src={ thumbnailImage }
-                alt = { getCleanTitle(post.title)
-        }
-    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-        />
-        <div className="absolute bottom-3 left-3 z-10">
-            <span className="bg-[#9365c4] text-white px-2.5 py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                विशेष खबर
-                    </span>
-                    </div>
-                    </div>
-                      )
-}
-<h3 className="mt-3 text-lg sm:text-xl md:text-2xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-    { getCleanTitle(post.title) }
-    </h3>
-    </Link>
-                  );
-                })}
+                                    src={ thumbnailImage }
+                                    alt={ getCleanTitle(post.title) }
+                                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                                />
+                                <div className="absolute bottom-3 left-3 z-10">
+                                    <span className="exclusive-badge-sm">
+                                        विशेष खबर
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        <h3 className="mt-3 text-lg sm:text-xl md:text-2xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
+                            { getCleanTitle(post.title) }
+                        </h3>
+                    </Link>
+                );
+            })}
 </div>
-            )}
+    )}
 
 {/* ── 4+ POSTS: hero + sidebar grid ── */ }
 {
     exclusivePosts.length >= 4 && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-            {/* LEFT: Hero post */ }
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+            {/* LEFT: Hero post with KTM standard layout */ }
     {
         (() => {
             const post = exclusivePosts[0];
             const contentImages = extractImagesFromContent(post.content);
             const featuredImageUrl = post.featuredImage;
             const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
+            const excerptText = getCleanContent(post.content, 200);
 
             return (
                 <Link
-                      href={ getPostUrl(post) }
-            className="lg:col-span-6 2xl:col-span-7 flex flex-col group h-full"
+                    href={ getPostUrl(post) }
+                    className="lg:col-span-7 2xl:col-span-7 block group exclusive-hero-banner h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[520px]"
                 >
-                { thumbnailImage && (
-                    <div className="relative w-full h-[240px] sm:h-[320px] md:h-[380px] lg:h-[400px] xl:h-[460px] 2xl:h-[520px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                        <img
-                            src={ thumbnailImage }
-            alt = { getCleanTitle(post.title) }
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                />
-                <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
-                    <span className="bg-[#9365c4] text-white px-3 py-1.5 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-md font-nepali-serif">
-                        विशेष खबर
+                    <div className="relative w-full h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[520px] overflow-hidden">
+                        { thumbnailImage && (
+                            <img
+                                src={ thumbnailImage }
+                                alt={ getCleanTitle(post.title) }
+                                className="exclusive-hero-img"
+                            />
+                        )}
+                        <div className="exclusive-hero-overlay" />
+                        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-20">
+                            <span className="exclusive-badge">
+                                विशेष खबर
                             </span>
-                            </div>
-                            </div>
-                      )
-        }
-                      <h3 className="mt-3 md:mt-4 text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-black tracking-tight group-hover:text-purple-700 transition-colors font-nepali-serif leading-snug">
-            { getCleanTitle(post.title) }
-            </h3>
-            </Link>
-                  );
+                        </div>
+                        <div className="exclusive-hero-center-content">
+                            <h2 className="exclusive-hero-title !text-2xl sm:!text-3xl md:!text-4xl lg:!text-4xl">
+                                { getCleanTitle(post.title) }
+                            </h2>
+                            { excerptText && (
+                                <div className="exclusive-hero-excerpt-box">
+                                    <p className="exclusive-hero-excerpt-text !text-xs sm:!text-sm md:!text-base">
+                                        { excerptText }
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Link>
+            );
     }) ()
 }
 
 {/* RIGHT: Smaller posts grid */ }
-<div className={ `lg:col-span-6 2xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length >= 7 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-4 lg:gap-5` }>
+<div className={ `lg:col-span-5 2xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 ${exclusivePosts.length >= 7 ? "xl:grid-cols-2" : "xl:grid-cols-2"} gap-4 lg:gap-5` }>
 {
-    exclusivePosts.slice(1, 7).map((post) => {
+    exclusivePosts.slice(1, 5).map((post) => {
         const contentImages = extractImagesFromContent(post.content);
         const featuredImageUrl = post.featuredImage;
         const thumbnailImage = featuredImageUrl ?? contentImages[0] ?? undefined;
 
         return (
             <Link
-                        href={ getPostUrl(post) }
-        key={ post.id }
-        className="flex flex-col group h-full"
+                href={ getPostUrl(post) }
+                key={ post.id }
+                className="flex flex-col group h-full"
             >
-            { thumbnailImage && (
-                <div className="relative w-full aspect-video sm:h-[130px] md:h-[140px] lg:h-[150px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
-                    <img
-                              src={ thumbnailImage }
-        alt = { getCleanTitle(post.title)
-}
-className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-    />
-    <div className="absolute bottom-2 left-2 z-10">
-        <span className="bg-[#9365c4] text-white px-1.5 py-0.5 text-[10px] font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif">
-            विशेष खबर
-                </span>
-                </div>
-                </div>
-                        )}
-<h3 className="mt-2 text-sm md:text-base font-bold text-nepal-black group-hover:text-purple-700 transition-colors line-clamp-2 font-nepali-serif leading-snug">
-    { getCleanTitle(post.title) }
-    </h3>
-    </Link>
-                    );
-                  })}
+                { thumbnailImage && (
+                    <div className="relative w-full aspect-video sm:h-[130px] md:h-[140px] lg:h-[150px] overflow-hidden rounded-xs bg-gray-100 shadow-xs">
+                        <img
+                            src={ thumbnailImage }
+                            alt={ getCleanTitle(post.title) }
+                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                        />
+                        <div className="absolute bottom-2 left-2 z-10">
+                            <span className="exclusive-badge-sm">
+                                विशेष खबर
+                            </span>
+                        </div>
+                    </div>
+                )}
+                <h3 className="mt-2 text-sm md:text-base font-bold text-nepal-black group-hover:text-purple-700 transition-colors line-clamp-2 font-nepali-serif leading-snug">
+                    { getCleanTitle(post.title) }
+                </h3>
+            </Link>
+        );
+    })}
 </div>
     </div>
             )}

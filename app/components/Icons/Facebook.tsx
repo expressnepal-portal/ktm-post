@@ -1,13 +1,15 @@
-import React from 'react';
+import React from "react";
 
-const Facebook = () => {
+interface IconProps {
+  className?: string;
+}
+
+export default function Facebook({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg
-      className="w-6 h-6 text-gray-800 dark:text-white"
+      className={className}
       aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
       fill="currentColor"
       viewBox="0 0 24 24"
     >
@@ -18,6 +20,4 @@ const Facebook = () => {
       />
     </svg>
   );
-};
-
-export default Facebook;
+}

@@ -1,6 +1,7 @@
 export const runtime = "nodejs"
 export const revalidate = 60
 
+import ArticleShareBar from "@/app/components/ArticleShareBar"
 import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
 import UpcomingHolidays from "@/app/components/UpcomingHolidays"
 import ForexRatesWidget from "@/app/components/ForexRatesWidget"
@@ -32,7 +33,9 @@ function getFormattedNepaliDate(dateStr: string): string {
     const bsDate = new NepaliDate(dateObj)
     const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number)
     const monthName = nepaliMonths[bsMonth - 1] || ""
-    return `${monthName} ${toNepaliDigits(bsDay)}, ${toNepaliDigits(bsYear)}`
+    const hours = toNepaliDigits(dateObj.getHours().toString().padStart(2, "0"))
+    const minutes = toNepaliDigits(dateObj.getMinutes().toString().padStart(2, "0"))
+    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`
   } catch {
     return dateStr
   }
@@ -331,6 +334,13 @@ export default async function NewsSlugPage({
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
                   style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
+                />
+
+                {/* Social Share & Published Date Bar */}
+                <ArticleShareBar
+                  title={getCleanTitle(post.title)}
+                  publishedDate={formattedDate}
+                  authorName={post.author?.node?.name}
                 />
 
                 {/* Related News - directly below content */}
