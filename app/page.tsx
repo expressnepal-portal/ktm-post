@@ -387,7 +387,7 @@ export default async function HomePage() {
 
                             return (
                                 <Link href={getPostUrl(post)} className="block group">
-                                    <div className="relative w-full h-[320px] sm:h-[400px] md:h-[480px] lg:h-[560px] xl:h-[620px] 2xl:h-[680px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
+                                    <div className="relative w-full h-[340px] sm:h-[420px] md:h-[500px] lg:h-[580px] xl:h-[640px] 2xl:h-[700px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
                                         {thumbnailImage && (
                                             <img
                                                 src={thumbnailImage}
@@ -400,10 +400,10 @@ export default async function HomePage() {
 
                                         {/* Bottom overlay content */}
                                         <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 md:p-8 lg:p-10 z-10 flex flex-col items-start max-w-5xl">
-                                            <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-3 inline-block">
-                                                {post.categoryName || "विशेष"}
+                                            <span className="bg-[#ea3323] text-white px-3.5 py-1 md:px-5 md:py-1.5 text-sm sm:text-base md:text-lg font-black uppercase tracking-widest rounded-xs shadow-lg mb-2.5 md:mb-3.5 inline-block font-sans">
+                                                EXCLUSIVE
                                             </span>
-                                            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3">
+                                            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-lg mb-2 md:mb-3">
                                                 {getCleanTitle(post.title)}
                                             </h2>
                                             {excerpt && (
@@ -439,10 +439,10 @@ export default async function HomePage() {
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
                                                 <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 md:p-6 z-10 flex flex-col items-start">
-                                                    <span className="bg-[#ea3323] text-white px-2 py-0.5 text-xs font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-1.5 md:mb-2 inline-block">
-                                                        {post.categoryName || "विशेष"}
+                                                    <span className="bg-[#ea3323] text-white px-3 py-1 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xs shadow-md mb-2 inline-block font-sans">
+                                                        EXCLUSIVE
                                                     </span>
-                                                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-snug tracking-tight drop-shadow-sm mb-1.5">
+                                                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-snug tracking-tight drop-shadow-md mb-1.5">
                                                         {getCleanTitle(post.title)}
                                                     </h3>
                                                     {excerpt && (
@@ -485,10 +485,10 @@ export default async function HomePage() {
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
                                                 <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 md:p-8 z-10 flex flex-col items-start">
-                                                    <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-2.5 inline-block">
-                                                        {post.categoryName || "विशेष"}
+                                                    <span className="bg-[#ea3323] text-white px-3.5 py-1 md:px-4 md:py-1.5 text-sm sm:text-base md:text-lg font-black uppercase tracking-widest rounded-xs shadow-md mb-2 md:mb-3 inline-block font-sans">
+                                                        EXCLUSIVE
                                                     </span>
-                                                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-sm mb-2 md:mb-2.5">
+                                                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-lg mb-2 md:mb-2.5">
                                                         {getCleanTitle(post.title)}
                                                     </h3>
                                                     {excerpt && (
@@ -527,8 +527,8 @@ export default async function HomePage() {
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
                                                     <div className="absolute bottom-0 inset-x-0 p-3 sm:p-3.5 z-10 flex flex-col items-start">
-                                                        <span className="bg-[#ea3323] text-white px-1.5 py-0.5 text-[10px] font-bold rounded-xs tracking-wide shadow-xs font-nepali-serif mb-1 inline-block">
-                                                            {post.categoryName || "विशेष"}
+                                                        <span className="bg-[#ea3323] text-white px-2 py-0.5 text-xs font-black uppercase tracking-wider rounded-xs shadow-xs mb-1.5 inline-block font-sans">
+                                                            EXCLUSIVE
                                                         </span>
                                                         <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-red-400 transition-colors font-nepali-serif line-clamp-2 leading-snug drop-shadow-sm">
                                                             {getCleanTitle(post.title)}
