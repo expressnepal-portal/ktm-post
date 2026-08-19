@@ -1,53 +1,72 @@
-export const runtime = "nodejs"
-export const revalidate = 60
+export const runtime = "nodejs";
+export const revalidate = 60;
 
-import ArticleShareBar from "@/app/components/ArticleShareBar"
-import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
-import UpcomingHolidays from "@/app/components/UpcomingHolidays"
-import ForexRatesWidget from "@/app/components/ForexRatesWidget"
-import SidebarAds from "@/app/components/SidebarAds"
-import { Suspense } from "react"
+import ArticleShareBar from "@/app/components/ArticleShareBar";
+import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget";
+import UpcomingHolidays from "@/app/components/UpcomingHolidays";
+import ForexRatesWidget from "@/app/components/ForexRatesWidget";
+import SidebarAds from "@/app/components/SidebarAds";
+import { Suspense } from "react";
 
-import { Inter } from "next/font/google"
-import { fetchPostBySlug, fetchRelatedPosts, fetchHomePagePosts, type Post } from "../../../lib/wordpress"
-import { getCleanContent, getPostUrl } from "@/app/page"
-import ImageSlider from "@/app/components/ImageSlider"
-import NewsImage from "@/app/components/NewsImage"
-import { transliterateSlug } from "@/lib/transliterate"
-import * as cheerio from "cheerio"
-import NepaliDate from "bikram-sambat-js"
+import { Inter } from "next/font/google";
+import {
+  fetchPostBySlug,
+  fetchRelatedPosts,
+  fetchHomePagePosts,
+  type Post,
+} from "../../../lib/wordpress";
+import { getCleanContent, getPostUrl } from "@/app/page";
+import ImageSlider from "@/app/components/ImageSlider";
+import NewsImage from "@/app/components/NewsImage";
+import { transliterateSlug } from "@/lib/transliterate";
+import * as cheerio from "cheerio";
+import NepaliDate from "bikram-sambat-js";
 
 const nepaliMonths = [
-  "बैशाख", "जेठ", "असार", "श्रावण", "भदौ", "आश्विन",
-  "कार्तिक", "मंसिर", "पौष", "माघ", "फाल्गुण", "चैत्र"
-]
+  "बैशाख",
+  "जेठ",
+  "असार",
+  "श्रावण",
+  "भदौ",
+  "आश्विन",
+  "कार्तिक",
+  "मंसिर",
+  "पौष",
+  "माघ",
+  "फाल्गुण",
+  "चैत्र",
+];
 
 const toNepaliDigits = (num: number | string) => {
-  const nepali = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"]
-  return num.toString().replace(/\d/g, (d) => nepali[parseInt(d)])
-}
+  const nepali = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+  return num.toString().replace(/\d/g, (d) => nepali[parseInt(d)]);
+};
 
 function getFormattedNepaliDate(dateStr: string): string {
   try {
-    const dateObj = new Date(dateStr)
-    const bsDate = new NepaliDate(dateObj)
-    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number)
-    const monthName = nepaliMonths[bsMonth - 1] || ""
-    const hours = toNepaliDigits(dateObj.getHours().toString().padStart(2, "0"))
-    const minutes = toNepaliDigits(dateObj.getMinutes().toString().padStart(2, "0"))
-    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`
+    const dateObj = new Date(dateStr);
+    const bsDate = new NepaliDate(dateObj);
+    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number);
+    const monthName = nepaliMonths[bsMonth - 1] || "";
+    const hours = toNepaliDigits(
+      dateObj.getHours().toString().padStart(2, "0"),
+    );
+    const minutes = toNepaliDigits(
+      dateObj.getMinutes().toString().padStart(2, "0"),
+    );
+    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`;
   } catch {
-    return dateStr
+    return dateStr;
   }
 }
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-})
+});
 
 function decodeHtmlEntities(text: string | null): string {
-  if (!text) return ""
+  if (!text) return "";
 
   const decodedText = text
     .replace(/&nbsp;/g, " ")
@@ -62,19 +81,19 @@ function decodeHtmlEntities(text: string | null): string {
     .replace(/&ldquo;/g, '"')
     .replace(/&mdash;/g, "—")
     .replace(/&ndash;/g, "–")
-    .replace(/&hellip;/g, "...")
+    .replace(/&hellip;/g, "...");
 
-  return decodedText
+  return decodedText;
 }
 
 function getCleanTitle(title: string | null): string {
-  if (!title) return "Untitled Post"
-  const decodedTitle = decodeHtmlEntities(title)
+  if (!title) return "Untitled Post";
+  const decodedTitle = decodeHtmlEntities(title);
   return decodedTitle
     .replace(/\b\d+\/\d+\b/g, "")
     .replace(/\b\d+ of \d+\b/gi, "")
     .replace(/\[[^\]]*\]/g, "")
-    .trim()
+    .trim();
 }
 
 // function extractImagesFromContent(content: string | null): string[] {
@@ -99,30 +118,33 @@ function getCleanTitle(title: string | null): string {
 // }
 
 function extractImagesFromContent(content: string | null): string[] {
-  if (!content) return []
+  if (!content) return [];
 
-  const $ = cheerio.load(content)
-  const images: string[] = []
+  const $ = cheerio.load(content);
+  const images: string[] = [];
 
   $("img").each((_, img) => {
-    let src = $(img).attr("data-src") || $(img).attr("data-lazy-src") || $(img).attr("src")
+    let src =
+      $(img).attr("data-src") ||
+      $(img).attr("data-lazy-src") ||
+      $(img).attr("src");
 
-    if (!src) return
+    if (!src) return;
 
     // ignore placeholder base64
     if (src.startsWith("data:image")) {
-      src = $(img).attr("data-src") || $(img).attr("data-lazy-src") || ""
+      src = $(img).attr("data-src") || $(img).attr("data-lazy-src") || "";
     }
 
-    if (!src) return
+    if (!src) return;
 
-    if (src.startsWith("//")) src = `https:${src}`
-    if (src.startsWith("/")) src = `https://cms.ktmpost.com${src}`
+    if (src.startsWith("//")) src = `https:${src}`;
+    if (src.startsWith("/")) src = `https://cms.ktmpost.com${src}`;
 
-    images.push(src)
-  })
+    images.push(src);
+  });
 
-  return [...new Set(images)]
+  return [...new Set(images)];
 }
 
 function normalizeImageUrl(url: string): string {
@@ -134,57 +156,65 @@ function normalizeImageUrl(url: string): string {
         ?.replace(/-\d+x\d+(?=\.)/, "") // remove size suffix
         .split("?")[0] // remove query params
         .replace(/^https?:/, "") || ""
-    )
+    );
   } catch {
-    return ""
+    return "";
   }
 }
 
-function removeThumbnailFromContent(content: string | null, thumbnail?: string): string {
-  if (!content || !thumbnail) return content || ""
+function removeThumbnailFromContent(
+  content: string | null,
+  thumbnail?: string,
+): string {
+  if (!content || !thumbnail) return content || "";
 
-  const $ = cheerio.load(content)
-  const thumbName = normalizeImageUrl(thumbnail)
+  const $ = cheerio.load(content);
+  const thumbName = normalizeImageUrl(thumbnail);
 
   $("img").each((_, img) => {
-    const src = $(img).attr("data-src") || $(img).attr("data-lazy-src") || $(img).attr("src")
-    if (!src) return
-    const imgName = normalizeImageUrl(src)
+    const src =
+      $(img).attr("data-src") ||
+      $(img).attr("data-lazy-src") ||
+      $(img).attr("src");
+    if (!src) return;
+    const imgName = normalizeImageUrl(src);
 
     if (imgName && imgName === thumbName) {
-      $(img).remove()
+      $(img).remove();
     }
-  })
+  });
 
-  return $.html()
+  return $.html();
 }
 
-import type { Metadata } from "next"
+import type { Metadata } from "next";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string; category?: string }>
+  params: Promise<{ id: string; category?: string }>;
 }): Promise<Metadata> {
-  const { id, category } = await params
-  const post = await fetchPostBySlug(id, category)
+  const { id, category } = await params;
+  const post = await fetchPostBySlug(id, category);
 
   if (!post) {
     return {
       title: "समाचार भेटिएन - KTM Post",
       description: "समाचार पृष्ठ उपलब्ध छैन।",
-    }
+    };
   }
 
-  const cleanTitle = getCleanTitle(post.title)
-  const rawContent = post.content || ""
-  const cleanDescription = getCleanContent(rawContent, 160)
+  const cleanTitle = getCleanTitle(post.title);
+  const rawContent = post.content || "";
+  const cleanDescription = getCleanContent(rawContent, 160);
 
-  const contentImages = extractImagesFromContent(rawContent)
-  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined
-  const heroImage = featuredImageUrl || (contentImages.length > 0 ? contentImages[0] : undefined)
+  const contentImages = extractImagesFromContent(rawContent);
+  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined;
+  const heroImage =
+    featuredImageUrl ||
+    (contentImages.length > 0 ? contentImages[0] : undefined);
 
-  const images = heroImage ? [{ url: heroImage }] : []
+  const images = heroImage ? [{ url: heroImage }] : [];
 
   return {
     title: `${cleanTitle} - KTM Post`,
@@ -202,30 +232,34 @@ export async function generateMetadata({
       description: cleanDescription,
       images: images.map((i) => i.url),
     },
-  }
+  };
 }
 
 export default async function NewsSlugPage({
   params,
 }: {
-  params: Promise<{ id: string; category?: string }>
+  params: Promise<{ id: string; category?: string }>;
 }) {
-  const { id, category } = await params
+  const { id, category } = await params;
   // const ads = await fetchAdsBanner();
   // const activeBanners = ads.filter((banner) => banner.active);
 
-  const post = await fetchPostBySlug(id, category)
+  const post = await fetchPostBySlug(id, category);
 
   if (!post) {
     return (
-      <div className={`${inter.className} min-h-screen text-nepal-black w-full gradient-white-to-orange margin-auto `}>
+      <div
+        className={`${inter.className} min-h-screen text-nepal-black w-full gradient-white-to-orange margin-auto `}
+      >
         <div className="pt-32 md:pt-48 lg:pt-64"></div>
         <div className="flex items-center justify-center min-h-[60vh] w-full px-mobile-safe">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="text-nepal-black">Post Not Found</span>
             </h1>
-            <p className="text-gray-600 mb-6">The article you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-6">
+              The article you're looking for doesn't exist.
+            </p>
             <a
               href="/"
               className=" mt-10 inline-block bg-nepal-orange text-white px-6 py-3 rounded-lg hover:bg-[#d32a2a] transition-all font-bold"
@@ -236,51 +270,68 @@ export default async function NewsSlugPage({
         </div>
         <div className="h-24 bg-transparent"></div>
       </div>
-    )
+    );
   }
-  console.log("this is the content images", extractImagesFromContent(post.content))
-  const $ = cheerio.load(post.content || "")
-  console.log("IMG COUNT:", $("img").length)
+  console.log(
+    "this is the content images",
+    extractImagesFromContent(post.content),
+  );
+  const $ = cheerio.load(post.content || "");
+  console.log("IMG COUNT:", $("img").length);
   console.log(
     "SRC LIST:",
     $("img")
       .map((_, i) => $(i).attr("src"))
       .get(),
-  )
+  );
 
-  const categorySlugs = post.categories?.nodes?.map((cat) => cat?.slug).filter((slug): slug is string => !!slug) ?? []
+  const categorySlugs =
+    post.categories?.nodes
+      ?.map((cat) => cat?.slug)
+      .filter((slug): slug is string => !!slug) ?? [];
 
-  const metaCategorySlugs = ["featured-news", "latest-news"]
-  const nonMetaCategorySlugs = categorySlugs.filter((slug) => !metaCategorySlugs.includes(slug))
+  const metaCategorySlugs = ["featured-news", "latest-news"];
+  const nonMetaCategorySlugs = categorySlugs.filter(
+    (slug) => !metaCategorySlugs.includes(slug),
+  );
 
   // Prefer "real" topical categories (e.g. politics, society) over meta flags.
   // If there are only meta categories or none, we'll fall back to trending posts.
-  const selectedCategorySlug = nonMetaCategorySlugs[0] ?? undefined
+  const selectedCategorySlug = nonMetaCategorySlugs[0] ?? undefined;
 
-  let relatedPosts: Post[] = []
+  let relatedPosts: Post[] = [];
 
   if (selectedCategorySlug) {
-    relatedPosts = await fetchRelatedPosts(selectedCategorySlug, post.id)
+    relatedPosts = await fetchRelatedPosts(selectedCategorySlug, post.id);
   } else {
-    const homePosts = await fetchHomePagePosts()
-    relatedPosts = homePosts.trending.filter((p) => p.id !== post.id).slice(0, 4)
+    const homePosts = await fetchHomePagePosts();
+    relatedPosts = homePosts.trending
+      .filter((p) => p.id !== post.id)
+      .slice(0, 4);
   }
 
-  console.log("this is realted posts ", relatedPosts)
-  const contentImages = extractImagesFromContent(post.content)
-  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined
+  console.log("this is realted posts ", relatedPosts);
+  const contentImages = extractImagesFromContent(post.content);
+  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined;
 
   // Main hero image to show on the detail page (prefer featured image, fallback to first content image)
-  const heroImage = featuredImageUrl || (contentImages.length > 0 ? contentImages[0] : undefined)
+  const heroImage =
+    featuredImageUrl ||
+    (contentImages.length > 0 ? contentImages[0] : undefined);
 
   // Clean content (remove hero image from body text if embedded)
-  const cleanedContent = removeThumbnailFromContent(post.content, heroImage)
+  const cleanedContent = removeThumbnailFromContent(post.content, heroImage);
 
-  const formattedDate = getFormattedNepaliDate(post.date)
+  const formattedDate = getFormattedNepaliDate(post.date);
 
   return (
-    <div className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}>
-      <main className="w-full flex items-center justify-center pt-3 lg:pt-4" style={{ paddingTop: "var(--header-height)" }}>
+    <div
+      className={`${inter.className} min-h-screen text-nepal-black w-full bg-white`}
+    >
+      <main
+        className="w-full flex items-center justify-center pt-3 lg:pt-4"
+        style={{ paddingTop: "var(--header-height)" }}
+      >
         <article className="w-full max-w-[1500px] mx-auto px-mobile-safe flex flex-col gap-6">
           {/* Main content + Advertisement side by side */}
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,380px)] gap-8 items-start">
@@ -298,7 +349,9 @@ export default async function NewsSlugPage({
                   {post.author?.node?.name && (
                     <>
                       <span>•</span>
-                      <span className="font-medium">{post.author.node.name}</span>
+                      <span className="font-medium">
+                        {post.author.node.name}
+                      </span>
                     </>
                   )}
                 </div>
@@ -333,7 +386,10 @@ export default async function NewsSlugPage({
                   dangerouslySetInnerHTML={{
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
-                  style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
+                  style={{
+                    lineHeight: "1.9",
+                    fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)",
+                  }}
                 />
 
                 {/* Social Share & Published Date Bar */}
@@ -347,16 +403,26 @@ export default async function NewsSlugPage({
                 {relatedPosts.length > 0 && (
                   <div className="border-t border-gray-200 pt-8 mt-8 space-y-6">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">सम्बन्धित समाचार</h2>
+                      <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">
+                        सम्बन्धित समाचार
+                      </h2>
                     </div>
 
                     {/* Cards grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
                       {relatedPosts.map((item) => {
-                        const contentImages = extractImagesFromContent(item.content)
-                        const featuredImageUrl = item.featuredImage?.node?.sourceUrl
+                        const contentImages = extractImagesFromContent(
+                          item.content,
+                        );
+                        const featuredImageUrl =
+                          item.featuredImage?.node?.sourceUrl;
 
-                        const images = contentImages.length > 0 ? contentImages : featuredImageUrl ? [featuredImageUrl] : []
+                        const images =
+                          contentImages.length > 0
+                            ? contentImages
+                            : featuredImageUrl
+                              ? [featuredImageUrl]
+                              : [];
                         return (
                           <a
                             key={item.id}
@@ -376,7 +442,10 @@ export default async function NewsSlugPage({
                           >
                             {/* IMAGE SLIDER */}
                             <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
-                              <ImageSlider images={images} title={item.title ?? "News image"} />
+                              <ImageSlider
+                                images={images}
+                                title={item.title ?? "News image"}
+                              />
                             </div>
 
                             {/* CONTENT */}
@@ -393,7 +462,7 @@ export default async function NewsSlugPage({
                               </p>
                             </div>
                           </a>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -406,10 +475,7 @@ export default async function NewsSlugPage({
               {/* ── CMS Banner Ads ── */}
               <div className="w-full md:col-span-2 xl:col-span-1">
                 <Suspense fallback={null}>
-                  <SidebarAds
-                    category={nonMetaCategorySlugs[0]}
-                    maxAds={2}
-                  />
+                  <SidebarAds category={nonMetaCategorySlugs[0]} maxAds={2} />
                 </Suspense>
               </div>
 
@@ -425,11 +491,13 @@ export default async function NewsSlugPage({
 
               {/* Forex Rates */}
               <div className="w-full md:col-span-2 xl:col-span-1">
-                <Suspense fallback={
-                  <div className="border border-gray-200 h-40 flex items-center justify-center text-gray-400 text-xs font-poppins">
-                    विनिमय दर लोड हुँदैछ...
-                  </div>
-                }>
+                <Suspense
+                  fallback={
+                    <div className="border border-gray-200 h-40 flex items-center justify-center text-gray-400 text-xs font-poppins">
+                      विनिमय दर लोड हुँदैछ...
+                    </div>
+                  }
+                >
                   <ForexRatesWidget />
                 </Suspense>
               </div>
@@ -447,12 +515,10 @@ export default async function NewsSlugPage({
             </aside>
           </div>
         </article>
-
-
       </main>
 
       {/* Spacer */}
       <div className="h-16 md:h-20 lg:h-24 bg-transparent"></div>
     </div>
-  )
+  );
 }

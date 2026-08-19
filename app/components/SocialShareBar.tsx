@@ -18,7 +18,7 @@ export default function SocialShareBar({ title }: Props) {
   const [distance, setDistance] = useState(55);
   const [scrolled, setScrolled] = useState(false);
   const [screenWidth, setScreenWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1024
+    typeof window !== "undefined" ? window.innerWidth : 1024,
   );
   const { mobileMenuOpen } = useMobileMenu(); // <CHANGE> get mobileMenuOpen from context
 
@@ -89,10 +89,10 @@ export default function SocialShareBar({ title }: Props) {
     screenWidth < 640 && (open || scrolled)
       ? "w-8 h-8"
       : open
-      ? "w-10 h-10"
-      : !scrolled || screenWidth >= 640
-      ? "px-3 py-2 h-10"
-      : "w-10 h-10";
+        ? "w-10 h-10"
+        : !scrolled || screenWidth >= 640
+          ? "px-3 py-2 h-10"
+          : "w-10 h-10";
 
   const socialButtonClasses =
     screenWidth < 640 && open ? "w-8 h-8" : "w-10 h-10";
