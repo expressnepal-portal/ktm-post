@@ -386,7 +386,7 @@ export default async function HomePage() {
                   featuredImageUrl ?? contentImages[0] ?? undefined;
                 const excerpt = getCleanContent(
                   post.excerpt || post.content,
-                  240,
+                  350,
                 );
 
                 return (
@@ -411,7 +411,7 @@ export default async function HomePage() {
                           {getCleanTitle(post.title)}
                         </h2>
                         {excerpt && (
-                          <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg font-nepali leading-relaxed line-clamp-2 md:line-clamp-3 text-shadow-sm">
+                          <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg font-nepali leading-relaxed line-clamp-4 text-shadow-sm">
                             {excerpt}
                           </p>
                         )}
@@ -433,7 +433,7 @@ export default async function HomePage() {
                     featuredImageUrl ?? contentImages[0] ?? undefined;
                   const excerpt = getCleanContent(
                     post.excerpt || post.content,
-                    140,
+                    300,
                   );
 
                   return (
@@ -460,7 +460,7 @@ export default async function HomePage() {
                             {getCleanTitle(post.title)}
                           </h3>
                           {excerpt && (
-                            <p className="text-white/90 text-xs sm:text-sm font-nepali leading-relaxed line-clamp-2 text-shadow-sm">
+                            <p className="text-white/90 text-xs sm:text-sm font-nepali leading-relaxed line-clamp-4 text-shadow-sm">
                               {excerpt}
                             </p>
                           )}
@@ -510,7 +510,7 @@ export default async function HomePage() {
                             {getCleanTitle(post.title)}
                           </h3>
                           {excerpt && (
-                            <p className="text-white/90 text-xs sm:text-sm md:text-base font-nepali leading-relaxed line-clamp-2 md:line-clamp-3 text-shadow-sm">
+                            <p className="text-white/90 text-xs sm:text-sm md:text-base font-nepali leading-relaxed line-clamp-4 text-shadow-sm">
                               {excerpt}
                             </p>
                           )}
@@ -533,7 +533,7 @@ export default async function HomePage() {
                       featuredImageUrl ?? contentImages[0] ?? undefined;
                     const excerpt = getCleanContent(
                       post.excerpt || post.content,
-                      90,
+                      200,
                     );
 
                     return (
@@ -560,7 +560,7 @@ export default async function HomePage() {
                               {getCleanTitle(post.title)}
                             </h4>
                             {excerpt && (
-                              <p className="hidden sm:block text-white/80 text-[11px] font-nepali line-clamp-1 mt-0.5">
+                              <p className="text-white/80 text-xs sm:text-sm font-nepali leading-relaxed line-clamp-4 mt-0.5">
                                 {excerpt}
                               </p>
                             )}
