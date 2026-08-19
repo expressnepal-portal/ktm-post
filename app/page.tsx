@@ -407,7 +407,7 @@ export default async function HomePage() {
                         <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-3 inline-block">
                           {post.categoryName || "विशेष"}
                         </span>
-                        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3">
                           {getCleanTitle(post.title)}
                         </h2>
                         {excerpt && (
@@ -456,7 +456,7 @@ export default async function HomePage() {
                           <span className="bg-[#ea3323] text-white px-2 py-0.5 text-xs font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-1.5 md:mb-2 inline-block">
                             {post.categoryName || "विशेष"}
                           </span>
-                          <h3 className="text-lg sm:text-xl md:text-2xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-snug tracking-tight drop-shadow-sm mb-1.5">
+                          <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-snug tracking-tight drop-shadow-sm mb-1.5">
                             {getCleanTitle(post.title)}
                           </h3>
                           {excerpt && (
@@ -506,7 +506,7 @@ export default async function HomePage() {
                           <span className="bg-[#ea3323] text-white px-2.5 py-0.5 md:px-3 md:py-1 text-xs md:text-sm font-bold rounded-xs tracking-wide shadow-sm font-nepali-serif mb-2 md:mb-2.5 inline-block">
                             {post.categoryName || "विशेष"}
                           </span>
-                          <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#ea3323] group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-sm mb-2 md:mb-2.5">
+                          <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-sm mb-2 md:mb-2.5">
                             {getCleanTitle(post.title)}
                           </h3>
                           {excerpt && (
