@@ -391,7 +391,7 @@ export default async function HomePage() {
 
                 return (
                   <Link href={getPostUrl(post)} className="block group">
-                    <div className="relative w-full h-[320px] sm:h-[400px] md:h-[480px] lg:h-[560px] xl:h-[620px] 2xl:h-[680px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
+                    <div className="relative w-full h-[calc(100svh-7rem)] sm:h-[400px] md:h-[480px] lg:h-[560px] xl:h-[620px] 2xl:h-[680px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
                       {thumbnailImage && (
                         <img
                           src={thumbnailImage}
@@ -442,7 +442,7 @@ export default async function HomePage() {
                       key={post.id}
                       className="block group"
                     >
-                      <div className="relative w-full h-[280px] sm:h-[340px] md:h-[400px] lg:h-[460px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
+                      <div className="relative w-full h-[calc(100svh-7rem)] sm:h-[340px] md:h-[400px] lg:h-[460px] overflow-hidden rounded-xs bg-gray-950 shadow-md">
                         {thumbnailImage && (
                           <img
                             src={thumbnailImage}
@@ -490,9 +490,9 @@ export default async function HomePage() {
                   return (
                     <Link
                       href={getPostUrl(post)}
-                      className="lg:col-span-7 xl:col-span-7 2xl:col-span-8 block group relative w-full h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden rounded-xs bg-gray-950 shadow-md"
+                      className="lg:col-span-7 xl:col-span-7 2xl:col-span-8 block group relative w-full h-full min-h-[calc(100svh-7rem)] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden rounded-xs bg-gray-950 shadow-md"
                     >
-                      <div className="relative w-full h-full min-h-[320px] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden">
+                      <div className="relative w-full h-full min-h-[calc(100svh-7rem)] sm:min-h-[400px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[560px] overflow-hidden">
                         {thumbnailImage && (
                           <img
                             src={thumbnailImage}
