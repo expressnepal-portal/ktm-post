@@ -403,15 +403,22 @@ export default async function HomePage() {
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
                                             {/* Bottom overlay content */}
-                                            <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 md:p-8 lg:p-10 z-10 flex flex-col items-start max-w-5xl">
+                                            <div className="absolute bottom-20 inset-x-0 p-4 sm:p-6 md:p-8 lg:p-10 z-10 flex flex-col items-start max-w-5xl">
 
-                                                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white group-hover:text-red-400 transition-colors font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3">
+                                                <h2
+                                                    className="font-black text-white font-nepali-serif leading-tight tracking-tight drop-shadow-md mb-2 md:mb-3"
+                                                    style={{
+                                                        fontSize: "clamp(1.5625rem, 5vw, 3.75rem)",
+                                                    }}
+                                                >
                                                     {getCleanTitle(post.title)}
                                                 </h2>
+
                                                 {excerpt && (
-                                                    <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg font-nepali leading-relaxed line-clamp-4 text-shadow-sm">
+                                                    <p className="text-[0.8625rem] sm:text-[1.00625rem] md:text-[1.15rem] lg:text-[1.29375rem] font-nepali text-white/90 leading-relaxed line-clamp-4 text-shadow-sm">
                                                         {excerpt}
                                                     </p>
+
                                                 )}
                                             </div>
                                         </div>
