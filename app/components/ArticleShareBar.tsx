@@ -120,19 +120,31 @@ export default function ArticleShareBar({
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (platform === "facebook") {
-      // Use m.facebook.com dialog/share endpoint for mobile web to bypass iOS Universal Links app-hijacking and force the web share composer modal
-      const fbDialogUrl = `https://m.facebook.com/dialog/share?app_id=291494419107518&href=${encodedUrl}&display=popup&redirect_uri=${encodedUrl}`;
-      const fbDesktopSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-
       if (isMobile) {
-        window.open(fbDialogUrl, "_blank", "noopener,noreferrer");
-      } else {
-        window.open(
-          fbDesktopSharerUrl,
-          "_blank",
-          "noopener,noreferrer,width=600,height=500"
-        );
+        // Deep link directly into the Facebook App's share composer
+        // iOS: fb://share?link=... / Android intent or fb://
+        const fbAppUrl = `fb://share?link=${encodedUrl}&quote=${encodedTitle}`;
+        const fbWebDialog = `https://m.facebook.com/dialog/share?app_id=291494419107518&href=${encodedUrl}&display=popup&redirect_uri=${encodedUrl}`;
+
+        const clickedTime = Date.now();
+        window.location.href = fbAppUrl;
+
+        // Fallback to mobile web share dialog if the Facebook app is not installed
+        setTimeout(() => {
+          if (!document.hidden && Date.now() - clickedTime < 2500) {
+            window.open(fbWebDialog, "_blank", "noopener,noreferrer");
+          }
+        }, 1200);
+        return;
       }
+
+      // Desktop: Open popup window
+      const fbDesktopSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+      window.open(
+        fbDesktopSharerUrl,
+        "_blank",
+        "noopener,noreferrer,width=600,height=500"
+      );
       return;
     }
 
