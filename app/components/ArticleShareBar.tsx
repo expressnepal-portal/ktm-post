@@ -118,19 +118,11 @@ export default function ArticleShareBar({
     }
 
     if (platform === "facebook") {
-      if (isMobile && navigator.share) {
-        navigator
-          .share({
-            title: title,
-            url: shareUrl,
-          })
-          .catch(() => {});
-        return;
-      }
+      const fbSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedTitle}`;
       window.open(
-        `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+        fbSharerUrl,
         "_blank",
-        "noopener,noreferrer"
+        "noopener,noreferrer,width=600,height=500"
       );
       return;
     }
