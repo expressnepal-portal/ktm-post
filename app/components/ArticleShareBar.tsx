@@ -117,13 +117,22 @@ export default function ArticleShareBar({
       return;
     }
 
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     if (platform === "facebook") {
-      const fbSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedTitle}`;
-      window.open(
-        fbSharerUrl,
-        "_blank",
-        "noopener,noreferrer,width=600,height=500"
-      );
+      // Use m.facebook.com dialog/share endpoint for mobile web to bypass iOS Universal Links app-hijacking and force the web share composer modal
+      const fbDialogUrl = `https://m.facebook.com/dialog/share?app_id=291494419107518&href=${encodedUrl}&display=popup&redirect_uri=${encodedUrl}`;
+      const fbDesktopSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+
+      if (isMobile) {
+        window.open(fbDialogUrl, "_blank", "noopener,noreferrer");
+      } else {
+        window.open(
+          fbDesktopSharerUrl,
+          "_blank",
+          "noopener,noreferrer,width=600,height=500"
+        );
+      }
       return;
     }
 
