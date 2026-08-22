@@ -14,6 +14,8 @@ export default async function Header() {
         slug = "news";
       } else if (page.slug === "खेलकुद" || page.title === "खेलकुद") {
         slug = "sports";
+      } else if (page.slug === "science-technology" || page.title === "सूचना-प्रविधि") {
+        slug = "technology";
       }
       return {
         nepali: page.title,

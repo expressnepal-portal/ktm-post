@@ -213,7 +213,7 @@ export function mapWpPost(post: WordPressPost): Post {
     const categorySlug =
         catSlug === "business"
             ? "economy"
-            : catSlug === "science-and-technology"
+            : catSlug === "science-technology"
                 ? "technology"
                 : catSlug;
 
@@ -311,6 +311,7 @@ export default async function HomePage() {
         legal,
         health,
         exclusive,
+        technology,
     } = await fetchHomePagePosts();
     const Posts = await fetchPosts(10);
     const posts = Posts.map(mapWpPost);
@@ -361,6 +362,13 @@ export default async function HomePage() {
       ? healthCategoryPosts.map(mapWpPost)
       : health && health.length > 0
         ? health.map(mapWpPost)
+        : [];
+  const rawTechPosts = await fetchPostsByCategory("science-technology", 6);
+  const techPosts =
+    rawTechPosts && rawTechPosts.length > 0
+      ? rawTechPosts.map(mapWpPost)
+      : technology && technology.length > 0
+        ? technology.map(mapWpPost)
         : [];
   const rawLegalPosts = await fetchPostsByCategory("legal", 6);
   const legalPosts =
@@ -1341,33 +1349,33 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* International Section + Calendar & Holidays Row */}
-        <div className="h-10 md:h-14 lg:h-16 bg-transparent" />
+        {/* Science & Technology Section + Calendar & Holidays Row */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent"> </div>
         <section className="w-full">
           <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 md:gap-10">
-              {/* LEFT: International Section */}
+              {/* LEFT: Science & Technology Section */}
               <div className="order-2 md:order-1 flex flex-col">
                 {/* Section Header */}
                 <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-gray-200 pb-3">
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
-                    अन्तर्राष्ट्रिय{" "}
+                    सूचना-प्रविधि{" "}
                     <span className="text-sm sm:text-base md:text-lg text-gray-500 font-normal font-poppins">
-                      / International
+                      / Science & Technology
                     </span>
                   </h2>
 
                   <Link
-                    href="/international"
+                    href="/technology"
                     className="shrink-0 text-xs sm:text-sm font-bold text-nepal-red uppercase tracking-wider hover:underline"
                   >
                     थप हेर्नुहोस् →
                   </Link>
                 </div>
 
-                {/* International Posts */}
+                {/* Science & Technology Posts */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-                  {internationalPosts.map((post) => {
+                  {techPosts.slice(0, 6).map((post) => {
                     const contentImages = extractImagesFromContent(
                       post.content,
                     );
@@ -1403,7 +1411,7 @@ export default async function HomePage() {
               </div>
 
               {/* RIGHT: Nepali Calendar & Holidays */}
-              <div className="flex flex-col gap-4 order-1 md:order-2">
+              <div className="flex flex-col gap-4 order-1 md:order-2 ">
                 <div className="flex items-center mb-2 border-b-2 border-gray-200 pb-2">
                   <h3 className="text-xl font-bold text-nepal-black font-nepali-serif">
                     पात्रो र बिदाहरू{" "}

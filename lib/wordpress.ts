@@ -178,9 +178,10 @@ const categorySlugAliases: Record<string, string[]> = {
   "अन्तराष्ट्रिय": ["international", "world", "अन्तराष्ट्रिय"],
   "international": ["international", "world"],
   "world": ["world", "international"],
-  "technology": ["science-and-technology", "technology"],
-  "science-and-technology": ["science-and-technology", "technology"],
-  "विज्ञान प्रविधि": ["science-and-technology"],
+  "technology": ["science-technology"],
+  "science-technology": ["science-technology"],
+  "सूचना-प्रविधि": ["science-technology","सूचना-प्रविधि"],
+  "विज्ञान प्रविधि": ["science-technology"],
   "कला साहित्य": ["arts"],
   "arts": ["arts"],
   "शिक्षा": ["शिक्षा"]
@@ -195,39 +196,43 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
 
     const query = `
       query GetPostsByCategory {
-        posts(first: ${first}, where: {categoryName: "${targetSlug}", orderby: {field: DATE, order: DESC}}) {
-          edges {
-            node {
-              id
-              databaseId
-              uri
-              title(format: RENDERED)
-              slug
-              status
-              link
-              date
-              content(format: RENDERED)
-              excerpt(format: RENDERED)
-              categories {
-                nodes {
-                  id
-                  name
-                  slug
-                }
+        posts(
+          first: ${first}
+          where: {
+            categoryName: "${targetSlug}"
+            orderby: { field: DATE, order: DESC }
+          }
+        ) {
+          nodes {
+            id
+            databaseId
+            uri
+            title(format: RENDERED)
+            slug
+            status
+            link
+            date
+            content(format: RENDERED)
+            excerpt(format: RENDERED)
+            categories {
+              nodes {
+                id
+                name
+                slug
               }
-              author {
-                node {
-                  name
-                }
+            }
+            author {
+              node {
+                name
               }
-              featuredImage {
-                node {
-                  sourceUrl
-                  altText
-                  mediaDetails {
-                    width
-                    height
-                  }
+            }
+            featuredImage {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
                 }
               }
             }
@@ -254,17 +259,17 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
         continue;
       }
 
-      const json: PostsResponse = await response.json();
+      const json = await response.json();
 
       if (json.errors && json.errors.length > 0) {
         console.error("GraphQL Errors:", json.errors);
         continue;
       }
 
-      if (json.data?.posts?.edges && json.data.posts.edges.length > 0) {
-        const posts = json.data.posts.edges.map((edge) => {
-          const post = edge.node;
+      const rawNodes = json.data?.posts?.nodes || json.data?.posts?.edges?.map((e: any) => e.node) || [];
 
+      if (rawNodes.length > 0) {
+        const posts = rawNodes.map((post: any) => {
           if (post.featuredImage?.node?.sourceUrl) {
             let imageUrl = post.featuredImage.node.sourceUrl;
             if (imageUrl.startsWith("/")) {
@@ -272,7 +277,6 @@ export async function fetchPostsByCategory(categorySlug: string, first: number =
               post.featuredImage.node.sourceUrl = imageUrl;
             }
           }
-
           return post;
         });
 
@@ -663,7 +667,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
 
       technology: posts(
         first: 6
-        where: { categoryName: "technology-science", orderby: { field: DATE, order: DESC } }
+        where: { categoryName: "science-technology", orderby: { field: DATE, order: DESC } }
       ) {
         nodes { ${postFields} }
       }
@@ -1209,6 +1213,13 @@ export async function fetchNavbarMenu(): Promise<NavbarMenuItem[]> {
           }
         }
       }
+      categories(first: 50) {
+        nodes {
+          id
+          name
+          slug
+        }
+      }
     }
   `;
 
@@ -1224,6 +1235,7 @@ export async function fetchNavbarMenu(): Promise<NavbarMenuItem[]> {
     const json = await response.json();
     const childNodes: NavbarMenuItem[] = json.data?.navbarMenu?.nodes?.[0]?.children?.nodes || [];
     const topNodes: NavbarMenuItem[] = json.data?.topPages?.nodes || [];
+    const categoryNodes: { id: string; name: string; slug: string }[] = json.data?.categories?.nodes || [];
 
     const map = new Map<string, NavbarMenuItem>();
 
@@ -1249,6 +1261,18 @@ export async function fetchNavbarMenu(): Promise<NavbarMenuItem[]> {
           title: node.title,
           slug: node.slug,
           menuOrder: node.menuOrder,
+        });
+      }
+    });
+
+    // Also include science-technology / technology if published in categories
+    categoryNodes.forEach((cat) => {
+      if (cat.slug === "science-technology" && !map.has(cat.slug) && !map.has("technology")) {
+        map.set(cat.slug, {
+          id: cat.id,
+          title: cat.name || "सूचना-प्रविधि",
+          slug: "technology",
+          menuOrder: 15,
         });
       }
     });
