@@ -32,6 +32,7 @@ export default function ArticleShareBar({
     }
   }, [url]);
 
+<<<<<<< HEAD
   const shareUrl =
     currentUrl || (typeof window !== "undefined" ? window.location.href : "");
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -162,12 +163,23 @@ export default function ArticleShareBar({
     }
 
     // Fallback: Copy to clipboard
+=======
+  const shareUrl = currentUrl || (typeof window !== "undefined" ? window.location.href : "");
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedTitle = encodeURIComponent(title);
+
+  const handleCopyLink = async () => {
+>>>>>>> 6e304dd (check)
     try {
       if (navigator.clipboard && shareUrl) {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
       } else if (shareUrl) {
+<<<<<<< HEAD
+=======
+        // Fallback for older browsers
+>>>>>>> 6e304dd (check)
         const tempInput = document.createElement("input");
         tempInput.value = shareUrl;
         document.body.appendChild(tempInput);
@@ -178,10 +190,34 @@ export default function ArticleShareBar({
         setTimeout(() => setCopied(false), 2500);
       }
     } catch {
+<<<<<<< HEAD
       // Fallback
     }
   };
 
+=======
+      // If clipboard write fails, attempt native share
+      if (navigator.share && shareUrl) {
+        try {
+          await navigator.share({
+            title: title,
+            url: shareUrl,
+          });
+        } catch {
+          // User cancelled share
+        }
+      }
+    }
+  };
+
+  const shareLinks = {
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    messenger: `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=291494419107518&redirect_uri=${encodedUrl}`,
+    whatsapp: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+  };
+
+>>>>>>> 6e304dd (check)
   return (
     <div className={`article-share-container ${className}`}>
       {/* Published Date (Left) */}
@@ -196,7 +232,10 @@ export default function ArticleShareBar({
         {/* Facebook */}
         <a
           href={shareLinks.facebook}
+<<<<<<< HEAD
           onClick={(e) => handleShare(e, "facebook")}
+=======
+>>>>>>> 6e304dd (check)
           target="_blank"
           rel="noopener noreferrer"
           className="social-share-btn btn-facebook"
@@ -209,7 +248,10 @@ export default function ArticleShareBar({
         {/* Messenger */}
         <a
           href={shareLinks.messenger}
+<<<<<<< HEAD
           onClick={(e) => handleShare(e, "messenger")}
+=======
+>>>>>>> 6e304dd (check)
           target="_blank"
           rel="noopener noreferrer"
           className="social-share-btn btn-messenger"
@@ -222,7 +264,10 @@ export default function ArticleShareBar({
         {/* WhatsApp */}
         <a
           href={shareLinks.whatsapp}
+<<<<<<< HEAD
           onClick={(e) => handleShare(e, "whatsapp")}
+=======
+>>>>>>> 6e304dd (check)
           target="_blank"
           rel="noopener noreferrer"
           className="social-share-btn btn-whatsapp"
@@ -235,7 +280,10 @@ export default function ArticleShareBar({
         {/* X / Twitter */}
         <a
           href={shareLinks.twitter}
+<<<<<<< HEAD
           onClick={(e) => handleShare(e, "twitter")}
+=======
+>>>>>>> 6e304dd (check)
           target="_blank"
           rel="noopener noreferrer"
           className="social-share-btn btn-x"
@@ -245,12 +293,21 @@ export default function ArticleShareBar({
           <Twitter className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </a>
 
+<<<<<<< HEAD
         {/* Native Share on Mobile / Copy Link on Desktop */}
         <button
           onClick={handleNativeOrCopyShare}
           className="social-share-btn btn-copylink relative"
           aria-label="Share or copy news link"
           title={copied ? "Link Copied!" : "Share / Copy Link"}
+=======
+        {/* Copy Link / Native Share */}
+        <button
+          onClick={handleCopyLink}
+          className="social-share-btn btn-copylink relative"
+          aria-label="Copy news link"
+          title={copied ? "Link Copied!" : "Copy Link"}
+>>>>>>> 6e304dd (check)
           type="button"
         >
           {copied ? (
@@ -261,18 +318,30 @@ export default function ArticleShareBar({
               stroke="currentColor"
               strokeWidth="2.5"
             >
+<<<<<<< HEAD
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 d="M5 13l4 4L19 7"
               />
+=======
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+>>>>>>> 6e304dd (check)
             </svg>
           ) : (
             <ShareNodes className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           )}
 
           {/* Copied Tooltip Popover */}
+<<<<<<< HEAD
           {copied && <span className="copied-tooltip">लिंक कपी भयो!</span>}
+=======
+          {copied && (
+            <span className="copied-tooltip">
+              लिंक कपी भयो!
+            </span>
+          )}
+>>>>>>> 6e304dd (check)
         </button>
       </div>
     </div>

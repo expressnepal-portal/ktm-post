@@ -1,12 +1,12 @@
-export const runtime = "nodejs";
-export const revalidate = 60;
+export const runtime = "nodejs"
+export const revalidate = 60
 
-import ArticleShareBar from "@/app/components/ArticleShareBar";
-import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget";
-import UpcomingHolidays from "@/app/components/UpcomingHolidays";
-import ForexRatesWidget from "@/app/components/ForexRatesWidget";
-import SidebarAds from "@/app/components/SidebarAds";
-import { Suspense } from "react";
+import ArticleShareBar from "@/app/components/ArticleShareBar"
+import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
+import UpcomingHolidays from "@/app/components/UpcomingHolidays"
+import ForexRatesWidget from "@/app/components/ForexRatesWidget"
+import SidebarAds from "@/app/components/SidebarAds"
+import { Suspense } from "react"
 
 import { Inter } from "next/font/google";
 import {
@@ -44,17 +44,13 @@ const toNepaliDigits = (num: number | string) => {
 
 function getFormattedNepaliDate(dateStr: string): string {
   try {
-    const dateObj = new Date(dateStr);
-    const bsDate = new NepaliDate(dateObj);
-    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number);
-    const monthName = nepaliMonths[bsMonth - 1] || "";
-    const hours = toNepaliDigits(
-      dateObj.getHours().toString().padStart(2, "0"),
-    );
-    const minutes = toNepaliDigits(
-      dateObj.getMinutes().toString().padStart(2, "0"),
-    );
-    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`;
+    const dateObj = new Date(dateStr)
+    const bsDate = new NepaliDate(dateObj)
+    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number)
+    const monthName = nepaliMonths[bsMonth - 1] || ""
+    const hours = toNepaliDigits(dateObj.getHours().toString().padStart(2, "0"))
+    const minutes = toNepaliDigits(dateObj.getMinutes().toString().padStart(2, "0"))
+    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`
   } catch {
     return dateStr;
   }
@@ -386,10 +382,7 @@ export default async function NewsSlugPage({
                   dangerouslySetInnerHTML={{
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
-                  style={{
-                    lineHeight: "1.9",
-                    fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)",
-                  }}
+                  style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
                 />
 
                 {/* Social Share & Published Date Bar */}

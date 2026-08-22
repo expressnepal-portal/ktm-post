@@ -36,22 +36,22 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang= "en" >
-        <body
-        className={ `${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black` }
-      >
-        {/* <CHANGE> wrapped everything with MobileMenuProvider */ }
-        <MobileMenuProvider>
-    {/* FIXED HEADER */ }
-    <Header />
-    {/* CONTENT OFFSET FOR FIXED HEADER */ }
-    <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen" >
-        { children }
-        </main>
+        <html lang="en" >
+            <body
+                className={`${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black`}
+            >
+                {/* <CHANGE> wrapped everything with MobileMenuProvider */}
+                <MobileMenuProvider>
+                    {/* FIXED HEADER */}
+                    <Header />
+                    {/* CONTENT OFFSET FOR FIXED HEADER */}
+                    <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen" >
+                        {children}
+                    </main>
 
-        < Footer />
-        </MobileMenuProvider>
-        </body>
+                    < Footer />
+                </MobileMenuProvider>
+            </body>
         </html>
-  );
+    );
 }
