@@ -362,12 +362,12 @@ export default async function HomePage() {
       : health && health.length > 0
         ? health.map(mapWpPost)
         : [];
-  const rawLegalPosts = await fetchPostsByCategory("legal", 3);
+  const rawLegalPosts = await fetchPostsByCategory("legal", 6);
   const legalPosts =
     rawLegalPosts && rawLegalPosts.length > 0
       ? rawLegalPosts.map(mapWpPost)
       : legal && legal.length > 0
-        ? legal.map(mapWpPost)
+        ? legal.map(mapWpPost).slice(0, 6)
         : [];
   return (
     <div
@@ -1267,18 +1267,17 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Legal Section + Calendar & Nepal at a Glance Row */}
+        {/* Legal Section + Nepal at a Glance Row */}
         <div className="h-10 md:h-14 lg:h-16 bg-transparent"> </div>
         <section className="w-full">
           <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 md:gap-10">
-              {/* LEFT: Legal Section (3 posts) */}
+              {/* LEFT: Legal Section (6 posts) */}
               <div className="flex flex-col">
                 <div className="flex items-center justify-between mb-6 border-b-2 border-gray-200 pb-3">
                   <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
                     कानून{" "}
                     <span className="text-gray-500 font-poppins text-lg font-normal">
-                      {" "}
                       / Legal
                     </span>
                   </h2>
@@ -1325,67 +1324,83 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              {/* International Section */}
-              <div className="h-10 md:h-14 lg:h-16 bg-transparent" />
-
-              <section className="w-full">
-                <div className="w-full max-w-[1920px] mx-auto ">
-                  <div className="flex flex-col">
-                    {/* Section Header */}
-                    <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-gray-200 pb-3">
-                      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
-                        अन्तर्राष्ट्रिय{" "}
-                        <span className="text-sm sm:text-base md:text-lg text-gray-500 font-normal font-poppins">
-                          / International
-                        </span>
-                      </h2>
-
-                      <Link
-                        href="/international"
-                        className="shrink-0 text-xs sm:text-sm font-bold text-nepal-red uppercase tracking-wider hover:underline"
-                      >
-                        थप हेर्नुहोस् →
-                      </Link>
+              {/* RIGHT: Nepal at a Glance / Forex Rates */}
+              <div className="flex flex-col">
+     
+                <Suspense
+                  fallback={
+                    <div className="border border-gray-200 h-64 flex items-center justify-center text-gray-400 text-sm font-poppins">
+                      दर लोड हुँदैछ...
                     </div>
+                  }
+                >
+                  <ForexRatesWidget />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                    {/* International Posts */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-                      {internationalPosts.map((post) => {
-                        const contentImages = extractImagesFromContent(
-                          post.content,
-                        );
-                        const thumbnailImage =
-                          post.featuredImage ?? contentImages[0] ?? undefined;
+        {/* International Section + Calendar & Holidays Row */}
+        <div className="h-10 md:h-14 lg:h-16 bg-transparent" />
+        <section className="w-full">
+          <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 md:gap-10">
+              {/* LEFT: International Section */}
+              <div className="flex flex-col">
+                {/* Section Header */}
+                <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-gray-200 pb-3">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
+                    अन्तर्राष्ट्रिय{" "}
+                    <span className="text-sm sm:text-base md:text-lg text-gray-500 font-normal font-poppins">
+                      / International
+                    </span>
+                  </h2>
 
-                        return (
-                          <Link
-                            key={post.id}
-                            href={getPostUrl(post)}
-                            className="group flex h-full flex-col cursor-pointer border border-gray-200 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md"
-                          >
-                            <div className="mb-3 aspect-video w-full overflow-hidden bg-gray-100">
-                              <NewsImage
-                                post={post}
-                                images={thumbnailImage ? [thumbnailImage] : []}
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
-                              />
-                            </div>
-
-                            <h3 className="mb-2 line-clamp-2 font-nepali-serif text-sm font-bold leading-snug text-gray-900 transition-colors group-hover:text-nepal-red sm:text-base md:text-lg">
-                              {getCleanTitle(post.title)}
-                            </h3>
-
-                            <p className="line-clamp-2 font-poppins text-xs text-gray-600 sm:text-sm">
-                              {getCleanContent(post.content, 90)}
-                            </p>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <Link
+                    href="/international"
+                    className="shrink-0 text-xs sm:text-sm font-bold text-nepal-red uppercase tracking-wider hover:underline"
+                  >
+                    थप हेर्नुहोस् →
+                  </Link>
                 </div>
-              </section>
+
+                {/* International Posts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+                  {internationalPosts.map((post) => {
+                    const contentImages = extractImagesFromContent(
+                      post.content,
+                    );
+                    const thumbnailImage =
+                      post.featuredImage ?? contentImages[0] ?? undefined;
+
+                    return (
+                      <Link
+                        key={post.id}
+                        href={getPostUrl(post)}
+                        className="group flex h-full flex-col cursor-pointer border border-gray-200 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md"
+                      >
+                        <div className="mb-3 aspect-video w-full overflow-hidden bg-gray-100">
+                          <NewsImage
+                            post={post}
+                            images={thumbnailImage ? [thumbnailImage] : []}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                          />
+                        </div>
+
+                        <h3 className="mb-2 line-clamp-2 font-nepali-serif text-sm font-bold leading-snug text-gray-900 transition-colors group-hover:text-nepal-red sm:text-base md:text-lg">
+                          {getCleanTitle(post.title)}
+                        </h3>
+
+                        <p className="line-clamp-2 font-poppins text-xs text-gray-600 sm:text-sm">
+                          {getCleanContent(post.content, 90)}
+                        </p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* RIGHT: Nepali Calendar & Holidays */}
               <div className="flex flex-col gap-4">
@@ -1393,7 +1408,6 @@ export default async function HomePage() {
                   <h3 className="text-xl font-bold text-nepal-black font-nepali-serif">
                     पात्रो र बिदाहरू{" "}
                     <span className="text-gray-400 font-poppins text-xs font-normal">
-                      {" "}
                       / Calendar
                     </span>
                   </h3>
@@ -1401,28 +1415,6 @@ export default async function HomePage() {
                 <NepaliCalendarWidget />
                 <UpcomingHolidays maxItems={3} />
               </div>
-            </div>
-
-            {/* Bottom Row: Nepal at a Glance / Forex */}
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <div className="flex items-center mb-6 border-b-2 border-gray-200 pb-3">
-                <h2 className="text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
-                  नेपाल एक नजरमा{" "}
-                  <span className="text-gray-500 font-poppins text-lg font-normal">
-                    {" "}
-                    / Nepal at a Glance
-                  </span>
-                </h2>
-              </div>
-              <Suspense
-                fallback={
-                  <div className="border border-gray-200 h-64 flex items-center justify-center text-gray-400 text-sm font-poppins">
-                    दर लोड हुँदैछ...
-                  </div>
-                }
-              >
-                <ForexRatesWidget />
-              </Suspense>
             </div>
           </div>
         </section>

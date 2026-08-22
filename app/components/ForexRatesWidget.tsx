@@ -120,48 +120,50 @@ export default async function ForexRatesWidget() {
   )
 
   return (
-    <div className="flex flex-col gap-10 border border-gray-200 w-full overflow-hidden bg-white">
+    <div className="flex flex-col gap-4 border border-gray-200 w-full overflow-hidden bg-white rounded-sm shadow-xs">
       {/* ── FOREX TABLE ── */}
-      <div className="border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
+      <div className="flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 text-center border-b border-gray-200"
-          style={{ background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)" }}>
-          <h3 className="text-white font-bold font-nepali-serif text-base">विनिमय दर</h3>
-          <p className="text-white/80 text-xs font-poppins mt-0.5">{displayDate}</p>
+        <div
+          className="px-3 py-2 text-center border-b border-gray-200"
+          style={{ background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)" }}
+        >
+          <h3 className="text-white font-bold font-nepali-serif text-sm">विनिमय दर</h3>
+          <p className="text-white/80 text-[10px] font-poppins mt-0.5">{displayDate}</p>
         </div>
 
         {/* Column headers */}
-        <div className="grid grid-cols-[1fr_auto_auto_auto] text-xs font-bold text-gray-500 uppercase tracking-wide px-3 py-2 bg-gray-50 border-b border-gray-100 font-poppins">
+        <div className="grid grid-cols-[1fr_auto_auto_auto] text-[11px] font-bold text-gray-500 uppercase tracking-wide px-3 py-1.5 bg-gray-50 border-b border-gray-100 font-poppins">
           <span>मुद्रा</span>
-          <span className="w-8 text-center">Unit</span>
-          <span className="w-14 text-right">किन्ने</span>
-          <span className="w-14 text-right">बेच्ने</span>
+          <span className="w-7 text-center">Unit</span>
+          <span className="w-12 text-right">किन्ने</span>
+          <span className="w-12 text-right">बेच्ने</span>
         </div>
 
         {/* Rates */}
-        <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto scrollbar-hide">
+        <div className="divide-y divide-gray-50 max-h-[300px] overflow-y-auto scrollbar-hide">
           {filteredRates.length > 0 ? (
             filteredRates.map((r) => (
               <div
                 key={r.currency.iso3}
-                className="grid grid-cols-[1fr_auto_auto_auto] items-center px-3 py-2 hover:bg-gray-50 transition-colors"
+                className="grid grid-cols-[1fr_auto_auto_auto] items-center px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs"
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{CURRENCY_FLAGS[r.currency.iso3] ?? "🏳"}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-sm shrink-0">{CURRENCY_FLAGS[r.currency.iso3] ?? "🏳"}</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-gray-800 font-nepali-serif truncate">
+                    <p className="text-[11px] font-semibold text-gray-800 font-nepali-serif truncate">
                       {CURRENCY_NEPALI[r.currency.iso3] ?? r.currency.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-poppins">{r.currency.iso3}</p>
+                    <p className="text-[9px] text-gray-400 font-poppins leading-none">{r.currency.iso3}</p>
                   </div>
                 </div>
-                <span className="w-8 text-center text-xs text-gray-400 font-poppins">{r.currency.unit}</span>
-                <span className="w-14 text-right text-xs font-semibold text-gray-700 font-poppins">{parseFloat(r.buy).toFixed(2)}</span>
-                <span className="w-14 text-right text-xs font-semibold text-gray-700 font-poppins">{parseFloat(r.sell).toFixed(2)}</span>
+                <span className="w-7 text-center text-[11px] text-gray-400 font-poppins">{r.currency.unit}</span>
+                <span className="w-12 text-right text-[11px] font-semibold text-gray-700 font-poppins">{parseFloat(r.buy).toFixed(2)}</span>
+                <span className="w-12 text-right text-[11px] font-semibold text-gray-700 font-poppins">{parseFloat(r.sell).toFixed(2)}</span>
               </div>
             ))
           ) : (
-            <div className="px-4 py-6 text-center text-gray-400 text-sm font-poppins">
+            <div className="px-4 py-4 text-center text-gray-400 text-xs font-poppins">
               दर उपलब्ध छैन
             </div>
           )}
@@ -169,31 +171,33 @@ export default async function ForexRatesWidget() {
       </div>
 
       {/* ── GOLD & SILVER ── */}
-      <div>
+      <div className="border-t border-gray-100">
         {/* Header */}
-        <div className="px-4 py-3 text-center border-b border-gray-200"
-          style={{ background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }}>
-          <h3 className="text-white font-bold font-nepali-serif text-base">सुन/चाँदी मूल्य</h3>
-          <p className="text-white/80 text-xs font-poppins mt-0.5">{displayDate}</p>
+        <div
+          className="px-3 py-2 text-center border-b border-gray-200"
+          style={{ background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }}
+        >
+          <h3 className="text-white font-bold font-nepali-serif text-sm">सुन/चाँदी मूल्य</h3>
+          <p className="text-white/80 text-[10px] font-poppins mt-0.5">{displayDate}</p>
         </div>
 
         {/* Column headers */}
-        <div className="grid grid-cols-[1fr_auto_auto] text-xs font-bold text-gray-500 uppercase tracking-wide px-3 py-2 bg-gray-50 border-b border-gray-100 font-poppins">
+        <div className="grid grid-cols-[1fr_auto_auto] text-[11px] font-bold text-gray-500 uppercase tracking-wide px-3 py-1.5 bg-gray-50 border-b border-gray-100 font-poppins">
           <span>वस्तु</span>
-          <span className="w-16 text-center">एकाइ</span>
-          <span className="w-20 text-right">मूल्य (रु.)</span>
+          <span className="w-14 text-center">एकाइ</span>
+          <span className="w-16 text-right">मूल्य (रु.)</span>
         </div>
 
         {/* Rates */}
         <div className="divide-y divide-gray-50">
-          {GOLD_SILVER_RATES.map((m, i) => (
-            <div key={`${m.name}-${m.unit}`} className="grid grid-cols-[1fr_auto_auto] items-center px-3 py-2.5 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-2">
-                <span className="text-sm shrink-0">{m.name === "Silver" ? "🥈" : "🥇"}</span>
-                <span className="text-xs font-semibold text-gray-800 font-nepali-serif">{m.nameNepali}</span>
+          {GOLD_SILVER_RATES.map((m) => (
+            <div key={`${m.name}-${m.unit}`} className="grid grid-cols-[1fr_auto_auto] items-center px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs shrink-0">{m.name === "Silver" ? "🥈" : "🥇"}</span>
+                <span className="text-[11px] font-semibold text-gray-800 font-nepali-serif">{m.nameNepali}</span>
               </div>
-              <span className="w-16 text-center text-xs text-gray-400 font-poppins">{m.unitNepali}</span>
-              <span className="w-20 text-right text-xs font-bold text-amber-700 font-poppins">
+              <span className="w-14 text-center text-[11px] text-gray-400 font-poppins">{m.unitNepali}</span>
+              <span className="w-16 text-right text-[11px] font-bold text-amber-700 font-poppins">
                 {formatPrice(m.price)}
               </span>
             </div>
@@ -201,8 +205,8 @@ export default async function ForexRatesWidget() {
         </div>
 
         {/* NRB attribution */}
-        <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
-          <p className="text-[10px] text-gray-400 font-poppins text-center">
+        <div className="px-3 py-1.5 border-t border-gray-100 bg-gray-50">
+          <p className="text-[9px] text-gray-400 font-poppins text-center">
             स्रोत: नेपाल राष्ट्र बैंक (NRB)
           </p>
         </div>
