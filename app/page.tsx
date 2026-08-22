@@ -1127,7 +1127,7 @@ export default async function HomePage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
-                                {opinionPosts.slice(0, 4).map((post) => {
+                                {opinionPosts.slice(0, 5).map((post) => {
                                     const contentImages = extractImagesFromContent(post.content);
                                     const featuredImageUrl = post.featuredImage;
                                     const thumbnailImage =
@@ -1144,39 +1144,36 @@ export default async function HomePage() {
                                         <a
                                             key={post.id}
                                             href={getPostUrl(post)}
-                                            className="group flex flex-col cursor-pointer bg-white border border-gray-200 p-4 transition-all duration-200 hover:shadow-md"
+                                            className="group flex cursor-pointer bg-white border border-gray-200 p-4 transition-all duration-200 hover:shadow-md"
                                         >
                                             {/* Image container */}
-                                            <div className="w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4 border border-gray-100 relative">
-                                                <NewsImage
-                                                    post={post}
-                                                    images={thumbnailImage ? [thumbnailImage] : []}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
-                                                />
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex flex-col flex-1">
-                                                <span className="text-xs font-bold uppercase tracking-wider text-nepal-red mb-1.5 font-poppins">
-                                                    विचार
-                                                </span>
-                                                <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-150 mb-2">
-                                                    {getCleanTitle(post.title)}
-                                                </h3>
-                                                <div className="mt-auto pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-poppins font-medium">
-                                                    <span>
-                                                        {(() => {
-                                                            const authorName =
-                                                                post.author?.node?.name?.trim();
-                                                            const isValidAuthor =
-                                                                authorName &&
-                                                                authorName.toLowerCase() !== "news";
-                                                            return isValidAuthor
-                                                                ? authorName
-                                                                : "KTM Time Opinions";
-                                                        })()}
+                                               <div className="flex gap-5 md:gap-6 w-full items-start">
+                                                <div className="flex-1 min-w-0 space-y-3 pr-2">
+                                                    <span className="text-xs font-bold uppercase tracking-wider text-nepal-red font-poppins">
+                                                        विचार
                                                     </span>
+                                                    <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-snug line-clamp-2 group-hover:text-nepal-red transition-colors duration-150">
+                                                        {getCleanTitle(post.title)}
+                                                    </h3>
+                                                    <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-poppins font-medium">
+                                                        <span>
+                                                            {(() => {
+                                                                const authorName = post.author?.node?.name?.trim();
+                                                                const isValidAuthor =
+                                                                    authorName && authorName.toLowerCase() !== "news";
+                                                                return isValidAuthor ? authorName : "KTM Time Opinions";
+                                                            })()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="shrink-0 w-20 h-20 md:w-24 md:h-24 lg:w-26 lg:h-26 bg-gray-100 overflow-hidden rounded-sm">
+                                                    <Image
+                                                        src={thumbnailImage}
+                                                        alt="image"
+                                                        width={100}
+                                                        height={100}
+                                                        className="w-full h-full object-cover"
+                                                    />
                                                 </div>
                                             </div>
                                         </a>
