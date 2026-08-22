@@ -1347,7 +1347,7 @@ export default async function HomePage() {
           <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 md:gap-10">
               {/* LEFT: International Section */}
-              <div className="flex flex-col">
+              <div className="order-2 md:order-1 flex flex-col">
                 {/* Section Header */}
                 <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-gray-200 pb-3">
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-nepal-black font-nepali-serif">
@@ -1403,7 +1403,7 @@ export default async function HomePage() {
               </div>
 
               {/* RIGHT: Nepali Calendar & Holidays */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 order-1 md:order-2">
                 <div className="flex items-center mb-2 border-b-2 border-gray-200 pb-2">
                   <h3 className="text-xl font-bold text-nepal-black font-nepali-serif">
                     पात्रो र बिदाहरू{" "}
