@@ -55,12 +55,18 @@ export default function ImageUpload({
         const res = await fetch("/api/upload", {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
 
-        const data = await res.json();
+        let data: any = {};
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error(`Server returned status ${res.status}`);
+        }
 
         if (!res.ok) {
-          throw new Error(data.error || "Upload failed");
+          throw new Error(data.error || `Upload failed with status ${res.status}`);
         }
 
         setPreview(data.url);

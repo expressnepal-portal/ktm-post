@@ -176,17 +176,6 @@ export async function fetchPostsByCategory(
       include: defaultPostInclude,
     });
 
-    // Fallback: if specific category has no posts, return latest
-    if (posts.length === 0) {
-      const fallback = await prisma.post.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { publishedAt: "desc" },
-        take: first,
-        include: defaultPostInclude,
-      });
-      return fallback.map(mapPrismaPostToPost);
-    }
-
     return posts.map(mapPrismaPostToPost);
   } catch (error) {
     console.error(`fetchPostsByCategory [${categorySlug}] error:`, error);
@@ -257,9 +246,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       const matched = allRecent.filter((p) =>
         p.categories?.some((pc: any) => aliases.includes(pc.category?.slug))
       );
-      return (matched.length > 0 ? matched : allRecent)
-        .slice(0, limit)
-        .map(mapPrismaPostToPost);
+      return matched.slice(0, limit).map(mapPrismaPostToPost);
     };
 
     const mappedRecent = allRecent.map(mapPrismaPostToPost);

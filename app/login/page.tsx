@@ -77,7 +77,7 @@ export default function LoginPage() {
               src="/logo.png"
               width={160}
               height={45}
-              alt="Express Nepal"
+              alt="KTM Post"
               className="h-10 w-auto object-contain mb-4"
               priority
             />

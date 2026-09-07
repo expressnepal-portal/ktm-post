@@ -81,7 +81,7 @@ export default function AdminSidebar({
               src="/logo.png"
               width={140}
               height={40}
-              alt="Express Nepal"
+              alt="KTM Post"
               className="h-8 w-auto object-contain brightness-0 invert"
               priority
             />

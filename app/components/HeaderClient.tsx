@@ -73,7 +73,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
                 src="/logo.png"
                 width={360}
                 height={90}
-                alt="Express Nepal Logo"
+                alt="KTM Post Logo"
                 className={scrolled ? "h-7 sm:h-9 md:h-10 lg:h-11 w-auto object-contain" : "h-9 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"}
                 priority
               />
@@ -165,7 +165,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
               src="/logo.png" 
               width={120} 
               height={30} 
-              alt="Express Nepal Logo" 
+              alt="KTM Post Logo" 
               className="h-7 w-auto object-contain"
             />
           </span>

@@ -329,26 +329,19 @@ export default async function HomePage() {
     const economyPool =
         economy && economy.length > 0
             ? economy.map(mapWpPost)
-            : latest && latest.length > 0
-                ? latest.map(mapWpPost)
-                : posts;
+            : [];
 
-    const featuredPost = economyPool[0] || null;
+    const featuredPost = economyPool[0] || (posts && posts.length > 0 ? posts[0] : null);
     const secondaryPosts = economyPool.slice(1, 4);
 
   const rawNewsPosts = await fetchPostsByCategory("news", 7);
   const newsPosts = rawNewsPosts.map(mapWpPost);
-  const politicsPosts =
-    politics && politics.length > 0
-      ? politics.map(mapWpPost)
-      : latest.length > 0
-        ? latest.map(mapWpPost)
-        : posts;
+  const politicsPosts = politics && politics.length > 0 ? politics.map(mapWpPost) : [];
   const sportsPosts = sports && sports.length > 0 ? sports.map(mapWpPost) : [];
   const multimediaPosts =
     multimedia && multimedia.length > 0 ? multimedia.map(mapWpPost) : [];
   const opinionPosts =
-    opinion && opinion.length > 0 ? opinion.map(mapWpPost) : posts.slice(0, 4);
+    opinion && opinion.length > 0 ? opinion.map(mapWpPost) : [];
   const internationalPosts =
     international && international.length > 0
       ? international.map(mapWpPost)
@@ -363,7 +356,7 @@ export default async function HomePage() {
       : health && health.length > 0
         ? health.map(mapWpPost)
         : [];
-  const rawTechPosts = await fetchPostsByCategory("science-technology", 6);
+  const rawTechPosts = await fetchPostsByCategory("technology", 6);
   const techPosts =
     rawTechPosts && rawTechPosts.length > 0
       ? rawTechPosts.map(mapWpPost)
