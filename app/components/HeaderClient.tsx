@@ -112,21 +112,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
 
       {/* DESKTOP STICKY NAVBAR - cleanly centered */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200 shadow-xs">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between px-6 lg:px-12 py-2">
-          {/* Left: logo when scrolled */}
-          {scrolled ? (
-            <div className="flex items-center shrink-0 mr-6">
-              <Link href={"/"} className="transition-opacity hover:opacity-90">
-                <Image
-                  src="/logo.png"
-                  width={180}
-                  height={40}
-                  alt="Express Nepal Logo"
-                  className="h-8 lg:h-9 w-auto object-contain"
-                />
-              </Link>
-            </div>
-          ) : null}
+        <div className="max-w-[1920px] mx-auto flex items-center justify-center px-6 lg:px-12 py-2">
 
           {/* Navigation items - cleanly spaced and centered */}
           <div className="flex-1 flex justify-center overflow-x-auto no-scrollbar">
@@ -156,12 +142,6 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
             </ul>
           </div>
 
-          {/* When scrolled: show search on the right for quick access */}
-          {scrolled && (
-            <div className="flex items-center shrink-0 ml-6">
-              <SearchDropdown variant="search" />
-            </div>
-          )}
         </div>
       </nav>
 
