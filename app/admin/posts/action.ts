@@ -44,6 +44,19 @@ export async function createPost(
   const existing = await prisma.post.findUnique({ where: { slug } });
   if (existing) slug = `${slug}-${Date.now().toString(36)}`;
 
+  const isBreakingInput = formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on";
+  const isFeaturedInput = formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on";
+
+  // Check if categories include breaking or featured categories
+  const selectedCategories = categoryIds.length > 0
+    ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
+    : [];
+  const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
+  const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
+
+  const isBreaking = isBreakingInput || hasBreakingCat;
+  const isFeatured = isFeaturedInput || hasFeaturedCat;
+
   let postId: string;
   try {
     const post = await prisma.post.create({
@@ -53,6 +66,8 @@ export async function createPost(
         content,
         excerpt,
         status,
+        isBreaking,
+        isFeatured,
         authorName: authorName || undefined,
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : undefined,
         author: authorId ? { connect: { id: authorId } } : undefined,
@@ -111,6 +126,19 @@ export async function updatePost(
     }
   }
 
+  const isBreakingInput = formData.has("isBreaking") ? (formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on") : undefined;
+  const isFeaturedInput = formData.has("isFeatured") ? (formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on") : undefined;
+
+  // Check categories for breaking/featured
+  const selectedCategories = categoryIds.length > 0
+    ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
+    : [];
+  const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
+  const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
+
+  const isBreaking = isBreakingInput !== undefined ? (isBreakingInput || hasBreakingCat) : hasBreakingCat;
+  const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
+
   try {
     await prisma.post.update({
       where: { id: postId },
@@ -120,6 +148,8 @@ export async function updatePost(
         content,
         excerpt,
         status,
+        isBreaking,
+        isFeatured,
         authorName: authorName || null,
         author: authorId ? { connect: { id: authorId } } : { disconnect: true },
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : { disconnect: true },

@@ -581,8 +581,8 @@ export default async function HomePage() {
             )}
 
             {breaking.length > 0 && (
-                <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe">
-                    {breaking.slice(0, 3).map((item, index) => {
+                <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
+                    {breaking.map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
                         const featuredImageUrl = item.featuredImage?.node?.sourceUrl;
                         const thumbnailImage =
@@ -591,18 +591,20 @@ export default async function HomePage() {
 
                         return (
                             <React.Fragment key={item.slug}>
-                                <Suspense fallback={null}>
-                                    <BannerAdSlot
-                                        index={index}
-                                        fallbackImage={
-                                            index === 0
-                                                ? "/banner/ncell.gif"
-                                                : index === 1
-                                                    ? "/banner/bizmandu.gif"
-                                                    : "/banner/banner-3.png"
-                                        }
-                                    />
-                                </Suspense>
+                                {index < 3 && (
+                                    <Suspense fallback={null}>
+                                        <BannerAdSlot
+                                            index={index}
+                                            fallbackImage={
+                                                index === 0
+                                                    ? "/banner/ncell.gif"
+                                                    : index === 1
+                                                        ? "/banner/bizmandu.gif"
+                                                        : "/banner/banner-3.png"
+                                            }
+                                        />
+                                    </Suspense>
+                                )}
                                 <BreakingNews
                                     slug={item.slug}
                                     title={getCleanTitle(item.title)}
@@ -723,56 +725,52 @@ export default async function HomePage() {
                                         </h2>
                                     </div>
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 w-full">
-                                        <div className="lg:col-span-2 group cursor-pointer w-full">
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 w-full items-stretch">
+                                        {/* LEFT: Full-bleed Hero Card with overlay, category badge, and red hover effect */}
+                                        <div className="lg:col-span-7 xl:col-span-8 group cursor-pointer w-full flex flex-col">
                                             <a
                                                 href={getPostUrl(featuredPost)}
-                                                className="block w-full h-full"
+                                                className="relative overflow-hidden bg-gray-950 rounded-xs transition-colors duration-300 w-full h-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px] xl:min-h-[550px] shadow-sm flex flex-col justify-end"
                                             >
-                                                <div className="relative overflow-hidden bg-white border border-gray-200 transition-colors duration-300 w-full h-full min-h-[450px] md:min-h-[550px] lg:min-h-[650px] p-6 md:p-8">
-                                                    {(() => {
-                                                        const contentImages = extractImagesFromContent(
-                                                            featuredPost.content,
-                                                        );
-                                                        const featuredImageUrl = featuredPost.featuredImage;
-                                                        const thumbnailImage =
-                                                            featuredImageUrl ?? contentImages[0] ?? undefined;
-                                                        if (thumbnailImage) {
-                                                            return (
-                                                                <div className="absolute inset-0 w-full h-full">
-                                                                    <NewsImage
-                                                                        post={featuredPost}
-                                                                        images={
-                                                                            thumbnailImage ? [thumbnailImage] : []
-                                                                        }
-                                                                        className="w-full h-full object-cover"
-                                                                        fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
-                                                                        isFeatured={true}
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        }
+                                                {(() => {
+                                                    const contentImages = extractImagesFromContent(
+                                                        featuredPost.content,
+                                                    );
+                                                    const featuredImageUrl = featuredPost.featuredImage;
+                                                    const thumbnailImage =
+                                                        featuredImageUrl ?? contentImages[0] ?? undefined;
+                                                    return (
+                                                        <>
+                                                            {thumbnailImage && (
+                                                                <img
+                                                                    src={thumbnailImage}
+                                                                    alt={getCleanTitle(featuredPost.title)}
+                                                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                                                                />
+                                                            )}
+                                                            {/* Gradient Overlay for high contrast readability */}
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
-                                                        return null;
-                                                    })()}
-
-                                                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-linear-to-t from-nepal-black/90 via-nepal-black/50 to-transparent">
-                                                        <span className="bg-nepal-red text-white px-4 py-1.5 text-xs font-bold uppercase tracking-wider inline-block mb-4">
-                                                            अर्थ
-                                                        </span>
-                                                        <h2 className="font-nepali-serif text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 leading-tight group-hover:text-nepal-red transition-colors duration-200">
-                                                            {getCleanTitle(featuredPost.title)}
-                                                        </h2>
-                                                        <p className="text-gray-200 font-poppins text-sm md:text-base leading-relaxed mb-4 line-clamp-3">
-                                                            {getCleanContent(featuredPost.content, 200)}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                                            {/* Content pinned to bottom */}
+                                                            <div className="relative z-10 p-5 sm:p-7 md:p-8 lg:p-9 flex flex-col items-start">
+                                                                <span className="bg-nepal-red text-white px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-xs shadow-sm mb-3 inline-block">
+                                                                    अर्थ
+                                                                </span>
+                                                                <h2 className="font-nepali-serif text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 leading-tight group-hover:text-red-400 transition-colors duration-200 drop-shadow-md">
+                                                                    {getCleanTitle(featuredPost.title)}
+                                                                </h2>
+                                                                <p className="text-gray-200 font-poppins text-xs sm:text-sm md:text-base leading-relaxed line-clamp-3 text-shadow-sm">
+                                                                    {getCleanContent(featuredPost.content, 220)}
+                                                                </p>
+                                                            </div>
+                                                        </>
+                                                    );
+                                                })()}
                                             </a>
                                         </div>
 
-                                        {/* Secondary posts on right */}
-                                        <div className="flex flex-col gap-6 w-full">
+                                        {/* RIGHT: Secondary Economy Posts - Evenly distributed to match the bottom edge */}
+                                        <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between gap-3.5 sm:gap-4 w-full h-full">
                                             {secondaryPosts.map((post) => {
                                                 const contentImages = extractImagesFromContent(
                                                     post.content,
@@ -785,26 +783,21 @@ export default async function HomePage() {
                                                     <a
                                                         key={post.id}
                                                         href={getPostUrl(post)}
-                                                        className="group cursor-pointer bg-white border border-gray-200 transition-colors duration-200 w-full block p-4"
+                                                        className="group cursor-pointer bg-white border border-gray-200 p-3.5 sm:p-4 transition-all duration-200 hover:shadow-md hover:border-gray-300 flex gap-3.5 sm:gap-4 items-center flex-1 rounded-xs"
                                                     >
-                                                        <div className="flex flex-col h-full">
-                                                            <div className="shrink-0 w-full h-40 md:h-44 lg:h-52 bg-gray-100 overflow-hidden">
-                                                                <NewsImage
-                                                                    post={post}
-                                                                    images={
-                                                                        thumbnailImage ? [thumbnailImage] : []
-                                                                    }
-                                                                    className="w-full h-full object-cover"
-                                                                    fallbackGradient="bg-gradient-to-br from-gray-200 to-gray-300"
+                                                        {thumbnailImage && (
+                                                            <div className="shrink-0 w-28 sm:w-36 md:w-44 aspect-video bg-gray-100 overflow-hidden rounded-xs">
+                                                                <img
+                                                                    src={thumbnailImage}
+                                                                    alt={getCleanTitle(post.title)}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                 />
                                                             </div>
-                                                            <div className="flex-1 min-w-0 py-3 flex flex-col">
-                                                                <div className="space-y-2">
-                                                                    <h3 className="font-nepali-serif font-bold text-lg md:text-xl text-gray-900 leading-tight transition-colors duration-200 line-clamp-2 md:line-clamp-3 group-hover:text-nepal-red">
-                                                                        {getCleanTitle(post.title)}
-                                                                    </h3>
-                                                                </div>
-                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-nepali-serif font-bold text-base sm:text-lg text-gray-900 leading-snug group-hover:text-nepal-red transition-colors duration-200 line-clamp-3">
+                                                                {getCleanTitle(post.title)}
+                                                            </h3>
                                                         </div>
                                                     </a>
                                                 );

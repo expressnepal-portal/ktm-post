@@ -110,13 +110,13 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
         </div>
       </div>
 
-      {/* DESKTOP STICKY NAVBAR - cleanly centered */}
+      {/* DESKTOP STICKY NAVBAR - cleanly centered & responsive */}
       <nav className="hidden lg:block bg-white border-t border-b border-gray-200 shadow-xs">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-center px-6 lg:px-12 py-2">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-center px-4 xl:px-8 py-1.5">
 
-          {/* Navigation items - cleanly spaced and centered */}
-          <div className="flex-1 flex justify-center overflow-x-auto no-scrollbar">
-            <ul className="flex items-center gap-3 xl:gap-6 text-nepal-black font-nepali-serif">
+          {/* Navigation items - cleanly spaced and centered with smooth scroll */}
+          <div className="w-full flex justify-center overflow-x-auto scrollbar-hide py-0.5">
+            <ul className="flex items-center gap-1 xl:gap-2.5 2xl:gap-3.5 text-nepal-black font-nepali-serif whitespace-nowrap">
               {categories.map((item, index) => {
                 const isHome = item.slug === "/";
                 const href = isHome ? "/" : `/${item.slug}`;
@@ -127,7 +127,7 @@ export default function HeaderClient({ categories }: HeaderClientProps) {
                   <li key={index} className="shrink-0">
                     <Link href={href}>
                       <span
-                        className={`inline-block px-2.5 xl:px-3.5 py-1.5 font-bold tracking-wide transition-all uppercase border-b-2 text-base xl:text-[17px] ${
+                        className={`inline-block px-1.5 xl:px-2.5 2xl:px-3 py-1 font-bold tracking-normal transition-all uppercase border-b-2 text-[13.5px] xl:text-[14.5px] 2xl:text-[15.5px] ${
                           isActive
                             ? "text-nepal-red border-nepal-red"
                             : "text-gray-800 border-transparent hover:text-nepal-red hover:border-nepal-red"

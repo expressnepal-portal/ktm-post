@@ -27,6 +27,8 @@ interface PostFormProps {
     authorId?: string | null;
     authorName?: string | null;
     author?: { id: string; name: string } | null;
+    isBreaking?: boolean;
+    isFeatured?: boolean;
     categoryIds?: string[];
     featuredImageId: string | null;
     featuredImage?: {
@@ -46,6 +48,8 @@ export function PostForm({
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [content, setContent] = useState(post?.content || "");
+  const [isBreaking, setIsBreaking] = useState(post?.isBreaking || false);
+  const [isFeatured, setIsFeatured] = useState(post?.isFeatured || false);
   const [authorMode, setAuthorMode] = useState<"user" | "custom">(
     post?.authorName ? "custom" : "user"
   );
@@ -153,6 +157,41 @@ export function PostForm({
               <option value="DRAFT">Draft</option>
               <option value="PUBLISHED">Published</option>
             </select>
+          </div>
+
+          {/* Visibility / Badges */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600">
+              News Badges & Placement
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
+              <input
+                type="checkbox"
+                name="isBreaking"
+                value="true"
+                checked={isBreaking}
+                onChange={(e) => setIsBreaking(e.target.checked)}
+                className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red w-4 h-4"
+              />
+              <span className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-nepal-red uppercase">Breaking</span>
+                ताजा अपडेट / ब्रेकिङ न्यूज
+              </span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
+              <input
+                type="checkbox"
+                name="isFeatured"
+                value="true"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red w-4 h-4"
+              />
+              <span className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Featured</span>
+                विशेष समाचार (Featured)
+              </span>
+            </label>
           </div>
 
           {/* Author Space (Registered Member or Manual Custom Author) */}
