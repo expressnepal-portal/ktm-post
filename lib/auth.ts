@@ -6,6 +6,15 @@ import { prisma } from "./prisma";
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "https://ktmpost.com",
+    "https://www.ktmpost.com",
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.ktmpost.com",
+  ],
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
