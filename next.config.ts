@@ -1,35 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  staticPageGenerationTimeout: 120,
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "news.nepalvoices.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "cms.bodhiberry.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cms.bodhiberry.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "cms.ktmpost.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cms.ktmpost.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "www.ktmpost.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
         pathname: "/**",
       },
       {

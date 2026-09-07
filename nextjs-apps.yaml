@@ -1,0 +1,15 @@
+---
+name: Next.js Projects
+windows:
+  - tabs:
+      - title: Frontend App
+        layout:
+          cwd: ~/projects/ktmpost
+          commands:
+            - exec: npm run dev -- -p 3000
+      - title: Admin Dashboard
+        layout:
+          cwd: ~/projects/ktmpost
+          commands:
+            - exec: npm run dev -- -p 3001
+      

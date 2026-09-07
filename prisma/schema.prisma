@@ -1,0 +1,245 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String?   @default("editor")
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  posts         Post[]
+  comments      Comment[]
+  sessions      Session[]
+  accounts      Account[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id           String         @id @default(cuid())
+  name         String // English / slug identifier
+  nepaliName   String? // Nepali display text (e.g. "समाचार", "राजनीति")
+  slug         String         @unique
+  menuOrder    Int            @default(0)
+  posts        PostCategory[]
+  sponsors     Sponsor[]
+  menuItems    MenuItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model MenuItem {
+  id         String    @id @default(cuid())
+  label      String // English / general label
+  nepaliLabel String? // Devanagari display label (e.g. "समाचार", "गृहपृष्ठ")
+  url        String // Target URL (e.g. "/", "/news", "/opinion", "https://...")
+  order      Int       @default(0)
+  isActive   Boolean   @default(true)
+  openInNewTab Boolean @default(false)
+
+  // Optional category connection
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([order, isActive])
+  @@map("menu_items")
+}
+
+model Post {
+  id      String     @id @default(cuid())
+  title   String
+  slug    String     @unique
+  excerpt String?
+  content String     @db.Text
+  status  PostStatus @default(DRAFT)
+
+  // Editorial highlight flags
+  isBreaking Boolean @default(false)
+  isFeatured Boolean @default(false)
+  viewCount  Int     @default(0)
+
+  // Cloudinary Featured Image Relation
+  featuredImageId String?
+  featuredImage   Media?  @relation(fields: [featuredImageId], references: [id])
+
+  authorId   String?
+  author     User?   @relation(fields: [authorId], references: [id])
+  authorName String? // Custom / manual author name (e.g. guest reporter, outside news agency)
+
+  categories PostCategory[]
+  comments   Comment[]
+
+  metaTitle       String?
+  metaDescription String?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@map("posts")
+}
+
+// Explicit join table (many-to-many Post <-> Category)
+
+model PostCategory {
+  postId     String
+  categoryId String
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+  @@map("post_categories")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  author    String
+  email     String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  approved  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("comments")
+}
+
+model Sponsor {
+  id            String @id @default(cuid())
+  title         String
+  // Cloudinary Banner Image Relation
+  bannerImageId String
+  bannerImage   Media  @relation(fields: [bannerImageId], references: [id])
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  link     String?
+  active   Boolean @default(true)
+  priority Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, priority])
+  @@map("sponsors")
+}
+
+// Media Assets (Cloudinary URLs + Metadata)
+
+model Media {
+  id       String  @id @default(cuid())
+  url      String // Secure HTTPS Cloudinary URL (https://res.cloudinary.com/...)
+  publicId String? // Cloudinary public_id (for deletions & transformations)
+  alt      String? // Alt text for SEO and Accessibility
+  width    Int? // Image width in px
+  height   Int? // Image height in px
+  format   String? // webp, jpg, png, etc.
+  bytes    Int? // File size in bytes
+
+  posts    Post[]
+  sponsors Sponsor[]
+
+  createdAt DateTime @default(now())
+
+  @@map("media")
+}
+
+model StaticPage {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text
+  menuOrder Int      @default(0)
+  isFooter  Boolean  @default(false)
+  isNavbar  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("static_pages")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  issuer                String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}

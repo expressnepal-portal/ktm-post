@@ -23,8 +23,10 @@ export default function ArticleShareBar({
 }: ArticleShareBarProps) {
   const [currentUrl, setCurrentUrl] = useState<string>(url || "");
   const [copied, setCopied] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!url && typeof window !== "undefined") {
       setCurrentUrl(window.location.href);
     } else if (url) {
@@ -32,15 +34,14 @@ export default function ArticleShareBar({
     }
   }, [url]);
 
-  const shareUrl =
-    currentUrl || (typeof window !== "undefined" ? window.location.href : "");
+  const shareUrl = currentUrl || (mounted && typeof window !== "undefined" ? window.location.href : "");
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
   const shareLinks = {
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    messenger: `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=291494419107518&redirect_uri=${encodedUrl}`,
-    whatsapp: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
-    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    facebook: mounted && shareUrl ? `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` : "#",
+    messenger: mounted && shareUrl ? `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=291494419107518&redirect_uri=${encodedUrl}` : "#",
+    whatsapp: mounted && shareUrl ? `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}` : "#",
+    twitter: mounted && shareUrl ? `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}` : "#",
   };
 
   // Function to handle sharing across platforms
@@ -52,6 +53,7 @@ export default function ArticleShareBar({
     if (typeof window === "undefined") return;
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
     if (platform === "messenger") {
@@ -59,7 +61,7 @@ export default function ArticleShareBar({
       if (isMobile) {
         // Try fb-messenger:// URI scheme directly first
         const fbMessengerUri = `fb-messenger://share?link=${encodedUrl}&app_id=291494419107518`;
-
+        
         // Attempt to trigger app scheme
         const clickedTime = Date.now();
         window.location.href = fbMessengerUri;
@@ -68,13 +70,11 @@ export default function ArticleShareBar({
           // If page is still focused / visible after 1.2s, the app is not installed -> fallback to Web Share or Facebook Send URL
           if (!document.hidden && Date.now() - clickedTime < 2500) {
             if (navigator.share) {
-              navigator
-                .share({
-                  title: title,
-                  text: `${title} - ${shareUrl}`,
-                  url: shareUrl,
-                })
-                .catch(() => {});
+              navigator.share({
+                title: title,
+                text: `${title} - ${shareUrl}`,
+                url: shareUrl,
+              }).catch(() => {});
             } else {
               window.open(
                 `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=291494419107518&redirect_uri=${encodedUrl}`,
@@ -100,51 +100,27 @@ export default function ArticleShareBar({
         window.location.href = whatsappUrl;
         setTimeout(() => {
           if (!document.hidden) {
-            window.open(
-              `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
-              "_blank",
-              "noopener,noreferrer"
-            );
+            window.open(`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`, "_blank", "noopener,noreferrer");
           }
         }, 1500);
         return;
       }
-      window.open(
-        `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      window.open(`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`, "_blank", "noopener,noreferrer");
       return;
     }
 
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
     if (platform === "facebook") {
-      if (isMobile) {
-        // Deep link directly into the Facebook App's share composer
-        // iOS: fb://share?link=... / Android intent or fb://
-        const fbAppUrl = `fb://share?link=${encodedUrl}&quote=${encodedTitle}`;
-        const fbWebDialog = `https://m.facebook.com/dialog/share?app_id=291494419107518&href=${encodedUrl}&display=popup&redirect_uri=${encodedUrl}`;
-
-        const clickedTime = Date.now();
-        window.location.href = fbAppUrl;
-
-        // Fallback to mobile web share dialog if the Facebook app is not installed
+      if (isMobile && isAndroid) {
+        const fbIntent = `intent://facewebmodal/f?href=https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}#Intent;package=com.facebook.katana;scheme=https;end`;
+        window.location.href = fbIntent;
         setTimeout(() => {
-          if (!document.hidden && Date.now() - clickedTime < 2500) {
-            window.open(fbWebDialog, "_blank", "noopener,noreferrer");
+          if (!document.hidden) {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, "_blank", "noopener,noreferrer");
           }
-        }, 1200);
+        }, 1500);
         return;
       }
-
-      // Desktop: Open popup window
-      const fbDesktopSharerUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-      window.open(
-        fbDesktopSharerUrl,
-        "_blank",
-        "noopener,noreferrer,width=600,height=500"
-      );
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, "_blank", "noopener,noreferrer");
       return;
     }
 
@@ -154,20 +130,12 @@ export default function ArticleShareBar({
         window.location.href = twitterAppUrl;
         setTimeout(() => {
           if (!document.hidden) {
-            window.open(
-              `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-              "_blank",
-              "noopener,noreferrer"
-            );
+            window.open(`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`, "_blank", "noopener,noreferrer");
           }
         }, 1500);
         return;
       }
-      window.open(
-        `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      window.open(`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`, "_blank", "noopener,noreferrer");
       return;
     }
   };
@@ -201,7 +169,6 @@ export default function ArticleShareBar({
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
       } else if (shareUrl) {
-        // Fallback for older browsers
         const tempInput = document.createElement("input");
         tempInput.value = shareUrl;
         document.body.appendChild(tempInput);
@@ -212,17 +179,7 @@ export default function ArticleShareBar({
         setTimeout(() => setCopied(false), 2500);
       }
     } catch {
-      // If clipboard write fails, attempt native share as a last resort
-      if (navigator.share && shareUrl) {
-        try {
-          await navigator.share({
-            title: title,
-            url: shareUrl,
-          });
-        } catch {
-          // User cancelled share
-        }
-      }
+      // Fallback
     }
   };
 

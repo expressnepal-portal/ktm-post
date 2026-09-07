@@ -34,9 +34,7 @@ export default function BreakingNews({
 
         {/* KTM POST Red Badge */}
         <div className="flex items-center justify-center mt-1">
-          <span className="bg-[#E93B32] text-white font-bold text-xs md:text-sm px-3 py-1 rounded-sm uppercase tracking-wide">
-            KTM POST
-          </span>
+         
         </div>
 
         {/* Image (below badge) - uncropped original ratio */}

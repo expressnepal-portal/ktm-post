@@ -1,20 +1,15 @@
-export const runtime = "nodejs"
-export const revalidate = 60
+export const runtime = "nodejs";
+export const revalidate = 60;
 
-import ArticleShareBar from "@/app/components/ArticleShareBar"
-import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget"
-import UpcomingHolidays from "@/app/components/UpcomingHolidays"
-import ForexRatesWidget from "@/app/components/ForexRatesWidget"
-import SidebarAds from "@/app/components/SidebarAds"
-import { Suspense } from "react"
+import ArticleShareBar from "@/app/components/ArticleShareBar";
+import NepaliCalendarWidget from "@/app/components/NepaliCalendarWidget";
+import UpcomingHolidays from "@/app/components/UpcomingHolidays";
+import ForexRatesWidget from "@/app/components/ForexRatesWidget";
+import SidebarAds from "@/app/components/SidebarAds";
+import { Suspense } from "react";
 
 import { Inter } from "next/font/google";
-import {
-  fetchPostBySlug,
-  fetchRelatedPosts,
-  fetchHomePagePosts,
-  type Post,
-} from "../../../lib/wordpress";
+import { prisma } from "@/lib/prisma";
 import { getCleanContent, getPostUrl } from "@/app/page";
 import ImageSlider from "@/app/components/ImageSlider";
 import NewsImage from "@/app/components/NewsImage";
@@ -44,13 +39,17 @@ const toNepaliDigits = (num: number | string) => {
 
 function getFormattedNepaliDate(dateStr: string): string {
   try {
-    const dateObj = new Date(dateStr)
-    const bsDate = new NepaliDate(dateObj)
-    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number)
-    const monthName = nepaliMonths[bsMonth - 1] || ""
-    const hours = toNepaliDigits(dateObj.getHours().toString().padStart(2, "0"))
-    const minutes = toNepaliDigits(dateObj.getMinutes().toString().padStart(2, "0"))
-    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`
+    const dateObj = new Date(dateStr);
+    const bsDate = new NepaliDate(dateObj);
+    const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number);
+    const monthName = nepaliMonths[bsMonth - 1] || "";
+    const hours = toNepaliDigits(
+      dateObj.getHours().toString().padStart(2, "0"),
+    );
+    const minutes = toNepaliDigits(
+      dateObj.getMinutes().toString().padStart(2, "0"),
+    );
+    return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`;
   } catch {
     return dateStr;
   }
@@ -91,27 +90,6 @@ function getCleanTitle(title: string | null): string {
     .replace(/\[[^\]]*\]/g, "")
     .trim();
 }
-
-// function extractImagesFromContent(content: string | null): string[] {
-//   if (!content) return [];
-//   const imageUrls: string[] = [];
-//   const imgRegex = /<img[^>]+src="([^">]+)"/g;
-//   let match;
-//   while ((match = imgRegex.exec(content)) !== null) {
-//     if (match[1]) {
-//       let imageUrl = match[1];
-//       if (imageUrl.startsWith("/")) {
-//         imageUrl = `https://news.nepalvoices.com${imageUrl}`;
-//       } else if (imageUrl.startsWith("//")) {
-//         imageUrl = `https:${imageUrl}`;
-//       } else if (!imageUrl.startsWith("http")) {
-//         imageUrl = `https://news.nepalvoices.com/${imageUrl}`;
-//       }
-//       imageUrls.push(imageUrl);
-//     }
-//   }
-//   return imageUrls;
-// }
 
 function extractImagesFromContent(content: string | null): string[] {
   if (!content) return [];
@@ -183,6 +161,85 @@ function removeThumbnailFromContent(
   return $.html();
 }
 
+// ─── Prisma helpers ───────────────────────────────────────────────
+
+/**
+ * Parse the `[id]` param which can be:
+ *  - A full slug:  `my-article-title`
+ *  - A prefixed slug: `123-my-article-title`  (databaseId prefix from WP import)
+ */
+function parseIdParam(idParam: string): { slug: string; numericId?: number } {
+  const decoded = decodeURIComponent(idParam);
+  // Check if it starts with a numeric prefix like "12345-"
+  const match = decoded.match(/^(\d+)-(.+)$/);
+  if (match) {
+    return { slug: match[2], numericId: parseInt(match[1], 10) };
+  }
+  return { slug: decoded };
+}
+
+async function fetchPostFromDB(idParam: string, categorySlug?: string) {
+  const { slug } = parseIdParam(idParam);
+
+  // Try exact slug match first
+  let post = await prisma.post.findUnique({
+    where: { slug },
+    include: {
+      featuredImage: true,
+      author: { select: { name: true, image: true } },
+      categories: { include: { category: true } },
+    },
+  });
+
+  // Fallback: transliterate the slug and try again
+  if (!post) {
+    const transliterated = transliterateSlug(slug);
+    if (transliterated !== slug) {
+      post = await prisma.post.findUnique({
+        where: { slug: transliterated },
+        include: {
+          featuredImage: true,
+          author: { select: { name: true, image: true } },
+          categories: { include: { category: true } },
+        },
+      });
+    }
+  }
+
+  return post;
+}
+
+async function fetchRelatedFromDB(postId: string, categoryIds: string[], limit: number = 4) {
+  if (categoryIds.length === 0) {
+    // Fallback: latest posts
+    return prisma.post.findMany({
+      where: { status: "PUBLISHED", id: { not: postId } },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+      include: {
+        featuredImage: true,
+        author: { select: { name: true } },
+        categories: { include: { category: true } },
+      },
+    });
+  }
+
+  return prisma.post.findMany({
+    where: {
+      status: "PUBLISHED",
+      id: { not: postId },
+      categories: { some: { categoryId: { in: categoryIds } } },
+    },
+    orderBy: { publishedAt: "desc" },
+    take: limit,
+    include: {
+      featuredImage: true,
+      author: { select: { name: true } },
+      categories: { include: { category: true } },
+    },
+  });
+}
+
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -191,7 +248,7 @@ export async function generateMetadata({
   params: Promise<{ id: string; category?: string }>;
 }): Promise<Metadata> {
   const { id, category } = await params;
-  const post = await fetchPostBySlug(id, category);
+  const post = await fetchPostFromDB(id, category);
 
   if (!post) {
     return {
@@ -205,7 +262,7 @@ export async function generateMetadata({
   const cleanDescription = getCleanContent(rawContent, 160);
 
   const contentImages = extractImagesFromContent(rawContent);
-  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined;
+  const featuredImageUrl = post.featuredImage?.url || undefined;
   const heroImage =
     featuredImageUrl ||
     (contentImages.length > 0 ? contentImages[0] : undefined);
@@ -237,10 +294,8 @@ export default async function NewsSlugPage({
   params: Promise<{ id: string; category?: string }>;
 }) {
   const { id, category } = await params;
-  // const ads = await fetchAdsBanner();
-  // const activeBanners = ads.filter((banner) => banner.active);
 
-  const post = await fetchPostBySlug(id, category);
+  const post = await fetchPostFromDB(id, category);
 
   if (!post) {
     return (
@@ -254,7 +309,7 @@ export default async function NewsSlugPage({
               <span className="text-nepal-black">Post Not Found</span>
             </h1>
             <p className="text-gray-600 mb-6">
-              The article you're looking for doesn't exist.
+              The article you&apos;re looking for doesn&apos;t exist.
             </p>
             <a
               href="/"
@@ -268,49 +323,23 @@ export default async function NewsSlugPage({
       </div>
     );
   }
-  console.log(
-    "this is the content images",
-    extractImagesFromContent(post.content),
-  );
-  const $ = cheerio.load(post.content || "");
-  console.log("IMG COUNT:", $("img").length);
-  console.log(
-    "SRC LIST:",
-    $("img")
-      .map((_, i) => $(i).attr("src"))
-      .get(),
-  );
 
-  const categorySlugs =
-    post.categories?.nodes
-      ?.map((cat) => cat?.slug)
-      .filter((slug): slug is string => !!slug) ?? [];
+  // Get category slugs for related posts
+  const categorySlugs = post.categories.map((pc) => pc.category.slug);
+  const categoryIds = post.categories.map((pc) => pc.categoryId);
 
   const metaCategorySlugs = ["featured-news", "latest-news"];
   const nonMetaCategorySlugs = categorySlugs.filter(
     (slug) => !metaCategorySlugs.includes(slug),
   );
 
-  // Prefer "real" topical categories (e.g. politics, society) over meta flags.
-  // If there are only meta categories or none, we'll fall back to trending posts.
-  const selectedCategorySlug = nonMetaCategorySlugs[0] ?? undefined;
+  // Fetch related posts from DB
+  const relatedDbPosts = await fetchRelatedFromDB(post.id, categoryIds, 4);
 
-  let relatedPosts: Post[] = [];
-
-  if (selectedCategorySlug) {
-    relatedPosts = await fetchRelatedPosts(selectedCategorySlug, post.id);
-  } else {
-    const homePosts = await fetchHomePagePosts();
-    relatedPosts = homePosts.trending
-      .filter((p) => p.id !== post.id)
-      .slice(0, 4);
-  }
-
-  console.log("this is realted posts ", relatedPosts);
   const contentImages = extractImagesFromContent(post.content);
-  const featuredImageUrl = post.featuredImage?.node?.sourceUrl || undefined;
+  const featuredImageUrl = post.featuredImage?.url || undefined;
 
-  // Main hero image to show on the detail page (prefer featured image, fallback to first content image)
+  // Main hero image
   const heroImage =
     featuredImageUrl ||
     (contentImages.length > 0 ? contentImages[0] : undefined);
@@ -318,7 +347,17 @@ export default async function NewsSlugPage({
   // Clean content (remove hero image from body text if embedded)
   const cleanedContent = removeThumbnailFromContent(post.content, heroImage);
 
-  const formattedDate = getFormattedNepaliDate(post.date);
+  const dateStr = (post.publishedAt || post.createdAt).toISOString();
+  const formattedDate = getFormattedNepaliDate(dateStr);
+
+  // Author display
+  const authorDisplay = post.authorName
+    ? post.authorName
+    : post.author?.name && post.author.name.toLowerCase() !== "news"
+    ? post.author.name
+    : "KTM Post";
+
+  const postUrl = `https://www.ktmpost.com/news/${post.slug}`;
 
   return (
     <div
@@ -339,17 +378,13 @@ export default async function NewsSlugPage({
                 </h1>
 
                 <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 text-gray-600 text-sm md:text-base font-poppins">
-                  <time dateTime={post.date} className="font-medium">
+                  <time dateTime={dateStr} className="font-medium">
                     {formattedDate}
                   </time>
-                  {post.author?.node?.name && (
-                    <>
-                      <span>•</span>
-                      <span className="font-medium">
-                        {post.author.node.name}
-                      </span>
-                    </>
-                  )}
+                  <span>•</span>
+                  <span className="font-medium text-gray-800">
+                    {authorDisplay}
+                  </span>
                 </div>
               </header>
 
@@ -382,18 +417,22 @@ export default async function NewsSlugPage({
                   dangerouslySetInnerHTML={{
                     __html: cleanedContent || "<p>No content available.</p>",
                   }}
-                  style={{ lineHeight: "1.9", fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)" }}
+                  style={{
+                    lineHeight: "1.9",
+                    fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)",
+                  }}
                 />
 
                 {/* Social Share & Published Date Bar */}
                 <ArticleShareBar
                   title={getCleanTitle(post.title)}
                   publishedDate={formattedDate}
-                  authorName={post.author?.node?.name}
+                  authorName={authorDisplay}
+                  url={postUrl}
                 />
 
                 {/* Related News - directly below content */}
-                {relatedPosts.length > 0 && (
+                {relatedDbPosts.length > 0 && (
                   <div className="border-t border-gray-200 pt-8 mt-8 space-y-6">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl md:text-2xl font-bold text-nepal-black font-nepali-serif">
@@ -403,26 +442,28 @@ export default async function NewsSlugPage({
 
                     {/* Cards grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
-                      {relatedPosts.map((item) => {
-                        const contentImages = extractImagesFromContent(
+                      {relatedDbPosts.map((item) => {
+                        const itemContentImages = extractImagesFromContent(
                           item.content,
                         );
-                        const featuredImageUrl =
-                          item.featuredImage?.node?.sourceUrl;
+                        const itemFeaturedUrl = item.featuredImage?.url;
 
                         const images =
-                          contentImages.length > 0
-                            ? contentImages
-                            : featuredImageUrl
-                              ? [featuredImageUrl]
+                          itemContentImages.length > 0
+                            ? itemContentImages
+                            : itemFeaturedUrl
+                              ? [itemFeaturedUrl]
                               : [];
+
+                        const primaryCat = item.categories[0]?.category;
+
                         return (
                           <a
                             key={item.id}
                             href={getPostUrl({
                               slug: item.slug,
-                              databaseId: item.databaseId,
-                              categorySlug: item.categories?.nodes?.[0]?.slug,
+                              databaseId: undefined,
+                              categorySlug: primaryCat?.slug,
                             })}
                             className="
                               group cursor-pointer bg-white
@@ -463,7 +504,7 @@ export default async function NewsSlugPage({
               </div>
             </div>
 
-            {/* Sidebar: Ads + Calendar + Holidays + Forex (After content & related news on mobile/tablet, right sidebar on desktop xl) */}
+            {/* Sidebar: Ads + Calendar + Holidays + Forex */}
             <aside className="flex flex-col md:grid md:grid-cols-2 xl:flex xl:flex-col gap-6 w-full mt-8 xl:mt-0">
               {/* ── CMS Banner Ads ── */}
               <div className="w-full md:col-span-2 xl:col-span-1">

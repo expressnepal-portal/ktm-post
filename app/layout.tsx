@@ -3,9 +3,9 @@ import { Mukta, Poppins, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ConditionalLayout from "./components/ConditionalLayout";
 
 import { MobileMenuProvider } from "./components/MobileMenuContext";
-import BannerAdsTop from "./components/BannersAdsTop";
 
 export const metadata: Metadata = {
     title: "KTM Post - Trusted News from Nepal",
@@ -40,16 +40,13 @@ export default function RootLayout({
             <body
                 className={`${poppins.variable} ${mukta.variable} ${notoSerifDevanagari.variable} antialiased bg-white text-black`}
             >
-                {/* <CHANGE> wrapped everything with MobileMenuProvider */}
                 <MobileMenuProvider>
-                    {/* FIXED HEADER */}
-                    <Header />
-                    {/* CONTENT OFFSET FOR FIXED HEADER */}
-                    <main className="pt-24 sm:pt-28 lg:pt-54 min-h-screen" >
+                    <ConditionalLayout
+                        header={<Header />}
+                        footer={<Footer />}
+                    >
                         {children}
-                    </main>
-
-                    < Footer />
+                    </ConditionalLayout>
                 </MobileMenuProvider>
             </body>
         </html>

@@ -1,47 +1,62 @@
-// Server component — fetches active ad banners from WordPress CMS
-// and renders them in the article sidebar as clickable image ads.
-
-import { fetchAdsBanner } from "@/lib/wordpress"
+import { prisma } from "@/lib/prisma";
 
 interface SidebarAdsProps {
-  /** Optional: only show ads matching this category slug */
-  category?: string
-  /** Max number of ads to show (default: 3) */
-  maxAds?: number
-  /** Starting index for offset pagination (default: 0) */
-  startIndex?: number
+  category?: string;
+  maxAds?: number;
+  startIndex?: number;
 }
 
-export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 }: SidebarAdsProps) {
-  let ads = await fetchAdsBanner()
+export default async function SidebarAds({
+  category,
+  maxAds = 3,
+  startIndex = 0,
+}: SidebarAdsProps) {
+  let sponsors: any[] = [];
 
-  // Filter: active only
-  ads = ads.filter((ad) => ad.active !== false)
-
-  // Filter by category if specified and matches
-  if (category && ads.length > 0) {
-    const catFiltered = ads.filter(
-      (ad) => !ad.category || ad.category.toLowerCase() === category.toLowerCase()
-    )
-    if (catFiltered.length > 0) ads = catFiltered
+  try {
+    sponsors = await prisma.sponsor.findMany({
+      where: {
+        active: true,
+        ...(category
+          ? {
+              category: {
+                slug: category.toLowerCase(),
+              },
+            }
+          : {}),
+      },
+      orderBy: { priority: "desc" },
+      skip: startIndex,
+      take: maxAds,
+      include: {
+        bannerImage: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching sponsors from DB:", error);
   }
 
-  // Offset & Limit
-  ads = ads.slice(startIndex, startIndex + maxAds)
-
-  // If no CMS ads active, display elegant ad placeholder slots so section is visible
-  const displayAds = ads.length > 0 ? ads : Array.from({ length: Math.min(maxAds, 2) }).map((_, i) => ({
-    id: `placeholder-${i}`,
-    title: "Advertisement",
-    adTitle: "विज्ञापन स्थान",
-    adImage: null,
-    link: "#",
-    active: true,
-  }))
+  // Fallback placeholder cards if no ads are currently in the database
+  const displayAds =
+    sponsors.length > 0
+      ? sponsors.map((s) => ({
+          id: s.id,
+          title: s.title,
+          adTitle: s.title,
+          adImage: s.bannerImage?.url || null,
+          link: s.link || "#",
+        }))
+      : Array.from({ length: Math.min(maxAds, 2) }).map((_, i) => ({
+          id: `placeholder-${i}`,
+          title: "Advertisement",
+          adTitle: "विज्ञापन स्थान",
+          adImage: null,
+          link: "#",
+        }));
 
   return (
     <div className="flex flex-col gap-3">
-      {displayAds.map((ad, index) => (
+      {displayAds.map((ad) => (
         <div
           key={ad.id}
           className="block w-full overflow-hidden border border-gray-200 bg-white"
@@ -57,14 +72,14 @@ export default async function SidebarAds({ category, maxAds = 3, startIndex = 0 
 
           {/* Ad image */}
           {ad.adImage ? (
-            <div className="w-full overflow-hidden">
+            <a href={ad.link} target="_blank" rel="noopener noreferrer" className="w-full overflow-hidden block">
               <img
                 src={ad.adImage}
                 alt={ad.adTitle || ad.title || "Advertisement"}
                 className="w-full h-auto object-cover"
                 loading="lazy"
               />
-            </div>
+            </a>
           ) : (
             // Placeholder when no image is set
             <div className="w-full h-28 bg-gradient-to-br from-gray-100 to-gray-50 flex flex-col items-center justify-center gap-1">

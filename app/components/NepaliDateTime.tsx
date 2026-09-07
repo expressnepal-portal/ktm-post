@@ -37,62 +37,30 @@ const nepaliMonths = [
 ];
 
 export default function NepaliClock() {
-  const [time, setTime] = useState({
-    hours: "",
-    minutes: "",
-    seconds: "",
-    weekday: "",
-    day: "",
-    month: "",
-    year: "",
-  });
+  const [dateText, setDateText] = useState("");
 
   useEffect(() => {
-    const updateClock = () => {
+    const updateDate = () => {
       const now = new Date();
-
-      const hours = toNepaliDigits(now.getHours().toString().padStart(2, "0"));
-      const minutes = toNepaliDigits(
-        now.getMinutes().toString().padStart(2, "0")
-      );
-      const seconds = toNepaliDigits(
-        now.getSeconds().toString().padStart(2, "0")
-      );
-
       const bsDate = new NepaliDate(now);
-      const bsDateString = bsDate.toBS(); 
+      const bsDateString = bsDate.toBS();
       const [bsYear, bsMonth, bsDay] = bsDateString.split("-").map(Number);
       const weekday = nepaliWeekdays[now.getDay()];
       const day = toNepaliDigits(bsDay);
-      const month = nepaliMonths[bsMonth - 1]; 
+      const month = nepaliMonths[bsMonth - 1] || "";
       const year = toNepaliDigits(bsYear);
 
-      setTime({ hours, minutes, seconds, weekday, day, month, year });
+      setDateText(`${day} ${month} ${year}, ${weekday}`);
     };
 
-    updateClock(); 
-    const interval = setInterval(updateClock, 1000); 
-    return () => clearInterval(interval);
+    updateDate();
   }, []);
 
-  return (
-    <div className="flex justify-center items-center  pl-2 md:pl-4 lg:pl-6 text-sm sm:text-sm md:text-base lg:text-base xl:text-md">
-      {/* Date Section */}
-      <div className="flex gap-2 items-center text-gray-800">
-        {/* <CalendarDays size={16} className="sm:w-18 sm:h-18 md:w-20 md:h-20" /> */}
-        <span>{time.weekday},</span>
-      </div>
+  if (!dateText) return null;
 
-      {/* Clock Component */}
-      <div className=" text-gray-600 flex flex-row gap-2 md:gap-2 items-center  ">
-        <span>
-      {time.day},{time.month},{time.year} 
-        </span>
-        <span className="flex items-center gap-2  w-[120px] text-gray-600">
-       {time.hours}:{time.minutes}:{time.seconds}
-        </span>
-        {/* <Clock4 size={18}/>  */}
-      </div>
-    </div>
+  return (
+    <span className="text-gray-600 font-nepali-serif text-xs sm:text-sm font-medium tracking-wide block">
+      {dateText}
+    </span>
   );
 }

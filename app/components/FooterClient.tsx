@@ -30,8 +30,7 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
     <footer className="bg-[#f2f2f0] border-t-4 border-transparent w-full mt-20 relative">
       {/* Two-tone accent bar matching logo colors */}
       <div className="w-full h-1 flex">
-        <div className="flex-1 bg-[#2f6fb0]"></div>
-        <div className="flex-1 bg-nepal-red"></div>
+       
       </div>
 
       <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-12 py-10 md:py-14 flex flex-col md:flex-row items-center md:justify-between gap-8">
@@ -42,14 +41,14 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
               src="/logo.png"
               width={130}
               height={32}
-              alt="KTM Post Logo"
+              alt="KTM Post"
               className="h-8 w-auto object-contain"
             />
           </Link>
           <p className="text-xs text-gray-500 font-poppins text-center md:text-left leading-relaxed">
             &copy; {currentYear} KTM Post. All rights reserved.
             <br />
-            डिजी भिजन प्रा. लि., सूचना विभाग द.नं. ५३१६-२०८२/०८३
+            ktmpost.com
           </p>
         </div>
         {/* Quick Links */}
@@ -67,7 +66,7 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
             ))}
           </ul>
           <p className="text-[10px] text-gray-400 font-poppins tracking-wide">
-            Trusted Journalism from the Himalayas
+            KTM Post is free to all, thanks to readers like you. 
           </p>
         </div>
       </div>

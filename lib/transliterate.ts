@@ -2,10 +2,10 @@
  * Transliterate Devanagari (Nepali) text to Latin/Roman characters.
  * Used to convert Nepali post slugs into clean, readable URLs.
  *
- * Example: "अर्बौं-रुपैयाँ-राजस्व" → "arbau-rupaiya-rajaswa"
+ * Example: "अस्ति कुशको शव बनाएर दाहसंस्कार, आज जीवितै उद्धार" → "asti-kushko-shav-banaera-dahasanskar-aaj-jeevitai-uddhar"
  */
 
-// Multi-character conjuncts and vowel signs (must be checked BEFORE single chars)
+// Multi-character conjuncts, ligatures, and vowel signs (checked first)
 const CONJUNCTS: [string, string][] = [
   ["क्ष", "ksha"],
   ["त्र", "tra"],
@@ -30,17 +30,43 @@ const CONJUNCTS: [string, string][] = [
   ["स्व", "swa"],
   ["स्र", "sra"],
   ["ष्ट", "shta"],
+  ["ष्ठ", "shtha"],
   ["ट्र", "tra"],
+  ["ड्र", "dra"],
+  ["ठ्र", "thra"],
+  ["ढ्र", "dhra"],
+  ["त्त", "tta"],
+  ["क्त", "kta"],
+  ["प्त", "pta"],
+  ["ब्द", "bda"],
+  ["ब्ध", "bdha"],
+  ["ग्ध", "gdha"],
+  ["श्च", "shcha"],
+  ["स्म", "sma"],
+  ["स्य", "sya"],
+  ["त्य", "tya"],
+  ["प्य", "pya"],
+  ["व्य", "vya"],
+  ["ब्य", "bya"],
+  ["म्य", "mya"],
+  ["क्य", "kya"],
+  ["र्य", "rya"],
+  ["ह्र", "hra"],
+  ["ह्ण", "hna"],
+  ["ह्न", "hna"],
+  ["ह्म", "hma"],
+  ["ह्य", "hya"],
+  ["ह्व", "hwa"],
 ];
 
-// Vowels (independent forms)
+// Independent Vowels
 const VOWELS: [string, string][] = [
   ["औ", "au"],
   ["ऐ", "ai"],
   ["आ", "aa"],
   ["ई", "ee"],
   ["ऊ", "oo"],
-  ["अं", "am"],
+  ["अं", "an"],
   ["अः", "ah"],
   ["ओ", "o"],
   ["ए", "e"],
@@ -50,7 +76,7 @@ const VOWELS: [string, string][] = [
   ["ऋ", "ri"],
 ];
 
-// Vowel signs (matras - dependent forms)
+// Dependent Vowel Signs (Matras)
 const MATRAS: [string, string][] = [
   ["ौ", "au"],
   ["ै", "ai"],
@@ -101,15 +127,18 @@ const CONSONANTS: [string, string][] = [
   ["ह", "ha"],
 ];
 
-// Special characters
+// Special Modifiers
 const SPECIALS: [string, string][] = [
   ["ं", "n"],
   ["ँ", "n"],
   ["ः", "h"],
-  ["्", ""],   // halant - suppresses inherent vowel
+  ["्", ""], // halant - removes inherent vowel
+  ["ऽ", ""],
+  ["।", " "], // purna biram to space
+  ["॥", " "],
 ];
 
-// Nepali digits
+// Nepali Digits
 const DIGITS: [string, string][] = [
   ["०", "0"],
   ["१", "1"],
@@ -131,7 +160,6 @@ export function transliterateNepali(text: string): string {
 
   let result = text;
 
-  // Apply in order: conjuncts first, then vowels, matras, consonants, specials, digits
   const allMaps: [string, string][][] = [
     CONJUNCTS,
     VOWELS,
@@ -151,32 +179,30 @@ export function transliterateNepali(text: string): string {
 }
 
 /**
- * Convert a Nepali slug to a clean, URL-friendly romanized slug.
- * - Transliterates Devanagari to Latin
+ * Convert a Nepali or mixed headline into a clean, URL-friendly romanized slug.
+ * - Transliterates Devanagari to Romanized Latin
  * - Lowercases everything
- * - Replaces spaces/special chars with hyphens
- * - Removes consecutive hyphens
- * - Trims leading/trailing hyphens
+ * - Replaces non-alphanumeric chars with hyphens
+ * - Removes consecutive hyphens and trims
  */
 export function transliterateSlug(slug: string): string {
   if (!slug) return "";
 
   const decoded = decodeURIComponent(slug);
 
-  // Check if the slug contains any Devanagari characters
+  // Check if contains Devanagari characters
   const hasDevanagari = /[\u0900-\u097F]/.test(decoded);
-  if (!hasDevanagari) return slug; // Already Latin, return as-is
-
-  let romanized = transliterateNepali(decoded);
+  let processed = hasDevanagari ? transliterateNepali(decoded) : decoded;
 
   // Clean up: lowercase, replace non-alphanumeric with hyphens
-  romanized = romanized
+  processed = processed
     .toLowerCase()
-    .replace(/[^a-z0-9\-]/g, "-")  // replace non-alphanumeric with hyphen
-    .replace(/-+/g, "-")            // collapse multiple hyphens
-    .replace(/^-|-$/g, "");          // trim leading/trailing hyphens
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
-  return romanized;
+  return processed;
 }
 
 /**

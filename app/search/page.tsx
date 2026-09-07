@@ -13,7 +13,7 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const query = q || "";
 
-  // Fetch search results from WP GraphQL if query exists, else recent posts
+  // Fetch search results from WP GraphQL if query exists,else recent posts
   const rawPosts = query ? await searchPosts(query, 30) : await fetchPosts(24);
   const posts = rawPosts.map(mapWpPost);
 
