@@ -381,10 +381,8 @@ export default async function NewsSlugPage({
                   <time dateTime={dateStr} className="font-medium">
                     {formattedDate}
                   </time>
-                  <span>•</span>
-                  <span className="font-medium text-gray-800">
-                    {authorDisplay}
-                  </span>
+                 
+                 
                 </div>
               </header>
 
