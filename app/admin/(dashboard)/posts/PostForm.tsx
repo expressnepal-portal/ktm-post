@@ -381,7 +381,7 @@ export function PostForm({
                   return (
                     <label
                       key={cat.id}
-                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                      className={`flex items-center px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
                         isChecked
                           ? "bg-red-50/70 text-gray-900 font-medium"
                           : "text-gray-600 hover:bg-gray-50"
@@ -397,9 +397,6 @@ export function PostForm({
                           className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red"
                         />
                         <span>{cat.nepaliName || cat.name}</span>
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        /{cat.name.toLowerCase()}
                       </span>
                     </label>
                   );

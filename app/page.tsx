@@ -313,6 +313,8 @@ export default async function HomePage() {
         health,
         exclusive,
         technology,
+        arts,
+        society,
     } = await fetchHomePagePosts();
     const Posts = await fetchPosts(10);
     const posts = Posts.map(mapWpPost);
@@ -327,12 +329,10 @@ export default async function HomePage() {
 
     // Top Stories (isFeatured / मुख्य समाचार) — shown after exclusive, before breaking
     const rawTopStoriesPosts = await fetchPostsByCategory("featured-news", 7);
-    const topStoriesPosts =
-        rawTopStoriesPosts && rawTopStoriesPosts.length > 0
-            ? rawTopStoriesPosts.map(mapWpPost)
-            : featured && featured.length > 0
-                ? featured.map(mapWpPost)
-                : [];
+    const topStoriesPosts = [
+        ...(featured && featured.length > 0 ? featured.map(mapWpPost) : []),
+        ...(rawTopStoriesPosts && rawTopStoriesPosts.length > 0 ? rawTopStoriesPosts.map(mapWpPost) : []),
+    ].filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
 
     // Featured hero = first economy post; secondary sidebar = next 3 economy posts
     // (Falls back gracefully to latest posts if economy category has 0 posts in WordPress)
@@ -372,6 +372,20 @@ export default async function HomePage() {
       ? rawTechPosts.map(mapWpPost)
       : technology && technology.length > 0
         ? technology.map(mapWpPost)
+        : [];
+  const artsCategoryPosts = await fetchPostsByCategory("arts", 6);
+  const artsPosts =
+    artsCategoryPosts && artsCategoryPosts.length > 0
+      ? artsCategoryPosts.map(mapWpPost)
+      : arts && arts.length > 0
+        ? arts.map(mapWpPost)
+        : [];
+  const rawSocietyPosts = await fetchPostsByCategory("society", 6);
+  const societyPosts =
+    rawSocietyPosts && rawSocietyPosts.length > 0
+      ? rawSocietyPosts.map(mapWpPost)
+      : society && society.length > 0
+        ? society.map(mapWpPost)
         : [];
   const rawLegalPosts = await fetchPostsByCategory("legal", 6);
   const legalPosts =
@@ -621,7 +635,7 @@ export default async function HomePage() {
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
                     {breaking.map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
-                        const featuredImageUrl = item.featuredImage?.node?.sourceUrl;
+                        const featuredImageUrl = item.featuredImage?.node?.sourceUrl || (typeof item.featuredImage === "string" ? item.featuredImage : undefined);
                         const thumbnailImage =
                             featuredImageUrl ?? contentImages[0] ?? undefined;
                         const excerpt = getCleanContent(item.excerpt || item.content, 180);
