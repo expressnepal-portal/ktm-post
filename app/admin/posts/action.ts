@@ -177,10 +177,6 @@ export async function updatePost(
 export async function deletePost(postId: string): Promise<ActionState> {
   const session = await requireSession();
 
-  if (session.user.role !== "admin") {
-    return { error: "Only admins can delete posts" };
-  }
-
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return { error: "Post not found" };
 
@@ -192,6 +188,7 @@ export async function deletePost(postId: string): Promise<ActionState> {
   }
 
   revalidatePath("/admin/posts");
+  revalidatePath("/");
   revalidatePath(`/${post.slug}`);
   redirect("/admin/posts");
 }

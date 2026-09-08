@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, Edit } from "lucide-react";
+import DeletePostButton from "./DeletePostButton";
 
 export default async function AdminPostsPage() {
   let posts: any[] = [];
@@ -93,13 +94,20 @@ export default async function AdminPostsPage() {
                       {new Date(post.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Link
-                        href={`/admin/posts/${post.id}`}
-                        className="inline-flex p-2 text-gray-500 hover:text-nepal-red hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Link>
+                      <div className="inline-flex items-center gap-1 justify-end">
+                        <Link
+                          href={`/admin/posts/${post.id}`}
+                          className="inline-flex p-2 text-gray-500 hover:text-nepal-red hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                        <DeletePostButton
+                          postId={post.id}
+                          postTitle={post.title}
+                          variant="icon"
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

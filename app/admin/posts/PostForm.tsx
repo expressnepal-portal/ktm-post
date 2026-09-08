@@ -6,6 +6,7 @@ import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "../components/ImageUpload";
 import { transliterateSlug } from "@/lib/transliterate";
 import { Sparkles, User as UserIcon, Hash } from "lucide-react";
+import DeletePostButton from "./DeletePostButton";
 
 interface AuthorUser {
   id: string;
@@ -407,18 +408,30 @@ export function PostForm({
             />
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-nepal-red hover:bg-red-700 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-xl transition-colors cursor-pointer text-sm shadow-sm"
-          >
-            {isPending
-              ? "Saving..."
-              : post
-              ? "Update Article"
-              : "Publish Article"}
-          </button>
+          {/* Submit & Delete */}
+          <div className="space-y-2">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-nepal-red hover:bg-red-700 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-xl transition-colors cursor-pointer text-sm shadow-sm"
+            >
+              {isPending
+                ? "Saving..."
+                : post
+                ? "Update Article"
+                : "Publish Article"}
+            </button>
+
+            {post?.id && (
+              <div className="pt-2 border-t border-gray-100 flex justify-center">
+                <DeletePostButton
+                  postId={post.id}
+                  postTitle={post.title}
+                  variant="button"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </form>
