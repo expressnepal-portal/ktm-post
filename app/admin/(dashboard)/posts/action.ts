@@ -46,16 +46,19 @@ export async function createPost(
 
   const isBreakingInput = formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on";
   const isFeaturedInput = formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on";
+  const isExclusiveInput = formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on";
 
-  // Check if categories include breaking or featured categories
+  // Check if categories include breaking, featured, or exclusive categories
   const selectedCategories = categoryIds.length > 0
     ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
     : [];
   const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
   const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
+  const hasExclusiveCat = selectedCategories.some(c => c.slug === "exclusive" || c.nepaliName?.includes("एक्सक्लुसिभ"));
 
   const isBreaking = isBreakingInput || hasBreakingCat;
   const isFeatured = isFeaturedInput || hasFeaturedCat;
+  const isExclusive = isExclusiveInput || hasExclusiveCat;
 
   let postId: string;
   try {
@@ -68,6 +71,7 @@ export async function createPost(
         status,
         isBreaking,
         isFeatured,
+        isExclusive,
         authorName: authorName || undefined,
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : undefined,
         author: authorId ? { connect: { id: authorId } } : undefined,
@@ -88,6 +92,7 @@ export async function createPost(
 
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
+  revalidatePath("/");
   redirect(`/admin/posts/${postId}`);
 }
 
@@ -128,16 +133,19 @@ export async function updatePost(
 
   const isBreakingInput = formData.has("isBreaking") ? (formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on") : undefined;
   const isFeaturedInput = formData.has("isFeatured") ? (formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on") : undefined;
+  const isExclusiveInput = formData.has("isExclusive") ? (formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on") : undefined;
 
-  // Check categories for breaking/featured
+  // Check categories for breaking/featured/exclusive
   const selectedCategories = categoryIds.length > 0
     ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
     : [];
   const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
   const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
+  const hasExclusiveCat = selectedCategories.some(c => c.slug === "exclusive" || c.nepaliName?.includes("एक्सक्लुसिभ"));
 
   const isBreaking = isBreakingInput !== undefined ? (isBreakingInput || hasBreakingCat) : hasBreakingCat;
   const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
+  const isExclusive = isExclusiveInput !== undefined ? (isExclusiveInput || hasExclusiveCat) : hasExclusiveCat;
 
   try {
     await prisma.post.update({
@@ -150,6 +158,7 @@ export async function updatePost(
         status,
         isBreaking,
         isFeatured,
+        isExclusive,
         authorName: authorName || null,
         author: authorId ? { connect: { id: authorId } } : { disconnect: true },
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : { disconnect: true },

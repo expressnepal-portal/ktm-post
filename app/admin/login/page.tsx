@@ -2,19 +2,17 @@
 
 import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Lock, Mail, User, Loader2, ArrowRight } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 
-export default function PublicLoginPage() {
+export default function AdminLoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,19 +21,32 @@ export default function PublicLoginPage() {
 
     try {
       if (isSignUp) {
-        const signUpRes = await authClient.signUp.email({
-          email,
-          password,
-          name,
+        // Safe one-time initial admin setup
+        const res = await fetch("/api/auth/setup-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
         });
 
-        if (signUpRes.error) {
-          setError(signUpRes.error.message || "Failed to create account");
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setError(data.error || "Failed to create first admin");
           setLoading(false);
           return;
         }
 
-        window.location.href = "/";
+        // Auto sign-in with the new admin account
+        const signInRes = await authClient.signIn.email({
+          email,
+          password,
+        });
+
+        if (signInRes.error) {
+          setError("Account created, please sign in.");
+          setIsSignUp(false);
+        } else {
+          window.location.href = "/admin";
+        }
       } else {
         const res = await authClient.signIn.email({
           email,
@@ -45,7 +56,7 @@ export default function PublicLoginPage() {
         if (res.error) {
           setError(res.error.message || "Invalid email or password");
         } else {
-          window.location.href = "/";
+          window.location.href = "/admin";
         }
       }
     } catch (err: any) {
@@ -56,26 +67,32 @@ export default function PublicLoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
-        <div className="flex flex-col items-center text-center mb-8">
-          <Link href="/">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-xl p-8 relative overflow-hidden">
+        {/* Subtle accent glow */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-nepal-red/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col items-center text-center mb-8 relative z-10">
+          <Link href="/" className="mb-4 inline-block">
             <Image
               src="/logo.png"
               width={160}
               height={45}
               alt="KTM Post"
-              className="h-10 w-auto object-contain mb-4"
+              className="h-10 w-auto object-contain"
               priority
             />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 font-poppins">
-            {isSignUp ? "Create Reader Account" : "Reader Sign In"}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full  text-gray-900 text-xl font-semibold uppercase tracking-wider mb-2">
+            <span>Admin Control Panel</span>
+          </div>
+          <h1 className="text-lg font-bold text-gray-900 font-poppins">
+            {isSignUp ? "Initial Admin Setup" : "Staff & Editorial Sign In"}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {isSignUp
-              ? "Join KTM Post to bookmark articles and customize your feed"
-              : "Sign in to access your saved articles and comments"}
+              ? "Register root system administrator account"
+              : "Enter credentials to access editorial tools and publishing dashboard"}
           </p>
         </div>
 
@@ -85,26 +102,22 @@ export default function PublicLoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           {isSignUp && (
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
                 Full Name
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  placeholder="Your Full Name"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all"
-                />
-                <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              </div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Chief Editor / Admin"
+                className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all placeholder-gray-400"
+              />
             </div>
           )}
-
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
               Email Address
@@ -115,8 +128,8 @@ export default function PublicLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your.email@example.com"
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all"
+                placeholder="admin@ktmpost.com"
+                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all placeholder-gray-400"
               />
               <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -133,7 +146,7 @@ export default function PublicLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-nepal-red focus:bg-white text-gray-900 font-poppins transition-all placeholder-gray-400"
               />
               <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -147,18 +160,18 @@ export default function PublicLoginPage() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{isSignUp ? "Creating account..." : "Signing in..."}</span>
+                <span>{isSignUp ? "Creating account..." : "Authenticating..."}</span>
               </>
             ) : (
               <>
-                <span>{isSignUp ? "Create Account" : "Sign In"}</span>
+                <span>{isSignUp ? "Create Root Admin" : "Sign In to Admin"}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center border-t border-gray-100 pt-4 flex flex-col gap-2.5">
+        <div className="mt-6 text-center border-t border-gray-100 pt-4 flex flex-col gap-2">
           <button
             type="button"
             onClick={() => {
@@ -169,14 +182,13 @@ export default function PublicLoginPage() {
           >
             {isSignUp
               ? "Already have an account? Sign In"
-              : "Don't have an account? Sign Up for Free"}
+              : "Need initial setup? Create First Admin"}
           </button>
-
           <Link
-            href="/admin/login"
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            href="/login"
+            className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
           >
-            Staff & Editorial Portal →
+            Switch to Public Reader Sign In →
           </Link>
         </div>
       </div>

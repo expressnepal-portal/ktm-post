@@ -114,7 +114,8 @@ const defaultPostInclude = {
 const categoryAliases: Record<string, string[]> = {
   "news": ["news", "समाचार", "latest-news"],
   "latest-news": ["latest-news", "news", "समाचार"],
-  "featured-news": ["featured-news", "विशेष", "featured"],
+  "featured-news": ["featured-news", "top-stories", "विशेष", "featured"],
+  "top-stories": ["top-stories", "featured-news", "विशेष", "featured"],
   "breaking-news": ["breaking-news", "ताजा", "breaking"],
   "politics": ["politics", "राजनीति"],
   "economy": ["economy", "business", "अर्थ", "अर्थतन्त्र"],
@@ -131,7 +132,8 @@ const categoryAliases: Record<string, string[]> = {
   "legal": ["legal", "कानून", "ऐन"],
   "health-and-lifestyle": ["health-and-lifestyle", "health", "स्वास्थ्य/जीवन शैली", "स्वास्थ्य"],
   "health": ["health-and-lifestyle", "health", "स्वास्थ्य/जीवन शैली", "स्वास्थ्य"],
-  "exclusive": ["exclusive", "एक्सक्लुसिभ", "विशेष"],
+  "exclusive": ["exclusive", "विशेष", "एक्सक्लुसिभ"],
+  "विशेष": ["exclusive", "विशेष", "एक्सक्लुसिभ"],
   "podcast": ["podcast", "पोडकास्ट"],
 };
 
@@ -218,8 +220,8 @@ export async function fetchPostBySlug(slug: string): Promise<Post | null> {
 /** Fetch all structured sections for the Homepage from DB */
 export async function fetchHomePagePosts(): Promise<HomePagePosts> {
   try {
-    // 1. Fetch featured, breaking, and general recent posts
-    const [allRecent, breakingPosts, featuredPosts] = await Promise.all([
+    // 1. Fetch featured, breaking, exclusive, and general recent posts
+    const [allRecent, breakingPosts, featuredPosts, exclusivePosts] = await Promise.all([
       prisma.post.findMany({
         where: { status: "PUBLISHED" },
         orderBy: { publishedAt: "desc" },
@@ -236,6 +238,12 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
         where: { status: "PUBLISHED", isFeatured: true },
         orderBy: { publishedAt: "desc" },
         take: 6,
+        include: defaultPostInclude,
+      }),
+      prisma.post.findMany({
+        where: { status: "PUBLISHED", isExclusive: true },
+        orderBy: { publishedAt: "desc" },
+        take: 7,
         include: defaultPostInclude,
       }),
     ]);
@@ -264,6 +272,15 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     }
     const mappedBreaking = Array.from(breakingMap.values());
 
+    // Combine isExclusive: true posts with any posts having exclusive category
+    const exclusiveCatPosts = getCatPosts("exclusive", 10);
+    const directExclusive = exclusivePosts.map(mapPrismaPostToPost);
+    const exclusiveMap = new Map<string, Post>();
+    for (const post of [...directExclusive, ...exclusiveCatPosts]) {
+      exclusiveMap.set(post.id, post);
+    }
+    const mappedExclusive = Array.from(exclusiveMap.values()).slice(0, 7);
+
     return {
       featured: mappedFeatured,
       trending: getCatPosts("politics", 6),
@@ -282,7 +299,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       opinion: getCatPosts("opinion", 4),
       legal: getCatPosts("legal", 6),
       health: getCatPosts("health-and-lifestyle", 6),
-      exclusive: getCatPosts("exclusive", 7),
+      exclusive: mappedExclusive,
     };
   } catch (error) {
     console.error("fetchHomePagePosts DB error:", error);

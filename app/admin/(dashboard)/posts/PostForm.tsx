@@ -30,6 +30,7 @@ interface PostFormProps {
     author?: { id: string; name: string } | null;
     isBreaking?: boolean;
     isFeatured?: boolean;
+    isExclusive?:boolean;
     categoryIds?: string[];
     featuredImageId: string | null;
     featuredImage?: {
@@ -51,6 +52,7 @@ export function PostForm({
   const [content, setContent] = useState(post?.content || "");
   const [isBreaking, setIsBreaking] = useState(post?.isBreaking || false);
   const [isFeatured, setIsFeatured] = useState(post?.isFeatured || false);
+  const [isExclusive, setIsExclusive] = useState(post?.isExclusive || false);
   const [authorMode, setAuthorMode] = useState<"user" | "custom">(
     post?.authorName ? "custom" : "user"
   );
@@ -168,6 +170,20 @@ export function PostForm({
             <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
               <input
                 type="checkbox"
+                name="isExclusive"
+                value="true"
+                checked={isExclusive}
+                onChange={(e) => setIsExclusive(e.target.checked)}
+                className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red w-4 h-4"
+              />
+              <span className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Exclusive</span>
+                विशेष (Exclusive)
+              </span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
+              <input
+                type="checkbox"
                 name="isBreaking"
                 value="true"
                 checked={isBreaking}
@@ -189,10 +205,11 @@ export function PostForm({
                 className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red w-4 h-4"
               />
               <span className="flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Featured</span>
-                विशेष समाचार (Featured)
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Top Stories</span>
+                Top Stories
               </span>
             </label>
+
           </div>
 
           {/* Author Space (Registered Member or Manual Custom Author) */}

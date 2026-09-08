@@ -48,7 +48,7 @@ export default function AdminSidebar({
 
   const handleSignOut = async () => {
     await authClient.signOut();
-    window.location.href = "/login";
+    window.location.href = "/admin/login";
   };
 
   return (

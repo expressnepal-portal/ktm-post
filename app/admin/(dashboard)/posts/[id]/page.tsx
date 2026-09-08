@@ -47,6 +47,7 @@ export default async function EditPostPage({
           status: post.status,
           isBreaking: post.isBreaking,
           isFeatured: post.isFeatured,
+          isExclusive: post.isExclusive,
           authorId: post.authorId,
           authorName: post.authorName,
           author: post.author,

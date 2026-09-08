@@ -83,9 +83,10 @@ model Post {
   status  PostStatus @default(DRAFT)
 
   // Editorial highlight flags
-  isBreaking Boolean @default(false)
-  isFeatured Boolean @default(false)
-  viewCount  Int     @default(0)
+  isBreaking  Boolean @default(false)
+  isFeatured  Boolean @default(false)
+  isExclusive Boolean @default(false)
+  viewCount   Int     @default(0)
 
   // Cloudinary Featured Image Relation
   featuredImageId String?
