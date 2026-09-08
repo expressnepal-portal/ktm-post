@@ -1,0 +1,55 @@
+import { BreakingNewsType } from "@/lib/type";
+import { transliterateSlug } from "@/lib/transliterate";
+import Link from "next/link";
+
+export default function TopStories({
+  title,
+  slug,
+  image,
+  excerpt,
+  link,
+  databaseId,
+  categorySlug,
+}: BreakingNewsType) {
+  const cleanSlug = transliterateSlug(slug);
+  const idPrefix = databaseId ? `${databaseId}-` : "";
+  const postUrl =
+    link ||
+    (categorySlug &&
+    categorySlug !== "latest-news" &&
+    categorySlug !== "featured-news" &&
+    categorySlug !== "breaking-news"
+      ? `/${categorySlug}/${idPrefix}${cleanSlug}`
+      : `/news/${idPrefix}${cleanSlug}`);
+
+  return (
+    <Link href={postUrl}>
+      <div className="w-full max-w-[1920px] mx-auto px-mobile-safe py-6 border-b border-gray-200">
+        <div className="flex flex-col items-center gap-3 w-full group cursor-pointer">
+          {/* Title */}
+          <h1 className="font-nepali-serif text-2xl md:text-3xl lg:text-4xl text-center font-bold text-gray-900 group-hover:text-nepal-red transition-colors w-full">
+            {title}
+          </h1>
+
+          {/* Image (below title) - uncropped original ratio */}
+          {image && (
+            <div className="w-full relative overflow-hidden bg-gray-100 mt-2 border border-gray-200 rounded-md">
+              <img
+                src={image}
+                alt={title}
+                className="w-full h-auto object-contain block mx-auto group-hover:scale-[1.01] transition-transform duration-300"
+              />
+            </div>
+          )}
+
+          {/* Excerpt */}
+          {excerpt && (
+            <p className="text-gray-600 font-poppins text-sm md:text-base text-center line-clamp-3 w-full leading-relaxed mt-1">
+              {excerpt}
+            </p>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}

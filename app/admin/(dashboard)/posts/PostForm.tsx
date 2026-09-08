@@ -205,8 +205,8 @@ export function PostForm({
                 className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red w-4 h-4"
               />
               <span className="flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Top Stories</span>
-                Top Stories
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">Top Stories</span>
+                मुख्य समाचार (Top Stories)
               </span>
             </label>
 

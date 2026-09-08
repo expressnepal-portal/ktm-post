@@ -258,10 +258,15 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     };
 
     const mappedRecent = allRecent.map(mapPrismaPostToPost);
-    const mappedFeatured =
-      featuredPosts.length > 0
-        ? featuredPosts.map(mapPrismaPostToPost)
-        : mappedRecent.slice(0, 1);
+
+    // Combine isFeatured: true posts with any posts having featured/top-stories category
+    const featuredCatPosts = getCatPosts("featured-news", 10);
+    const directFeatured = featuredPosts.map(mapPrismaPostToPost);
+    const featuredMap = new Map<string, Post>();
+    for (const post of [...directFeatured, ...featuredCatPosts]) {
+      featuredMap.set(post.id, post);
+    }
+    const mappedFeatured = Array.from(featuredMap.values());
 
     // Combine isBreaking: true posts with any posts having breaking category
     const breakingCatPosts = getCatPosts("breaking-news", 10);

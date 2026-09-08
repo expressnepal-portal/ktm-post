@@ -17,6 +17,7 @@ import {
     type Post as WordPressPost,
 } from "@/lib/wordpress";
 import BreakingNews from "./components/BreakingNews";
+import TopStories from "./components/TopStories";
 import SidebarAds from "./components/SidebarAds";
 import BannerAdSlot from "./components/BannerAdSlot";
 import Card from "./components/Card";
@@ -324,6 +325,15 @@ export default async function HomePage() {
                 ? exclusive.map(mapWpPost)
                 : [];
 
+    // Top Stories (isFeatured / मुख्य समाचार) — shown after exclusive, before breaking
+    const rawTopStoriesPosts = await fetchPostsByCategory("featured-news", 7);
+    const topStoriesPosts =
+        rawTopStoriesPosts && rawTopStoriesPosts.length > 0
+            ? rawTopStoriesPosts.map(mapWpPost)
+            : featured && featured.length > 0
+                ? featured.map(mapWpPost)
+                : [];
+
     // Featured hero = first economy post; secondary sidebar = next 3 economy posts
     // (Falls back gracefully to latest posts if economy category has 0 posts in WordPress)
     const economyPool =
@@ -373,7 +383,8 @@ export default async function HomePage() {
   return (
     <div
       className={`${inter.className} min-h-screen text-nepal-black overflow-x-hidden w-full gradient-white-to-orange`}
-    >
+    > 
+    
       {exclusivePosts.length > 0 && (
         <section className="w-full pt-4 md:pt-6 mb-8">
           <div className="w-full max-w-[1920px] mx-auto px-mobile-safe">
@@ -580,6 +591,32 @@ export default async function HomePage() {
                 </section>
             )}
 
+            {/* ── TOP STORIES / मुख्य समाचार ── */}
+            {topStoriesPosts.length > 0 && (
+                <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
+                    {topStoriesPosts.map((item, index) => {
+                        const contentImages = extractImagesFromContent(item.content);
+                        const featuredImageUrl = item.featuredImage;
+                        const thumbnailImage =
+                            featuredImageUrl ?? contentImages[0] ?? undefined;
+                        const excerpt = getCleanContent(item.excerpt || item.content, 180);
+
+                        return (
+                            <React.Fragment key={item.slug}>
+                                <TopStories
+                                    slug={item.slug}
+                                    title={getCleanTitle(item.title)}
+                                    image={thumbnailImage}
+                                    excerpt={excerpt}
+                                    link={getPostUrl(item)}
+                                />
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* ── BREAKING NEWS ── */}
             {breaking.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
                     {breaking.map((item, index) => {
@@ -597,10 +634,8 @@ export default async function HomePage() {
                                             index={index}
                                             fallbackImage={
                                                 index === 0
-                                                    ? "/banner/ncell.gif"
-                                                    : index === 1
-                                                        ? "/banner/bizmandu.gif"
-                                                        : "/banner/banner-3.png"
+                                                    ? "/banner/bizmandu.gif"
+                                                    : "/banner/banner-3.png"
                                             }
                                         />
                                     </Suspense>
