@@ -3,6 +3,7 @@
 import React, { useState, useActionState } from "react";
 import {
   createUser,
+  resetUserPassword,
   updateUserRole,
   toggleUserBan,
   deleteUser,
@@ -17,6 +18,8 @@ import {
   FileText,
   Mail,
   Calendar,
+  KeyRound,
+  CheckCircle2,
 } from "lucide-react";
 
 interface UserItem {
@@ -40,7 +43,35 @@ export default function UserManager({ users, currentUserId }: UserManagerProps) 
   const [showAddModal, setShowAddModal] = useState(false);
   const [addState, addAction, isAdding] = useActionState(createUser, null);
 
+  const [resetTargetUser, setResetTargetUser] = useState<UserItem | null>(null);
+  const [resetPasswordInput, setResetPasswordInput] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetTargetUser) return;
+    setResetError(null);
+    setResetSuccess(null);
+    setIsResetting(true);
+
+    const res = await resetUserPassword(resetTargetUser.id, resetPasswordInput);
+    setIsResetting(false);
+
+    if (res?.error) {
+      setResetError(res.error);
+    } else {
+      setResetSuccess(`Password updated successfully for ${resetTargetUser.name}!`);
+      setTimeout(() => {
+        setResetTargetUser(null);
+        setResetPasswordInput("");
+        setResetSuccess(null);
+      }, 1500);
+    }
+  };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     setUpdatingId(userId);
@@ -199,6 +230,121 @@ export default function UserManager({ users, currentUserId }: UserManagerProps) 
         </div>
       )}
 
+      {/* Reset Password Modal */}
+      {resetTargetUser && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => {
+            if (!isResetting) {
+              setResetTargetUser(null);
+              setResetError(null);
+              setResetSuccess(null);
+              setResetPasswordInput("");
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center border-b pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Reset User Password
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Set a new login password for {resetTargetUser.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (!isResetting) {
+                    setResetTargetUser(null);
+                    setResetError(null);
+                    setResetSuccess(null);
+                    setResetPasswordInput("");
+                  }
+                }}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {resetError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+                {resetError}
+              </div>
+            )}
+
+            {resetSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{resetSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">
+                  User Email
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={resetTargetUser.email}
+                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50 text-gray-600 rounded-lg text-sm cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1.5">
+                  New Password *
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={resetPasswordInput}
+                  onChange={(e) => setResetPasswordInput(e.target.value)}
+                  placeholder="Enter new password (min. 6 characters)"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-nepal-red"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  disabled={isResetting}
+                  onClick={() => {
+                    setResetTargetUser(null);
+                    setResetError(null);
+                    setResetSuccess(null);
+                    setResetPasswordInput("");
+                  }}
+                  className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isResetting || !resetPasswordInput}
+                  className="admin-btn-primary text-xs font-semibold disabled:opacity-50"
+                >
+                  {isResetting ? "Updating..." : "Save New Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Users Table */}
       <div className="admin-table-wrapper">
         <table className="admin-table">
@@ -285,34 +431,48 @@ export default function UserManager({ users, currentUserId }: UserManagerProps) 
                     </span>
                   </td>
                   <td className="text-right">
-                    {!isSelf && (
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handleToggleBan(user.id, isBanned)}
-                          disabled={updatingId === user.id}
-                          className={`p-1.5 rounded transition-colors ${
-                            isBanned
-                              ? "text-emerald-600 hover:bg-emerald-50"
-                              : "text-amber-600 hover:bg-amber-50"
-                          }`}
-                          title={isBanned ? "Restore user access" : "Suspend user access"}
-                        >
-                          {isBanned ? (
-                            <UserCheck className="w-4 h-4" />
-                          ) : (
-                            <Ban className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(user)}
-                          disabled={updatingId === user.id}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title="Delete User"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => {
+                          setResetTargetUser(user);
+                          setResetPasswordInput("");
+                          setResetError(null);
+                          setResetSuccess(null);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                        title={`Reset password for ${user.name}`}
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </button>
+                      {!isSelf && (
+                        <>
+                          <button
+                            onClick={() => handleToggleBan(user.id, isBanned)}
+                            disabled={updatingId === user.id}
+                            className={`p-1.5 rounded transition-colors ${
+                              isBanned
+                                ? "text-emerald-600 hover:bg-emerald-50"
+                                : "text-amber-600 hover:bg-amber-50"
+                            }`}
+                            title={isBanned ? "Restore user access" : "Suspend user access"}
+                          >
+                            {isBanned ? (
+                              <UserCheck className="w-4 h-4" />
+                            ) : (
+                              <Ban className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user)}
+                            disabled={updatingId === user.id}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

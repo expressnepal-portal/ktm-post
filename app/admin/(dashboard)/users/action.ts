@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "@/lib/get-session";
-import { auth } from "@/lib/auth";
+import { hashPassword } from "better-auth/crypto";
 
 export type UserActionState = {
   error?: string | null;
@@ -44,29 +44,91 @@ export async function createUser(
       return { error: "A user with this email address already exists" };
     }
 
-    const created = await auth.api.signUpEmail({
-      body: {
+    const hashedPassword = await hashPassword(password);
+
+    const user = await prisma.user.create({
+      data: {
         name,
         email,
-        password,
+        emailVerified: true,
+        role: role === "admin" ? "admin" : "editor",
       },
     });
 
-    if (created?.user?.id) {
-      await prisma.user.update({
-        where: { id: created.user.id },
-        data: {
-          role: role === "admin" ? "admin" : "editor",
-          emailVerified: true,
-        },
-      });
-    }
+    await prisma.account.create({
+      data: {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        accountId: user.id,
+        providerId: "credential",
+        password: hashedPassword,
+      },
+    });
 
     revalidatePath("/admin/users");
     return { success: true };
   } catch (err: any) {
     console.error("Create user error:", err);
     return { error: err.message || "Failed to create user account" };
+  }
+}
+
+export async function resetUserPassword(
+  userId: string,
+  newPassword: string
+): Promise<UserActionState> {
+  await requireAdmin();
+
+  if (!newPassword || newPassword.trim().length < 6) {
+    return { error: "Password must be at least 6 characters" };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return { error: "User not found" };
+    }
+
+    const hashedPassword = await hashPassword(newPassword.trim());
+
+    // Check if an existing credential account exists for this user
+    const existingAccount = await prisma.account.findFirst({
+      where: {
+        userId: user.id,
+        providerId: "credential",
+      },
+    });
+
+    if (existingAccount) {
+      await prisma.account.update({
+        where: { id: existingAccount.id },
+        data: {
+          password: hashedPassword,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      await prisma.account.create({
+        data: {
+          id: crypto.randomUUID(),
+          userId: user.id,
+          accountId: user.id,
+          providerId: "credential",
+          password: hashedPassword,
+        },
+      });
+    }
+
+    // Invalidate old sessions for security
+    await prisma.session.deleteMany({
+      where: { userId: user.id },
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Reset password error:", err);
+    return { error: err.message || "Failed to reset password" };
   }
 }
 
