@@ -34,7 +34,7 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
       </div>
 
       <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-12 py-10 md:py-14 flex flex-col md:flex-row items-center md:justify-between gap-8">
-        {/* Brand & Copyright */}
+        {/* Brand & Company Information */}
         <div className="flex flex-col items-center md:items-start gap-3">
           <Link href="/">
             <Image
@@ -45,11 +45,33 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
               className="h-8 w-auto object-contain"
             />
           </Link>
-          <p className="text-xs text-gray-500 font-poppins text-center md:text-left leading-relaxed">
-            &copy; {currentYear} KTM Post. All rights reserved.
-            <br />
-            ktmpost.com
-          </p>
+          <div className="text-xs text-gray-600 font-poppins text-center md:text-left leading-relaxed space-y-1">
+            <p className="font-medium text-gray-700 font-nepali-serif text-sm">
+              डिजी भिजन प्रा. लि., सूचना विभाग द.नं. ५३१६-२०८२/०८३
+            </p>
+            <p className="text-gray-500">
+              Sukedhara, Kathmandu, Nepal
+            </p>
+            <p className="text-gray-500">
+              Email:{" "}
+              <a
+                href="mailto:info@ktmpost.com"
+                className="hover:text-nepal-red underline transition-colors"
+              >
+                info@ktmpost.com
+              </a>
+              {" "}| Mobile:{" "}
+              <a
+                href="tel:9851320822"
+                className="hover:text-nepal-red underline transition-colors"
+              >
+                9851320822
+              </a>
+            </p>
+            <p className="text-[11px] text-gray-400 pt-1">
+              &copy; {currentYear} KTM Post. All rights reserved.
+            </p>
+          </div>
         </div>
         {/* Quick Links */}
         <div className="flex flex-col items-center md:items-end gap-3">

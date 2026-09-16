@@ -275,7 +275,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     for (const post of [...directBreaking, ...breakingCatPosts]) {
       breakingMap.set(post.id, post);
     }
-    const mappedBreaking = Array.from(breakingMap.values());
+    const mappedBreaking = Array.from(breakingMap.values()).slice(0, 5);
 
     // Combine isExclusive: true posts with any posts having exclusive category
     const exclusiveCatPosts = getCatPosts("exclusive", 10);
