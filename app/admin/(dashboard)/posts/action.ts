@@ -32,6 +32,7 @@ export async function createPost(
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED") || "DRAFT";
   const authorId = (formData.get("authorId") as string)?.trim() || null;
   const authorName = (formData.get("authorName") as string)?.trim() || null;
+  const publishedAtInput = (formData.get("publishedAt") as string)?.trim() || null;
 
   if (!title) return { error: "Title is required" };
   if (!content) return { error: "Content is required" };
@@ -60,6 +61,11 @@ export async function createPost(
   const isFeatured = isFeaturedInput || hasFeaturedCat;
   const isExclusive = isExclusiveInput || hasExclusiveCat;
 
+  const resolvedPublishedAt =
+    status === "PUBLISHED"
+      ? (publishedAtInput ? new Date(publishedAtInput) : new Date())
+      : null;
+
   let postId: string;
   try {
     const post = await prisma.post.create({
@@ -75,7 +81,7 @@ export async function createPost(
         authorName: authorName || undefined,
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : undefined,
         author: authorId ? { connect: { id: authorId } } : undefined,
-        publishedAt: status === "PUBLISHED" ? new Date() : null,
+        publishedAt: resolvedPublishedAt,
         categories:
           categoryIds.length > 0
             ? {
@@ -111,6 +117,7 @@ export async function updatePost(
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED") || "DRAFT";
   const authorId = (formData.get("authorId") as string)?.trim() || null;
   const authorName = (formData.get("authorName") as string)?.trim() || null;
+  const publishedAtInput = (formData.get("publishedAt") as string)?.trim() || null;
   const rawSlug = (formData.get("slug") as string)?.trim();
 
   if (!title || !content) {
@@ -147,6 +154,11 @@ export async function updatePost(
   const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
   const isExclusive = isExclusiveInput !== undefined ? (isExclusiveInput || hasExclusiveCat) : hasExclusiveCat;
 
+  const resolvedPublishedAt =
+    status === "PUBLISHED"
+      ? (publishedAtInput ? new Date(publishedAtInput) : current.publishedAt ?? new Date())
+      : current.publishedAt;
+
   try {
     await prisma.post.update({
       where: { id: postId },
@@ -162,10 +174,7 @@ export async function updatePost(
         authorName: authorName || null,
         author: authorId ? { connect: { id: authorId } } : { disconnect: true },
         featuredImage: featuredImageId ? { connect: { id: featuredImageId } } : { disconnect: true },
-        publishedAt:
-          status === "PUBLISHED"
-            ? current.publishedAt ?? new Date()
-            : current.publishedAt,
+        publishedAt: resolvedPublishedAt,
         categories: {
           deleteMany: {}, // Clear existing joins
           create: categoryIds.map((categoryId) => ({ categoryId })),

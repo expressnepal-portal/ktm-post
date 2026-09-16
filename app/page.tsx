@@ -633,7 +633,7 @@ export default async function HomePage() {
             {/* ── BREAKING NEWS ── */}
             {breaking.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
-                    {breaking.slice(0, 5).map((item, index) => {
+                    {breaking.slice(0, 4).map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
                         const featuredImageUrl = item.featuredImage?.node?.sourceUrl || (typeof item.featuredImage === "string" ? item.featuredImage : undefined);
                         const thumbnailImage =

@@ -5,7 +5,7 @@ import { createPost, updatePost, type ActionState } from "./action";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "../components/ImageUpload";
 import { transliterateSlug } from "@/lib/transliterate";
-import { Sparkles, User as UserIcon, Hash } from "lucide-react";
+import { Sparkles, User as UserIcon, Hash, Calendar, Clock } from "lucide-react";
 import DeletePostButton from "./DeletePostButton";
 
 interface AuthorUser {
@@ -38,7 +38,23 @@ interface PostFormProps {
       url: string;
       alt?: string | null;
     } | null;
+    publishedAt?: string | null;
+    createdAt?: string | null;
   };
+}
+
+// Format Date to YYYY-MM-DDTHH:mm for datetime-local input in local time
+function formatLocalDateTime(dateString?: string | null): string {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function PostForm({
@@ -65,6 +81,13 @@ export function PostForm({
   );
   const [featuredImageId, setFeaturedImageId] = useState<string>(
     post?.featuredImageId || ""
+  );
+
+  // Publish Date Management (Automatic current timestamp or manual custom date)
+  const initialDateMode = post?.publishedAt ? "manual" : "auto";
+  const [dateMode, setDateMode] = useState<"auto" | "manual">(initialDateMode);
+  const [customPublishedAt, setCustomPublishedAt] = useState<string>(
+    formatLocalDateTime(post?.publishedAt || post?.createdAt)
   );
 
   const toggleCategory = (id: string) => {
@@ -160,6 +183,72 @@ export function PostForm({
               <option value="DRAFT">Draft</option>
               <option value="PUBLISHED">Published</option>
             </select>
+          </div>
+
+          {/* Publish Date / मिति */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                Publish Date / मिति
+              </label>
+              <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px] font-semibold">
+                <button
+                  type="button"
+                  className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                    dateMode === "auto"
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                  onClick={() => setDateMode("auto")}
+                  title="Use current latest time automatically when published"
+                >
+                  Auto (Latest)
+                </button>
+                <button
+                  type="button"
+                  className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                    dateMode === "manual"
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                  onClick={() => {
+                    setDateMode("manual");
+                    if (!customPublishedAt) {
+                      setCustomPublishedAt(formatLocalDateTime(new Date().toISOString()));
+                    }
+                  }}
+                  title="Pick a specific custom date & time"
+                >
+                  Manual Pick
+                </button>
+              </div>
+            </div>
+
+            {dateMode === "manual" ? (
+              <div className="space-y-1.5">
+                <input
+                  type="datetime-local"
+                  name="publishedAt"
+                  value={customPublishedAt}
+                  onChange={(e) => setCustomPublishedAt(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-nepal-red bg-white text-xs font-mono"
+                />
+                <p className="text-[11px] text-gray-400">
+                  Custom publish date & time for backdating or scheduling.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 text-xs text-gray-500 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+                <span>
+                  {post?.publishedAt
+                    ? `Currently: ${new Date(post.publishedAt).toLocaleString()}`
+                    : "Automatic (Sets to latest current date & time on publish)"}
+                </span>
+                {/* Hidden input omitted so backend defaults to now() / current date */}
+              </div>
+            )}
           </div>
 
           {/* Visibility / Badges */}
