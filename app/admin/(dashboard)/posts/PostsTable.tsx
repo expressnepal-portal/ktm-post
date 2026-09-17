@@ -12,6 +12,7 @@ interface PostItem {
   status: string;
   authorName?: string | null;
   author?: { name: string } | null;
+  publishedAt?: string | Date | null;
   createdAt: string | Date;
   categories?: { category: { id: string; name: string; nepaliName: string | null } }[];
 }
