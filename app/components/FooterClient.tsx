@@ -6,10 +6,18 @@ import { WPFooterPage } from "@/lib/wordpress";
 
 interface FooterClientProps {
   footerPages: WPFooterPage[];
+  settings?: Record<string, string>;
 }
 
-export default function FooterClient({ footerPages }: FooterClientProps) {
+export default function FooterClient({ footerPages, settings = {} }: FooterClientProps) {
   const currentYear = new Date().getFullYear();
+
+  const companyLegal =
+    settings.company_name_legal ||
+    "डिजी भिजन प्रा. लि., सूचना विभाग द.नं. ५३१६-२०८२/०८३";
+  const officeAddress = settings.office_address || "Sukedhara, Kathmandu, Nepal";
+  const contactEmail = settings.contact_email || "info@ktmpost.com";
+  const contactPhone = settings.contact_phone || "9851320822";
 
   // Fallback links if no WP footer pages returned
   const defaultLinks = [
@@ -47,25 +55,25 @@ export default function FooterClient({ footerPages }: FooterClientProps) {
           </Link>
           <div className="text-xs text-gray-600 font-poppins text-center md:text-left leading-relaxed space-y-1">
             <p className="font-medium text-gray-700 font-nepali-serif text-sm">
-              डिजी भिजन प्रा. लि., सूचना विभाग द.नं. ५३१६-२०८२/०८३
+              {companyLegal}
             </p>
             <p className="text-gray-500">
-              Sukedhara, Kathmandu, Nepal
+              {officeAddress}
             </p>
             <p className="text-gray-500">
               Email:{" "}
               <a
-                href="mailto:info@ktmpost.com"
+                href={`mailto:${contactEmail}`}
                 className="hover:text-nepal-red underline transition-colors"
               >
-                info@ktmpost.com
+                {contactEmail}
               </a>
               {" "}| Mobile:{" "}
               <a
-                href="tel:9851320822"
+                href={`tel:${contactPhone}`}
                 className="hover:text-nepal-red underline transition-colors"
               >
-                9851320822
+                {contactPhone}
               </a>
             </p>
             <p className="text-[11px] text-gray-400 pt-1">

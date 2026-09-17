@@ -266,7 +266,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     for (const post of [...directFeatured, ...featuredCatPosts]) {
       featuredMap.set(post.id, post);
     }
-    const mappedFeatured = Array.from(featuredMap.values());
+    const mappedFeatured = Array.from(featuredMap.values()).slice(0, 4);
 
     // Combine isBreaking: true posts with any posts having breaking category
     const breakingCatPosts = getCatPosts("breaking-news", 10);

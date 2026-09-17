@@ -15,6 +15,7 @@ import {
   Users,
   Megaphone,
   DownloadCloud,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -28,8 +29,9 @@ const navItems = [
   { href: "/admin/menu", label: "Navigation Menu", icon: Compass },
   { href: "/admin/media", label: "Media Library", icon: ImageIcon },
   { href: "/admin/sponsors", label: "Sponsors", icon: Megaphone },
-  { href: "/admin/import", label: "Import Data", icon: DownloadCloud },
   { href: "/admin/pages", label: "Static Pages", icon: FileCode },
+  { href: "/admin/import", label: "Import Data", icon: DownloadCloud },
+  { href: "/admin/settings", label: "Site Settings", icon: Settings },
   { href: "/admin/users", label: "Users & Roles", icon: Users },
 ];
 

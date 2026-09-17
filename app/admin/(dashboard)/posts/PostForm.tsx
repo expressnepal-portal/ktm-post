@@ -5,7 +5,7 @@ import { createPost, updatePost, type ActionState } from "./action";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "../components/ImageUpload";
 import { transliterateSlug } from "@/lib/transliterate";
-import { Sparkles, User as UserIcon, Hash, Calendar, Clock } from "lucide-react";
+import { Sparkles, User as UserIcon, Hash, Calendar, Clock, Search, X } from "lucide-react";
 import DeletePostButton from "./DeletePostButton";
 
 interface AuthorUser {
@@ -79,6 +79,7 @@ export function PostForm({
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     post?.categoryIds || []
   );
+  const [categorySearch, setCategorySearch] = useState("");
   const [featuredImageId, setFeaturedImageId] = useState<string>(
     post?.featuredImageId || ""
   );
@@ -463,33 +464,75 @@ export function PostForm({
                 </div>
               )}
 
+              {/* Category Search Filter */}
+              <div className="relative mb-2.5">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search categories (विधा खोज्नुहोस्)..."
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  className="w-full pl-8 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-nepal-red bg-gray-50/50 text-gray-800"
+                />
+                {categorySearch && (
+                  <button
+                    type="button"
+                    onClick={() => setCategorySearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
               {/* Category Checkbox List */}
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {categories.map((cat) => {
-                  const isChecked = selectedCategoryIds.includes(cat.id);
+                {categories
+                  .filter((cat) => {
+                    if (!categorySearch.trim()) return true;
+                    const query = categorySearch.toLowerCase().trim();
+                    return (
+                      cat.name.toLowerCase().includes(query) ||
+                      (cat.nepaliName && cat.nepaliName.toLowerCase().includes(query))
+                    );
+                  })
+                  .map((cat) => {
+                    const isChecked = selectedCategoryIds.includes(cat.id);
+                    return (
+                      <label
+                        key={cat.id}
+                        className={`flex items-center px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                          isChecked
+                            ? "bg-red-50/70 text-gray-900 font-medium"
+                            : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="categoryIds"
+                            value={cat.id}
+                            checked={isChecked}
+                            onChange={() => toggleCategory(cat.id)}
+                            className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red"
+                          />
+                          <span>{cat.nepaliName || cat.name}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                {categories.filter((cat) => {
+                  if (!categorySearch.trim()) return true;
+                  const query = categorySearch.toLowerCase().trim();
                   return (
-                    <label
-                      key={cat.id}
-                      className={`flex items-center px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
-                        isChecked
-                          ? "bg-red-50/70 text-gray-900 font-medium"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          name="categoryIds"
-                          value={cat.id}
-                          checked={isChecked}
-                          onChange={() => toggleCategory(cat.id)}
-                          className="rounded border-gray-300 text-nepal-red focus:ring-nepal-red"
-                        />
-                        <span>{cat.nepaliName || cat.name}</span>
-                      </span>
-                    </label>
+                    cat.name.toLowerCase().includes(query) ||
+                    (cat.nepaliName && cat.nepaliName.toLowerCase().includes(query))
                   );
-                })}
+                }).length === 0 && (
+                  <p className="text-xs text-gray-400 py-3 text-center">
+                    No categories matching &quot;{categorySearch}&quot;
+                  </p>
+                )}
               </div>
             </div>
           )}
