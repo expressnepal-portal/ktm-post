@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
 
-    // Single category lookup
+    // Single category looku
+    
     
     if (slug) {
       const category = await prisma.category.findUnique({
