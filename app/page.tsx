@@ -553,7 +553,7 @@ export default async function HomePage() {
                                 <div
                                     className={`lg:col-span-5 xl:col-span-5 2xl:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 ${exclusivePosts.length >= 7 ? "xl:grid-cols-2" : "xl:grid-cols-2"} gap-3.5 sm:gap-4`}
                                 >
-                                    {exclusivePosts.slice(1, 7).map((post) => {
+                                    {exclusivePosts.slice(1, 3).map((post) => {
                                         const contentImages = extractImagesFromContent(
                                             post.content,
                                         );
@@ -608,7 +608,7 @@ export default async function HomePage() {
             {/* ── TOP STORIES / मुख्य समाचार ── */}
             {topStoriesPosts.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
-                    {topStoriesPosts.slice(0, 3).map((item, index) => {
+                    {topStoriesPosts.slice(0, 1).map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
                         const featuredImageUrl = item.featuredImage;
                         const thumbnailImage =
@@ -633,7 +633,7 @@ export default async function HomePage() {
             {/* ── BREAKING NEWS ── */}
             {breaking.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
-                    {breaking.slice(0, 4).map((item, index) => {
+                    {breaking.slice(0, 2).map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
                         const featuredImageUrl = item.featuredImage?.node?.sourceUrl || (typeof item.featuredImage === "string" ? item.featuredImage : undefined);
                         const thumbnailImage =
