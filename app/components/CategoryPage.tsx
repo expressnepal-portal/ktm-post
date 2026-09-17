@@ -193,6 +193,7 @@ export default async function CategoryPage({
                     </p>
                     <div className="text-gray-400 text-sm pt-2">
                       {new Date(post.date).toLocaleDateString('en-US', { 
+                        timeZone: 'Asia/Kathmandu',
                         year: 'numeric', 
                         month: 'short', 
                         day: 'numeric' 

@@ -608,7 +608,7 @@ export default async function HomePage() {
             {/* ── TOP STORIES / मुख्य समाचार ── */}
             {topStoriesPosts.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
-                    {topStoriesPosts.slice(0, 4).map((item, index) => {
+                    {topStoriesPosts.slice(0, 3).map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
                         const featuredImageUrl = item.featuredImage;
                         const thumbnailImage =
@@ -1178,6 +1178,7 @@ export default async function HomePage() {
                                         {
                                             month: "short",
                                             day: "numeric",
+                                            timeZone: "Asia/Kathmandu",
                                         },
                                     );
 

@@ -27,6 +27,23 @@ export default async function CategoryPage({
     );
   });
 
+  // If no category matched, check if it's a static page
+  if (!matchedCategory) {
+    const staticPage = await (await import("@/lib/prisma")).prisma.staticPage.findFirst({
+      where: {
+        slug: {
+          equals: decodedCategory,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (staticPage) {
+      const { default: StaticPageView } = await import("../page/[slug]/page");
+      return <StaticPageView params={Promise.resolve({ slug: staticPage.slug })} />;
+    }
+  }
+
   // Use matching category slug or fallback to decodedCategory
   const wpCategorySlug = matchedCategory ? matchedCategory.slug : decodedCategory;
   const categoryDisplayName = matchedCategory ? matchedCategory.name : decodeURIComponent(category);

@@ -251,7 +251,12 @@ export default function PostsTable({ initialPosts }: PostsTableProps) {
                       </span>
                     </td>
                     <td className="py-4 px-4 text-gray-500 text-xs whitespace-nowrap">
-                      {new Date(post.createdAt).toLocaleDateString()}
+                      {new Date(post.publishedAt || post.createdAt).toLocaleDateString("en-US", {
+                        timeZone: "Asia/Kathmandu",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="inline-flex items-center gap-1 justify-end">

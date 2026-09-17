@@ -62,7 +62,14 @@ export interface NavbarMenuItem {
 
 /** Helper: Map a Prisma Post record to the frontend Post interface */
 function mapPrismaPostToPost(p: any): Post {
-  const publishedDate = (p.publishedAt || p.createdAt || new Date()).toISOString();
+  // Format date in Nepal Standard Time (UTC+05:45)
+  const rawDate = p.publishedAt || p.createdAt || new Date();
+  const publishedDate = new Date(rawDate).toLocaleString("en-CA", {
+    timeZone: "Asia/Kathmandu",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).replace(",", "");
   const primaryCat = p.categories?.[0]?.category;
   const authorName = p.authorName || p.author?.name || "KTM Post";
 

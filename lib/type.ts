@@ -36,6 +36,7 @@ export interface BreakingNewsType {
   link?: string;
   databaseId?: number;
   categorySlug?: string;
+  date?: string;
 }
 
 export type CardType = {

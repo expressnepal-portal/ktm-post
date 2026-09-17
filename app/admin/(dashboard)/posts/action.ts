@@ -61,9 +61,10 @@ export async function createPost(
   const isFeatured = isFeaturedInput || hasFeaturedCat;
   const isExclusive = isExclusiveInput || hasExclusiveCat;
 
+  // datetime-local inputs have no timezone — treat as Nepal Standard Time (UTC+05:45)
   const resolvedPublishedAt =
     status === "PUBLISHED"
-      ? (publishedAtInput ? new Date(publishedAtInput) : new Date())
+      ? (publishedAtInput ? new Date(publishedAtInput + "+05:45") : new Date())
       : null;
 
   let postId: string;
@@ -154,9 +155,10 @@ export async function updatePost(
   const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
   const isExclusive = isExclusiveInput !== undefined ? (isExclusiveInput || hasExclusiveCat) : hasExclusiveCat;
 
+  // datetime-local inputs have no timezone — treat as Nepal Standard Time (UTC+05:45)
   const resolvedPublishedAt =
     status === "PUBLISHED"
-      ? (publishedAtInput ? new Date(publishedAtInput) : current.publishedAt ?? new Date())
+      ? (publishedAtInput ? new Date(publishedAtInput + "+05:45") : current.publishedAt ?? new Date())
       : current.publishedAt;
 
   try {

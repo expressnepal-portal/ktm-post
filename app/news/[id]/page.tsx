@@ -43,11 +43,13 @@ function getFormattedNepaliDate(dateStr: string): string {
     const bsDate = new NepaliDate(dateObj);
     const [bsYear, bsMonth, bsDay] = bsDate.toBS().split("-").map(Number);
     const monthName = nepaliMonths[bsMonth - 1] || "";
+    // Get hours and minutes in Nepal Standard Time (UTC+05:45)
+    const nepalTime = new Date(dateObj.getTime() + (5 * 60 + 45) * 60 * 1000);
     const hours = toNepaliDigits(
-      dateObj.getHours().toString().padStart(2, "0"),
+      nepalTime.getUTCHours().toString().padStart(2, "0"),
     );
     const minutes = toNepaliDigits(
-      dateObj.getMinutes().toString().padStart(2, "0"),
+      nepalTime.getUTCMinutes().toString().padStart(2, "0"),
     );
     return `${toNepaliDigits(bsYear)} ${monthName} ${toNepaliDigits(bsDay)} गते ${hours}:${minutes}`;
   } catch {
