@@ -250,7 +250,8 @@ export function getPostUrl(post: {
         post.categorySlug &&
         post.categorySlug !== "latest-news" &&
         post.categorySlug !== "featured-news" &&
-        post.categorySlug !== "breaking-news"
+        post.categorySlug !== "breaking-news" &&
+        post.categorySlug !== "exclusive"
     ) {
         return `/${post.categorySlug}/${idPrefix}${cleanSlug}`;
     }
@@ -320,12 +321,10 @@ export default async function HomePage() {
     const posts = Posts.map(mapWpPost);
 
     const rawExclusivePosts = await fetchPostsByCategory("exclusive", 7);
-    const exclusivePosts =
-        rawExclusivePosts && rawExclusivePosts.length > 0
-            ? rawExclusivePosts.map(mapWpPost)
-            : exclusive && exclusive.length > 0
-                ? exclusive.map(mapWpPost)
-                : [];
+    const exclusivePosts = [
+        ...(exclusive && exclusive.length > 0 ? exclusive.map(mapWpPost) : []),
+        ...(rawExclusivePosts && rawExclusivePosts.length > 0 ? rawExclusivePosts.map(mapWpPost) : []),
+    ].filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i).slice(0, 7);
 
     // Top Stories (isFeatured / मुख्य समाचार) — shown after exclusive, before breaking
     const rawTopStoriesPosts = await fetchPostsByCategory("featured-news", 7);
