@@ -44,6 +44,7 @@ export interface Post {
 export interface WPCategory {
   id: string;
   name: string;
+  nepaliName?: string | null;
   slug: string;
   count?: number;
 }
@@ -178,23 +179,69 @@ export async function fetchPosts(first: number = 10): Promise<Post[]> {
 /** Fetch posts by category slug or alias */
 export async function fetchPostsByCategory(
   categorySlug: string,
-  first: number = 12
+  first: number = 24
 ): Promise<Post[]> {
   try {
     const normalized = categorySlug.toLowerCase().trim();
     const aliases = categoryAliases[normalized] || [normalized];
 
-    const posts = await prisma.post.findMany({
-      where: {
-        status: "PUBLISHED",
-        categories: {
-          some: {
-            category: {
-              slug: { in: aliases },
-            },
+    let whereClause: any = {
+      status: "PUBLISHED",
+      categories: {
+        some: {
+          category: {
+            slug: { in: aliases },
           },
         },
       },
+    };
+
+    if (normalized === "multimedia" || aliases.includes("multimedia")) {
+      whereClause = {
+        status: "PUBLISHED",
+        OR: [
+          { videoUrl: { not: null } },
+          {
+            categories: {
+              some: {
+                category: {
+                  slug: { in: aliases },
+                },
+              },
+            },
+          },
+        ],
+      };
+    } else if (normalized === "exclusive" || aliases.includes("exclusive")) {
+      whereClause = {
+        status: "PUBLISHED",
+        OR: [
+          { isExclusive: true },
+          {
+            categories: {
+              some: {
+                category: {
+                  slug: { in: aliases },
+                },
+              },
+            },
+          },
+        ],
+      };
+    } else if (normalized === "breaking-news" || aliases.includes("breaking-news")) {
+      whereClause = {
+        status: "PUBLISHED",
+        isBreaking: true,
+      };
+    } else if (normalized === "featured-news" || aliases.includes("featured-news")) {
+      whereClause = {
+        status: "PUBLISHED",
+        isFeatured: true,
+      };
+    }
+
+    const posts = await prisma.post.findMany({
+      where: whereClause,
       orderBy: { publishedAt: "desc" },
       take: first,
       include: defaultPostInclude,
@@ -319,32 +366,23 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
 
     const mappedRecent = allRecent.map(mapPrismaPostToPost);
 
-    // Combine isFeatured: true posts with any posts having featured/top-stories category
-    const featuredCatPosts = getCatPosts("featured-news", 10);
+    // Explicit isFeatured flag posts (Top Stories)
     const directFeatured = featuredPosts.map(mapPrismaPostToPost);
-    const featuredMap = new Map<string, Post>();
-    for (const post of [...directFeatured, ...featuredCatPosts]) {
-      featuredMap.set(post.id, post);
-    }
-    const mappedFeatured = Array.from(featuredMap.values()).slice(0, 4);
+    const mappedFeatured = directFeatured.length > 0
+      ? directFeatured.slice(0, 4)
+      : getCatPosts("featured-news", 4);
 
-    // Combine isBreaking: true posts with any posts having breaking category
-    const breakingCatPosts = getCatPosts("breaking-news", 10);
+    // Explicit isBreaking flag posts (Breaking News)
     const directBreaking = breakingPosts.map(mapPrismaPostToPost);
-    const breakingMap = new Map<string, Post>();
-    for (const post of [...directBreaking, ...breakingCatPosts]) {
-      breakingMap.set(post.id, post);
-    }
-    const mappedBreaking = Array.from(breakingMap.values()).slice(0, 4);
+    const mappedBreaking = directBreaking.length > 0
+      ? directBreaking.slice(0, 4)
+      : getCatPosts("breaking-news", 4);
 
-    // Combine isExclusive: true posts with any posts having exclusive category
-    const exclusiveCatPosts = getCatPosts("exclusive", 10);
+    // Explicit isExclusive flag posts (Exclusive News)
     const directExclusive = exclusivePosts.map(mapPrismaPostToPost);
-    const exclusiveMap = new Map<string, Post>();
-    for (const post of [...directExclusive, ...exclusiveCatPosts]) {
-      exclusiveMap.set(post.id, post);
-    }
-    const mappedExclusive = Array.from(exclusiveMap.values()).slice(0, 7);
+    const mappedExclusive = directExclusive.length > 0
+      ? directExclusive.slice(0, 7)
+      : getCatPosts("exclusive", 7);
 
     // Combine posts with videoUrl and posts in multimedia category
     const videoPosts = allRecent.filter((p) => !!p.videoUrl).map(mapPrismaPostToPost);
@@ -513,7 +551,8 @@ export async function fetchWPCategories(): Promise<WPCategory[]> {
 
     return categories.map((c) => ({
       id: c.id,
-      name: c.nepaliName || c.name,
+      name: c.name,
+      nepaliName: c.nepaliName,
       slug: c.slug,
       count: c._count.posts,
     }));

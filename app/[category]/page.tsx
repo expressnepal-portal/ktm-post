@@ -46,7 +46,7 @@ export default async function CategoryPage({
 
   // Use matching category slug or fallback to decodedCategory
   const wpCategorySlug = matchedCategory ? matchedCategory.slug : decodedCategory;
-  const categoryDisplayName = matchedCategory ? matchedCategory.name : decodeURIComponent(category);
+  const categoryDisplayName = matchedCategory ? (matchedCategory.nepaliName || matchedCategory.name) : decodeURIComponent(category);
   
   // Fetch posts dynamically by category slug
   const rawPosts = await fetchPostsByCategory(wpCategorySlug, 15);

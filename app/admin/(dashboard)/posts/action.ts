@@ -57,23 +57,23 @@ export async function createPost(
 
   // Ensure slug uniqueness — append timestamp if taken
   const existing = await prisma.post.findUnique({ where: { slug } });
-  if (existing) slug = `${slug}-${Date.now().toString(36)}`;
+  if (existing) slug = `${slug}-${Date.now().toString(36)}`;  const isBreaking = formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on";
+  const isFeatured = formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on";
+  const isExclusive = formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on";
 
-  const isBreakingInput = formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on";
-  const isFeaturedInput = formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on";
-  const isExclusiveInput = formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on";
-
-  // Check if categories include breaking, featured, or exclusive categories
   const selectedCategories = categoryIds.length > 0
     ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
     : [];
-  const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
-  const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
-  const hasExclusiveCat = selectedCategories.some(c => c.slug === "exclusive" || c.nepaliName?.includes("एक्सक्लुसिभ"));
 
-  const isBreaking = isBreakingInput || hasBreakingCat;
-  const isFeatured = isFeaturedInput || hasFeaturedCat;
-  const isExclusive = isExclusiveInput || hasExclusiveCat;
+  // Filter out meta-categories if their corresponding badge is unchecked
+  const finalCategoryIds = selectedCategories
+    .filter(c => {
+      if (!isBreaking && (c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"))) return false;
+      if (!isFeatured && c.slug === "featured-news") return false;
+      if (!isExclusive && c.slug === "exclusive") return false;
+      return true;
+    })
+    .map(c => c.id);
 
   const resolvedPublishedAt =
     status === "PUBLISHED"
@@ -98,9 +98,9 @@ export async function createPost(
         author: authorId ? { connect: { id: authorId } } : undefined,
         publishedAt: resolvedPublishedAt,
         categories:
-          categoryIds.length > 0
+          finalCategoryIds.length > 0
             ? {
-                create: categoryIds.map((categoryId) => ({ categoryId })),
+                create: finalCategoryIds.map((categoryId) => ({ categoryId })),
               }
             : undefined,
       },
@@ -163,21 +163,23 @@ export async function updatePost(
     }
   }
 
-  const isBreakingInput = formData.has("isBreaking") ? (formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on") : undefined;
-  const isFeaturedInput = formData.has("isFeatured") ? (formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on") : undefined;
-  const isExclusiveInput = formData.has("isExclusive") ? (formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on") : undefined;
+  const isBreaking = formData.get("isBreaking") === "true" || formData.get("isBreaking") === "on";
+  const isFeatured = formData.get("isFeatured") === "true" || formData.get("isFeatured") === "on";
+  const isExclusive = formData.get("isExclusive") === "true" || formData.get("isExclusive") === "on";
 
-  // Check categories for breaking/featured/exclusive
   const selectedCategories = categoryIds.length > 0
     ? await prisma.category.findMany({ where: { id: { in: categoryIds } } })
     : [];
-  const hasBreakingCat = selectedCategories.some(c => c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"));
-  const hasFeaturedCat = selectedCategories.some(c => c.slug === "featured-news" || c.nepaliName?.includes("विशेष"));
-  const hasExclusiveCat = selectedCategories.some(c => c.slug === "exclusive" || c.nepaliName?.includes("एक्सक्लुसिभ"));
 
-  const isBreaking = isBreakingInput !== undefined ? (isBreakingInput || hasBreakingCat) : hasBreakingCat;
-  const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
-  const isExclusive = isExclusiveInput !== undefined ? (isExclusiveInput || hasExclusiveCat) : hasExclusiveCat;
+  // Filter out meta-categories if their corresponding badge is unchecked
+  const finalCategoryIds = selectedCategories
+    .filter(c => {
+      if (!isBreaking && (c.slug === "breaking-news" || c.nepaliName?.includes("ताजा"))) return false;
+      if (!isFeatured && c.slug === "featured-news") return false;
+      if (!isExclusive && c.slug === "exclusive") return false;
+      return true;
+    })
+    .map((c) => c.id);
 
   // Resolve Published Date
   let resolvedPublishedAt: Date | null = current.publishedAt;
@@ -210,7 +212,7 @@ export async function updatePost(
         publishedAt: resolvedPublishedAt,
         categories: {
           deleteMany: {}, // Clear existing joins
-          create: categoryIds.map((categoryId) => ({ categoryId })),
+          create: finalCategoryIds.map((categoryId) => ({ categoryId })),
         },
       },
     });
