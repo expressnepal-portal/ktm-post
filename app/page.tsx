@@ -630,7 +630,7 @@ export default async function HomePage() {
             )}
 
             {/* ── BREAKING NEWS ── */}
-            {breaking.length > 0 && (
+            {/* {breaking.length > 0 && (
                 <div className="pt-2 md:pt-4 w-full max-w-[1920px] mx-auto px-mobile-safe space-y-4">
                     {breaking.slice(0, 2).map((item, index) => {
                         const contentImages = extractImagesFromContent(item.content);
@@ -664,7 +664,7 @@ export default async function HomePage() {
                         );
                     })}
                 </div>
-            )}
+            )} */}
 
             <main className="w-full">
                 <div className="h-10 md:h-14 lg:h-16 bg-transparent"> </div>

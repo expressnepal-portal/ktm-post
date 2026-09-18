@@ -277,7 +277,7 @@ export function PostForm({
                 विशेष (Exclusive)
               </span>
             </label>
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
+            {/* <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
               <input
                 type="checkbox"
                 name="isBreaking"
@@ -290,7 +290,7 @@ export function PostForm({
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-nepal-red uppercase">Breaking</span>
                 ताजा अपडेट / ब्रेकिङ न्यूज
               </span>
-            </label>
+            </label> */}
             <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-gray-800">
               <input
                 type="checkbox"

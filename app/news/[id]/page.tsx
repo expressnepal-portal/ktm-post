@@ -425,7 +425,7 @@ export default async function NewsSlugPage({
               </header>
 
               <div className="bg-white p-3 sm:p-4 md:p-6">
-                {heroImage && (
+                {!videoUrl && heroImage && (
                   <div className="w-full mb-5 md:mb-8">
                     <div className="w-full relative overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
                       <NewsImage
