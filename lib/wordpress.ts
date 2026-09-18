@@ -202,18 +202,56 @@ export function extractFirstImageFromContent(content: string | null): string | n
 /** Fetch a single post by slug */
 export async function fetchPostBySlug(slug: string): Promise<Post | null> {
   try {
+    const decoded = decodeURIComponent(slug).trim();
+
+    // 1. Exact match
     let post = await prisma.post.findUnique({
-      where: { slug },
+      where: { slug: decoded },
       include: defaultPostInclude,
     });
 
+    // 2. Transliterated match
     if (!post) {
-      const transliterated = transliterateSlug(slug);
-      if (transliterated !== slug) {
+      const transliterated = transliterateSlug(decoded);
+      if (transliterated !== decoded) {
         post = await prisma.post.findUnique({
           where: { slug: transliterated },
           include: defaultPostInclude,
         });
+      }
+    }
+
+    // 3. Fallback: Lookup by post ID (cuid)
+    if (!post) {
+      try {
+        post = await prisma.post.findUnique({
+          where: { id: decoded },
+          include: defaultPostInclude,
+        });
+      } catch {
+        // Ignore invalid id format
+      }
+    }
+
+    // 4. Fallback: numeric prefix
+    if (!post) {
+      const match = decoded.match(/^(\d+)-(.+)$/);
+      if (match) {
+        const strippedSlug = match[2];
+        post = await prisma.post.findUnique({
+          where: { slug: strippedSlug },
+          include: defaultPostInclude,
+        });
+
+        if (!post) {
+          const transliteratedStripped = transliterateSlug(strippedSlug);
+          if (transliteratedStripped !== strippedSlug) {
+            post = await prisma.post.findUnique({
+              where: { slug: transliteratedStripped },
+              include: defaultPostInclude,
+            });
+          }
+        }
       }
     }
 

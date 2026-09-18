@@ -165,46 +165,62 @@ function removeThumbnailFromContent(
 
 // ─── Prisma helpers ───────────────────────────────────────────────
 
-/**
- * Parse the `[id]` param which can be:
- *  - A full slug:  `my-article-title`
- *  - A prefixed slug: `123-my-article-title`  (databaseId prefix from WP import)
- */
-function parseIdParam(idParam: string): { slug: string; numericId?: number } {
-  const decoded = decodeURIComponent(idParam);
-  // Check if it starts with a numeric prefix like "12345-"
-  const match = decoded.match(/^(\d+)-(.+)$/);
-  if (match) {
-    return { slug: match[2], numericId: parseInt(match[1], 10) };
-  }
-  return { slug: decoded };
-}
-
 async function fetchPostFromDB(idParam: string, categorySlug?: string) {
-  const { slug } = parseIdParam(idParam);
+  const decoded = decodeURIComponent(idParam).trim();
+  const includeQuery = {
+    featuredImage: true,
+    author: { select: { name: true, image: true } },
+    categories: { include: { category: true } },
+  };
 
-  // Try exact slug match first
+  // 1. Try exact slug match first
   let post = await prisma.post.findUnique({
-    where: { slug },
-    include: {
-      featuredImage: true,
-      author: { select: { name: true, image: true } },
-      categories: { include: { category: true } },
-    },
+    where: { slug: decoded },
+    include: includeQuery,
   });
 
-  // Fallback: transliterate the slug and try again
+  // 2. Fallback: transliterate the full slug and try again
   if (!post) {
-    const transliterated = transliterateSlug(slug);
-    if (transliterated !== slug) {
+    const transliterated = transliterateSlug(decoded);
+    if (transliterated !== decoded) {
       post = await prisma.post.findUnique({
         where: { slug: transliterated },
-        include: {
-          featuredImage: true,
-          author: { select: { name: true, image: true } },
-          categories: { include: { category: true } },
-        },
+        include: includeQuery,
       });
+    }
+  }
+
+  // 3. Fallback: Lookup by post ID (cuid)
+  if (!post) {
+    try {
+      post = await prisma.post.findUnique({
+        where: { id: decoded },
+        include: includeQuery,
+      });
+    } catch {
+      // Ignore invalid id format errors
+    }
+  }
+
+  // 4. Fallback: If it starts with a legacy numeric prefix like "12345-actual-slug"
+  if (!post) {
+    const match = decoded.match(/^(\d+)-(.+)$/);
+    if (match) {
+      const strippedSlug = match[2];
+      post = await prisma.post.findUnique({
+        where: { slug: strippedSlug },
+        include: includeQuery,
+      });
+
+      if (!post) {
+        const transliteratedStripped = transliterateSlug(strippedSlug);
+        if (transliteratedStripped !== strippedSlug) {
+          post = await prisma.post.findUnique({
+            where: { slug: transliteratedStripped },
+            include: includeQuery,
+          });
+        }
+      }
     }
   }
 
