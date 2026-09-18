@@ -7,6 +7,7 @@ import { Category } from "@/lib/type";
 export const DEFAULT_NAVBAR_CATEGORIES: Category[] = [
   { nepali: "होमपेज", english: "Homepage", slug: "/" },
   { nepali: "समाचार", english: "News", slug: "news" },
+  { nepali: "विशेष", english: "Exclusive", slug: "exclusive" },
   { nepali: "राजनीति", english: "Politics", slug: "politics" },
   { nepali: "विचार", english: "Opinion", slug: "opinion" },
   { nepali: "अर्थ", english: "Economy", slug: "economy" },
