@@ -101,6 +101,7 @@ model Post {
 
   metaTitle       String?
   metaDescription String?
+  videoUrl        String? // YouTube or video embed URL
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())

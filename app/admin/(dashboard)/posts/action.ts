@@ -18,6 +18,18 @@ async function requireSession() {
   return session;
 }
 
+function parsePublishDate(input: string | null): Date | null {
+  if (!input) return null;
+  const isoMatch = input.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (isoMatch) {
+    const [_, y, m, d, h, min, s = "00"] = isoMatch;
+    // Interpret local datetime-local as Nepal Standard Time (UTC+05:45)
+    return new Date(`${y}-${m}-${d}T${h}:${min}:${s}+05:45`);
+  }
+  const parsed = new Date(input);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export async function createPost(
   _prevState: ActionState,
   formData: FormData
@@ -27,11 +39,13 @@ export async function createPost(
   const title = (formData.get("title") as string)?.trim();
   const content = (formData.get("content") as string)?.trim();
   const excerpt = (formData.get("excerpt") as string) || null;
+  const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
   const featuredImageId = (formData.get("featuredImageId") as string) || null;
   const categoryIds = formData.getAll("categoryIds") as string[];
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED") || "DRAFT";
   const authorId = (formData.get("authorId") as string)?.trim() || null;
   const authorName = (formData.get("authorName") as string)?.trim() || null;
+  const dateMode = (formData.get("dateMode") as string) || "auto";
   const publishedAtInput = (formData.get("publishedAt") as string)?.trim() || null;
 
   if (!title) return { error: "Title is required" };
@@ -61,10 +75,9 @@ export async function createPost(
   const isFeatured = isFeaturedInput || hasFeaturedCat;
   const isExclusive = isExclusiveInput || hasExclusiveCat;
 
-  // datetime-local inputs have no timezone — treat as Nepal Standard Time (UTC+05:45)
   const resolvedPublishedAt =
     status === "PUBLISHED"
-      ? (publishedAtInput ? new Date(publishedAtInput + "+05:45") : new Date())
+      ? (dateMode === "manual" && publishedAtInput ? parsePublishDate(publishedAtInput) || new Date() : new Date())
       : null;
 
   let postId: string;
@@ -75,6 +88,7 @@ export async function createPost(
         slug,
         content,
         excerpt,
+        videoUrl,
         status,
         isBreaking,
         isFeatured,
@@ -100,6 +114,11 @@ export async function createPost(
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
   revalidatePath("/");
+  revalidatePath("/news");
+  revalidatePath("/search");
+  for (const cat of selectedCategories) {
+    revalidatePath(`/${cat.slug}`);
+  }
   redirect(`/admin/posts/${postId}`);
 }
 
@@ -113,11 +132,13 @@ export async function updatePost(
   const title = (formData.get("title") as string)?.trim();
   const content = (formData.get("content") as string)?.trim();
   const excerpt = (formData.get("excerpt") as string) || null;
+  const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
   const featuredImageId = (formData.get("featuredImageId") as string) || null;
   const categoryIds = formData.getAll("categoryIds") as string[];
   const status = (formData.get("status") as "DRAFT" | "PUBLISHED") || "DRAFT";
   const authorId = (formData.get("authorId") as string)?.trim() || null;
   const authorName = (formData.get("authorName") as string)?.trim() || null;
+  const dateMode = (formData.get("dateMode") as string) || "manual";
   const publishedAtInput = (formData.get("publishedAt") as string)?.trim() || null;
   const rawSlug = (formData.get("slug") as string)?.trim();
 
@@ -128,7 +149,10 @@ export async function updatePost(
   let slug = rawSlug ? transliterateSlug(rawSlug) : transliterateSlug(title);
   if (!slug) slug = `article-${Date.now().toString(36)}`;
 
-  const current = await prisma.post.findUnique({ where: { id: postId } });
+  const current = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { categories: { include: { category: true } } },
+  });
   if (!current) return { error: "Post not found" };
 
   // If slug changed, verify no clash
@@ -155,11 +179,17 @@ export async function updatePost(
   const isFeatured = isFeaturedInput !== undefined ? (isFeaturedInput || hasFeaturedCat) : hasFeaturedCat;
   const isExclusive = isExclusiveInput !== undefined ? (isExclusiveInput || hasExclusiveCat) : hasExclusiveCat;
 
-  // datetime-local inputs have no timezone — treat as Nepal Standard Time (UTC+05:45)
-  const resolvedPublishedAt =
-    status === "PUBLISHED"
-      ? (publishedAtInput ? new Date(publishedAtInput + "+05:45") : current.publishedAt ?? new Date())
-      : current.publishedAt;
+  // Resolve Published Date
+  let resolvedPublishedAt: Date | null = current.publishedAt;
+  if (status === "PUBLISHED") {
+    if (dateMode === "auto") {
+      resolvedPublishedAt = new Date();
+    } else if (dateMode === "manual" && publishedAtInput) {
+      resolvedPublishedAt = parsePublishDate(publishedAtInput) || current.publishedAt || new Date();
+    } else {
+      resolvedPublishedAt = current.publishedAt ?? new Date();
+    }
+  }
 
   try {
     await prisma.post.update({
@@ -169,6 +199,7 @@ export async function updatePost(
         slug,
         content,
         excerpt,
+        videoUrl,
         status,
         isBreaking,
         isFeatured,
@@ -188,9 +219,30 @@ export async function updatePost(
     return { error: err.message || "Failed to update post" };
   }
 
+  // Comprehensive Cache Revalidation
+  revalidatePath("/admin");
+  revalidatePath("/admin/posts");
   revalidatePath(`/admin/posts/${postId}`);
-  revalidatePath(`/${current.slug}`);
-  if (slug !== current.slug) revalidatePath(`/${slug}`);
+  revalidatePath("/");
+  revalidatePath("/news");
+  revalidatePath("/search");
+  revalidatePath(`/news/${current.slug}`);
+  revalidatePath(`/news/${slug}`);
+  if (current.slug) revalidatePath(`/${current.slug}`);
+  if (slug) revalidatePath(`/${slug}`);
+
+  const allRelevantCategories = [
+    ...selectedCategories,
+    ...current.categories.map((c) => c.category),
+  ];
+  for (const cat of allRelevantCategories) {
+    if (cat?.slug) {
+      revalidatePath(`/${cat.slug}`);
+      revalidatePath(`/${cat.slug}/${slug}`);
+      revalidatePath(`/${cat.slug}/${current.slug}`);
+    }
+  }
+
   redirect(`/admin/posts/${postId}`);
 }
 

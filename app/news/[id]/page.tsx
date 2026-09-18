@@ -13,7 +13,9 @@ import { prisma } from "@/lib/prisma";
 import { getCleanContent, getPostUrl } from "@/app/page";
 import ImageSlider from "@/app/components/ImageSlider";
 import NewsImage from "@/app/components/NewsImage";
+import YouTubeEmbed from "@/app/components/YouTubeEmbed";
 import { transliterateSlug } from "@/lib/transliterate";
+import { extractYouTubeFromContent } from "@/lib/youtube";
 import * as cheerio from "cheerio";
 import NepaliDate from "bikram-sambat-js";
 
@@ -160,6 +162,18 @@ function removeThumbnailFromContent(
     }
   });
 
+  return $.html();
+}
+
+function removeYouTubeFromContent(content: string | null): string {
+  if (!content) return "";
+  const $ = cheerio.load(content);
+  $("iframe").each((_, iframe) => {
+    const src = $(iframe).attr("src") || "";
+    if (src.includes("youtube.com") || src.includes("youtu.be")) {
+      $(iframe).remove();
+    }
+  });
   return $.html();
 }
 
@@ -362,8 +376,14 @@ export default async function NewsSlugPage({
     featuredImageUrl ||
     (contentImages.length > 0 ? contentImages[0] : undefined);
 
-  // Clean content (remove hero image from body text if embedded)
-  const cleanedContent = removeThumbnailFromContent(post.content, heroImage);
+  // Video URL (from dedicated post.videoUrl field or extracted from content)
+  const videoUrl = post.videoUrl || extractYouTubeFromContent(post.content);
+
+  // Clean content (remove hero image and youtube iframe from body text if embedded)
+  const contentWithoutThumb = removeThumbnailFromContent(post.content, heroImage);
+  const cleanedContent = videoUrl
+    ? removeYouTubeFromContent(contentWithoutThumb)
+    : contentWithoutThumb;
 
   const dateStr = (post.publishedAt || post.createdAt).toISOString();
   const formattedDate = getFormattedNepaliDate(dateStr);
@@ -438,6 +458,14 @@ export default async function NewsSlugPage({
                     fontSize: "clamp(1.05rem, 2.5vw, 1.25rem)",
                   }}
                 />
+
+                {/* Dedicated YouTube Video Player at bottom of content */}
+                {videoUrl && (
+                  <YouTubeEmbed
+                    url={videoUrl}
+                    title={getCleanTitle(post.title)}
+                  />
+                )}
 
                 {/* Social Share & Published Date Bar */}
                 <ArticleShareBar

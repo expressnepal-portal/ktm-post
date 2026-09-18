@@ -45,6 +45,7 @@ export default async function EditPostPage({
           content: post.content,
           excerpt: post.excerpt,
           status: post.status,
+          videoUrl: post.videoUrl,
           isBreaking: post.isBreaking,
           isFeatured: post.isFeatured,
           isExclusive: post.isExclusive,

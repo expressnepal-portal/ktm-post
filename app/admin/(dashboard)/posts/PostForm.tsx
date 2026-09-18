@@ -5,8 +5,9 @@ import { createPost, updatePost, type ActionState } from "./action";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "../components/ImageUpload";
 import { transliterateSlug } from "@/lib/transliterate";
-import { Sparkles, User as UserIcon, Hash, Calendar, Clock, Search, X } from "lucide-react";
+import { Sparkles, User as UserIcon, Hash, Calendar, Clock, Search, X, Video, Youtube } from "lucide-react";
 import DeletePostButton from "./DeletePostButton";
+import { getYouTubeVideoId, getYouTubeEmbedUrl } from "@/lib/youtube";
 
 interface AuthorUser {
   id: string;
@@ -25,6 +26,7 @@ interface PostFormProps {
     content: string;
     excerpt: string | null;
     status: string;
+    videoUrl?: string | null;
     authorId?: string | null;
     authorName?: string | null;
     author?: { id: string; name: string } | null;
@@ -63,9 +65,11 @@ export function PostForm({
   currentUserId,
   post,
 }: PostFormProps) {
+  const isEditing = !!post?.id;
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [content, setContent] = useState(post?.content || "");
+  const [videoUrl, setVideoUrl] = useState(post?.videoUrl || "");
   const [isBreaking, setIsBreaking] = useState(post?.isBreaking || false);
   const [isFeatured, setIsFeatured] = useState(post?.isFeatured || false);
   const [isExclusive, setIsExclusive] = useState(post?.isExclusive || false);
@@ -74,7 +78,7 @@ export function PostForm({
   );
   const [authorName, setAuthorName] = useState(post?.authorName || "");
   const [selectedAuthorId, setSelectedAuthorId] = useState(
-    post?.authorId || (post?.authorName ? "" : currentUserId || "")
+    post ? (post.authorId || "") : (currentUserId || "")
   );
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     post?.categoryIds || []
@@ -88,7 +92,7 @@ export function PostForm({
   const initialDateMode = post?.publishedAt ? "manual" : "auto";
   const [dateMode, setDateMode] = useState<"auto" | "manual">(initialDateMode);
   const [customPublishedAt, setCustomPublishedAt] = useState<string>(
-    formatLocalDateTime(post?.publishedAt || post?.createdAt)
+    formatLocalDateTime(post?.publishedAt || post?.createdAt || new Date().toISOString())
   );
 
   const toggleCategory = (id: string) => {
@@ -226,6 +230,9 @@ export function PostForm({
               </div>
             </div>
 
+            {/* Hidden field to pass dateMode to server action */}
+            <input type="hidden" name="dateMode" value={dateMode} />
+
             {dateMode === "manual" ? (
               <div className="space-y-1.5">
                 <input
@@ -243,11 +250,10 @@ export function PostForm({
               <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 text-xs text-gray-500 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400 shrink-0" />
                 <span>
-                  {post?.publishedAt
-                    ? `Currently: ${new Date(post.publishedAt).toLocaleString()}`
-                    : "Automatic (Sets to latest current date & time on publish)"}
+                  {isEditing
+                    ? "Automatic (Sets to current date & time on save)"
+                    : "Automatic (Sets to current date & time on publish)"}
                 </span>
-                {/* Hidden input omitted so backend defaults to now() / current date */}
               </div>
             )}
           </div>
@@ -552,6 +558,55 @@ export function PostForm({
               name="featuredImageId"
               value={featuredImageId}
             />
+          </div>
+
+          {/* YouTube Video URL */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
+                <Youtube className="w-4 h-4 text-red-600" />
+                YouTube Video (भिडियो लिङ्क)
+              </label>
+              {videoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setVideoUrl("")}
+                  className="text-[11px] text-gray-400 hover:text-red-600 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <input
+              type="text"
+              name="videoUrl"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="e.g. https://www.youtube.com/watch?v=..."
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-nepal-red text-xs font-mono"
+            />
+            <p className="text-[11px] text-gray-400">
+              Paste YouTube video link, shorts, or embed code. If provided, the video player will automatically appear at the bottom of the article.
+            </p>
+
+            {/* Live Video Preview */}
+            {getYouTubeEmbedUrl(videoUrl) && (
+              <div className="mt-2 space-y-1">
+                <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
+                  Video Preview:
+                </span>
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-200 shadow-xs">
+                  <iframe
+                    src={getYouTubeEmbedUrl(videoUrl)!}
+                    title="YouTube Preview"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full border-0"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit & Delete */}

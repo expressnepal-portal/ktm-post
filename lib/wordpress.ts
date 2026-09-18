@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { BannerAd, HomePagePosts } from "./type";
 import { transliterateSlug } from "./transliterate";
+import { getYouTubeThumbnailUrl } from "./youtube";
 
 export interface FeaturedImage {
   sourceUrl: string;
@@ -22,6 +23,7 @@ export interface Post {
   date: string;
   content: string | null;
   excerpt?: string | null;
+  videoUrl?: string | null;
   featuredImage?: {
     node: FeaturedImage;
   } | null;
@@ -72,6 +74,7 @@ function mapPrismaPostToPost(p: any): Post {
   }).replace(",", "");
   const primaryCat = p.categories?.[0]?.category;
   const authorName = p.authorName || p.author?.name || "KTM Post";
+  const ytThumb = p.videoUrl ? getYouTubeThumbnailUrl(p.videoUrl) : null;
 
   return {
     id: p.id,
@@ -83,6 +86,7 @@ function mapPrismaPostToPost(p: any): Post {
     date: publishedDate,
     content: p.content || "",
     excerpt: p.excerpt || "",
+    videoUrl: p.videoUrl || null,
     featuredImage: p.featuredImage
       ? {
           node: {
@@ -91,6 +95,17 @@ function mapPrismaPostToPost(p: any): Post {
             mediaDetails: {
               width: p.featuredImage.width || 800,
               height: p.featuredImage.height || 600,
+            },
+          },
+        }
+      : ytThumb
+      ? {
+          node: {
+            sourceUrl: ytThumb,
+            altText: p.title || "Video thumbnail",
+            mediaDetails: {
+              width: 800,
+              height: 450,
             },
           },
         }
@@ -331,6 +346,15 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
     }
     const mappedExclusive = Array.from(exclusiveMap.values()).slice(0, 7);
 
+    // Combine posts with videoUrl and posts in multimedia category
+    const videoPosts = allRecent.filter((p) => !!p.videoUrl).map(mapPrismaPostToPost);
+    const multimediaCatPosts = getCatPosts("multimedia", 6);
+    const multimediaMap = new Map<string, Post>();
+    for (const post of [...videoPosts, ...multimediaCatPosts]) {
+      multimediaMap.set(post.id, post);
+    }
+    const mappedMultimedia = Array.from(multimediaMap.values()).slice(0, 6);
+
     return {
       featured: mappedFeatured,
       trending: getCatPosts("politics", 6),
@@ -344,7 +368,7 @@ export async function fetchHomePagePosts(): Promise<HomePagePosts> {
       sports: getCatPosts("sports", 6),
       world: getCatPosts("world", 6),
       podcast: getCatPosts("podcast", 6),
-      multimedia: getCatPosts("multimedia", 6),
+      multimedia: mappedMultimedia,
       international: getCatPosts("world", 6),
       opinion: getCatPosts("opinion", 4),
       legal: getCatPosts("legal", 6),
