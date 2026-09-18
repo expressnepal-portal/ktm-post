@@ -49,7 +49,9 @@ export default async function CategoryPage({
   const categoryDisplayName = matchedCategory ? (matchedCategory.nepaliName || matchedCategory.name) : decodeURIComponent(category);
   
   // Fetch posts dynamically by category slug
-  const rawPosts = await fetchPostsByCategory(wpCategorySlug, 15);
+  // विशेष (exclusive) = fetch more posts since it's a key catalogue
+  const fetchLimit = wpCategorySlug === "exclusive" ? 100 : 50;
+  const rawPosts = await fetchPostsByCategory(wpCategorySlug, fetchLimit);
   const posts = rawPosts.map(mapWpPost);
 
   return (
