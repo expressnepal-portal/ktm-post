@@ -75,6 +75,14 @@ export async function createPost(
     })
     .map(c => c.id);
 
+  // If badges are checked, ensure their respective system categories are included
+  if (isExclusive) {
+    const exclusiveCategory = await prisma.category.findUnique({ where: { slug: "exclusive" } });
+    if (exclusiveCategory && !finalCategoryIds.includes(exclusiveCategory.id)) {
+      finalCategoryIds.push(exclusiveCategory.id);
+    }
+  }
+
   const resolvedPublishedAt =
     status === "PUBLISHED"
       ? (dateMode === "manual" && publishedAtInput ? parsePublishDate(publishedAtInput) || new Date() : new Date())
@@ -116,6 +124,7 @@ export async function createPost(
   revalidatePath("/");
   revalidatePath("/news");
   revalidatePath("/search");
+  revalidatePath("/exclusive");
   for (const cat of selectedCategories) {
     revalidatePath(`/${cat.slug}`);
   }
@@ -181,6 +190,14 @@ export async function updatePost(
     })
     .map((c) => c.id);
 
+  // If badges are checked, ensure their respective system categories are included
+  if (isExclusive) {
+    const exclusiveCategory = await prisma.category.findUnique({ where: { slug: "exclusive" } });
+    if (exclusiveCategory && !finalCategoryIds.includes(exclusiveCategory.id)) {
+      finalCategoryIds.push(exclusiveCategory.id);
+    }
+  }
+
   // Resolve Published Date
   let resolvedPublishedAt: Date | null = current.publishedAt;
   if (status === "PUBLISHED") {
@@ -228,6 +245,7 @@ export async function updatePost(
   revalidatePath("/");
   revalidatePath("/news");
   revalidatePath("/search");
+  revalidatePath("/exclusive");
   revalidatePath(`/news/${current.slug}`);
   revalidatePath(`/news/${slug}`);
   if (current.slug) revalidatePath(`/${current.slug}`);
